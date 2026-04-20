@@ -13,6 +13,7 @@ Thumbs.db
 bin/
 *.exe
 *.test
+!Dockerfile.*.test
 *.out
 coverage.out
 go.work
