@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/azfirazka/gofin-full/api/internal/sse"
+	"github.com/ajianaz/gofin-full/api/internal/sse"
 )
 
 func TestHubSubscribeUnsubscribe(t *testing.T) {

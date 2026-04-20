@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/azfirazka/gofin-full/api/internal/config"
+	"github.com/ajianaz/gofin-full/api/internal/config"
 )
 
 // localProvider implements email + password authentication.

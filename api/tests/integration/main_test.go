@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/azfirazka/gofin-full/api/tests/integration/testhelpers"
+	"github.com/ajianaz/gofin-full/api/tests/integration/testhelpers"
 )
 
 // testApp is shared across all integration tests in this package.

@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
-	"github.com/azfirazka/gofin-full/api/internal/domain"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
 )
 
 // TransactionRepository handles the triple-layer transaction data access.

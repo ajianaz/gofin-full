@@ -10,7 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/azfirazka/gofin-full/api/internal/domain"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
 )
 
 // APIKeyRepository handles API key data access.

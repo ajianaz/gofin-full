@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/azfirazka/gofin-full/api/internal/domain"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
 )
 
 // These tests validate the transaction service's business logic

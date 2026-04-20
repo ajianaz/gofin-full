@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
 )
 
 // SeedData holds the IDs and tokens created by SeedTestData.

@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/azfirazka/gofin-full/api/tests/integration/testhelpers"
+	"github.com/ajianaz/gofin-full/api/tests/integration/testhelpers"
 )
 
 func TestOwnerCanShareWallet(t *testing.T) {

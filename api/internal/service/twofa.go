@@ -9,7 +9,7 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
-	"github.com/azfirazka/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
 )
 
 type TwoFAService struct {

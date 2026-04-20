@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/azfirazka/gofin-full/api/internal/domain"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )

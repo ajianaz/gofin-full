@@ -7,7 +7,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/azfirazka/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
 )
 
 type ExchangeRateService struct {

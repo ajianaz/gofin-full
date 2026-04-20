@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/azfirazka/gofin-full/api/internal/repository"
-	"github.com/azfirazka/gofin-full/api/internal/sse"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/sse"
 )
 
 type NotificationService struct {

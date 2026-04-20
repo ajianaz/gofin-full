@@ -7,8 +7,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
-	"github.com/azfirazka/gofin-full/api/internal/domain"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
 )
 
 // UserRepository handles user data access.

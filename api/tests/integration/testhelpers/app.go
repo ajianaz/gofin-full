@@ -7,13 +7,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
-	"github.com/azfirazka/gofin-full/api/internal/config"
-	"github.com/azfirazka/gofin-full/api/internal/handler"
-	"github.com/azfirazka/gofin-full/api/internal/repository"
-	"github.com/azfirazka/gofin-full/api/internal/router"
-	"github.com/azfirazka/gofin-full/api/internal/service"
-	"github.com/azfirazka/gofin-full/api/internal/sse"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/config"
+	"github.com/ajianaz/gofin-full/api/internal/handler"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/router"
+	"github.com/ajianaz/gofin-full/api/internal/service"
+	"github.com/ajianaz/gofin-full/api/internal/sse"
 )
 
 // TestApp bundles the Fiber app with the database pool and seed data,

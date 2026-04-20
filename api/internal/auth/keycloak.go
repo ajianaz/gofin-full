@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
 
-	"github.com/azfirazka/gofin-full/api/internal/config"
+	"github.com/ajianaz/gofin-full/api/internal/config"
 )
 
 // keycloakProvider implements Keycloak OIDC authentication.

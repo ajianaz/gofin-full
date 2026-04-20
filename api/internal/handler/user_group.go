@@ -6,9 +6,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
-	"github.com/azfirazka/gofin-full/api/internal/repository"
-	apperrors "github.com/azfirazka/gofin-full/api/pkg/errors"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
 // UserGroupHandler handles user group endpoints.

@@ -5,7 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/azfirazka/gofin-full/api/internal/config"
+	"github.com/ajianaz/gofin-full/api/internal/config"
 )
 
 // UserIdentity represents an authenticated user, extracted from any auth provider.
