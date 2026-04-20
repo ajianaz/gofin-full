@@ -6,11 +6,11 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
-	"github.com/azfirazka/gofin-full/api/internal/domain"
-	"github.com/azfirazka/gofin-full/api/internal/repository"
-	"github.com/azfirazka/gofin-full/api/internal/service"
-	apperrors "github.com/azfirazka/gofin-full/api/pkg/errors"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/service"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
 type TransactionHandler struct {

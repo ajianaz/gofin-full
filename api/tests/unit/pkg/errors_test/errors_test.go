@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	apperrors "github.com/azfirazka/gofin-full/api/pkg/errors"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 

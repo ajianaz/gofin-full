@@ -11,7 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
 )
 
 // MakeRequest sends a request through the Fiber app using httptest.

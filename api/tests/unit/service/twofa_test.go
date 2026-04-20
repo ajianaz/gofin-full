@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/azfirazka/gofin-full/api/internal/repository"
-	"github.com/azfirazka/gofin-full/api/internal/service"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/service"
 )
 
 func newTwoFAService() *service.TwoFAService {

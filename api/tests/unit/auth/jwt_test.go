@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
 )
 
 func TestJWTManager_GenerateAndValidate(t *testing.T) {

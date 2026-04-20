@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	response "github.com/azfirazka/gofin-full/api/internal/dto/response"
+	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/stretchr/testify/assert"
 )
 

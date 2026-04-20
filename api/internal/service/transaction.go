@@ -7,8 +7,8 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/azfirazka/gofin-full/api/internal/domain"
-	"github.com/azfirazka/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
 )
 
 // TransactionService handles the core business logic for transactions.

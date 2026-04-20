@@ -1,4 +1,4 @@
-module github.com/azfirazka/gofin-full/api
+module github.com/ajianaz/gofin-full/api
 
 go 1.25.0
 

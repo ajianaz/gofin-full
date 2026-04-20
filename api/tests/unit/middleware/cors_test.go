@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/azfirazka/gofin-full/api/internal/middleware"
+	"github.com/ajianaz/gofin-full/api/internal/middleware"
 )
 
 func TestCORS_CustomOrigins(t *testing.T) {

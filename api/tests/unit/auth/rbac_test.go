@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
 )
 
 func TestRBAC_HasPermission_OwnerHasAll(t *testing.T) {

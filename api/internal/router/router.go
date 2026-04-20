@@ -7,11 +7,11 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
-	"github.com/azfirazka/gofin-full/api/internal/handler"
-	"github.com/azfirazka/gofin-full/api/internal/middleware"
-	"github.com/azfirazka/gofin-full/api/internal/repository"
-	"github.com/azfirazka/gofin-full/api/internal/sse"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/handler"
+	"github.com/ajianaz/gofin-full/api/internal/middleware"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/sse"
 )
 
 // RouterConfig holds all dependencies needed by the router.

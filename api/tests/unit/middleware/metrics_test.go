@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/azfirazka/gofin-full/api/internal/middleware"
+	"github.com/ajianaz/gofin-full/api/internal/middleware"
 )
 
 func TestMetricsMiddleware(t *testing.T) {

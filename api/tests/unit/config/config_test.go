@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/azfirazka/gofin-full/api/internal/config"
+	"github.com/ajianaz/gofin-full/api/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

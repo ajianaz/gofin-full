@@ -5,10 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/azfirazka/gofin-full/api/internal/auth"
-	"github.com/azfirazka/gofin-full/api/internal/config"
-	"github.com/azfirazka/gofin-full/api/internal/handler"
-	"github.com/azfirazka/gofin-full/api/internal/router"
+	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/config"
+	"github.com/ajianaz/gofin-full/api/internal/handler"
+	"github.com/ajianaz/gofin-full/api/internal/router"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

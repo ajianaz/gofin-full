@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	apperrors "github.com/azfirazka/gofin-full/api/pkg/errors"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
 var validAcceptHeaders = []string{

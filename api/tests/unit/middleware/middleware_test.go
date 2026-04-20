@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	apperrors "github.com/azfirazka/gofin-full/api/pkg/errors"
-	"github.com/azfirazka/gofin-full/api/internal/middleware"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+	"github.com/ajianaz/gofin-full/api/internal/middleware"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/gofiber/fiber/v2"
 
-	apperrors "github.com/azfirazka/gofin-full/api/pkg/errors"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
 // GroupRole represents the 22 group-level permission values from Firefly III.

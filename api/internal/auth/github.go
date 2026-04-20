@@ -11,7 +11,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 
-	"github.com/azfirazka/gofin-full/api/internal/config"
+	"github.com/ajianaz/gofin-full/api/internal/config"
 )
 
 // gitHubProvider implements GitHub OAuth2 authentication.

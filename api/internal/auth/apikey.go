@@ -8,7 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	apperrors "github.com/azfirazka/gofin-full/api/pkg/errors"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
 // KeyLookup is implemented by the API key repository.
