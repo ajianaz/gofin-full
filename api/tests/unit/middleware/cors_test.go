@@ -12,15 +12,14 @@ import (
 )
 
 func TestCORS_CustomOrigins(t *testing.T) {
-	origins := []string{"http://localhost:5173", "https://app.gofin.io"}
-
-	app := setupTestApp(middleware.CORS(origins...))
+	// In production with a specific appURL, CORS restricts to that origin
+	app := setupTestApp(middleware.CORS("http://localhost:5173", "production"))
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendStatus(200)
 	})
 
-	// Allowed origin should get the origin back
-	t.Run("allowed_origin_localhost", func(t *testing.T) {
+	// The configured app URL origin should get the origin back
+	t.Run("allowed_origin_matches_app_url", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/", nil)
 		req.Header.Set("Origin", "http://localhost:5173")
 		resp, err := app.Test(req, -1)
@@ -28,26 +27,19 @@ func TestCORS_CustomOrigins(t *testing.T) {
 		assert.Equal(t, "http://localhost:5173", resp.Header.Get("Access-Control-Allow-Origin"))
 	})
 
-	t.Run("allowed_origin_app", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/", nil)
-		req.Header.Set("Origin", "https://app.gofin.io")
-		resp, err := app.Test(req, -1)
-		require.NoError(t, err)
-		assert.Equal(t, "https://app.gofin.io", resp.Header.Get("Access-Control-Allow-Origin"))
-	})
-
-	t.Run("disallowed_origin_blocked", func(t *testing.T) {
+	t.Run("different_origin_blocked_in_production", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/", nil)
 		req.Header.Set("Origin", "https://evil.com")
 		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
-		// With specific origins, a non-matching origin should get an empty header
+		// In production with a specific appURL, non-matching origins should not get CORS headers
 		assert.Empty(t, resp.Header.Get("Access-Control-Allow-Origin"))
 	})
 }
 
 func TestCORS_WildcardFallback(t *testing.T) {
-	app := setupTestApp(middleware.CORS())
+	// Non-production environment falls back to wildcard
+	app := setupTestApp(middleware.CORS("", "local"))
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendStatus(200)
 	})
@@ -57,13 +49,13 @@ func TestCORS_WildcardFallback(t *testing.T) {
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
-	// With no origins specified, should fall back to wildcard
+	// Non-production should allow all origins
 	assert.Equal(t, "*", resp.Header.Get("Access-Control-Allow-Origin"))
 }
 
 func TestCORS_PreflightWithCustomOrigins(t *testing.T) {
-	origins := []string{"http://localhost:5173"}
-	app := setupTestApp(middleware.CORS(origins...))
+	// In production with a specific appURL, preflight requests should also be restricted
+	app := setupTestApp(middleware.CORS("http://localhost:5173", "production"))
 	app.Options("/", func(c *fiber.Ctx) error {
 		return c.SendStatus(204)
 	})

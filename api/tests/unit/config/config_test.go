@@ -52,8 +52,8 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "gofin", cfg.DBUsername)
 	assert.Equal(t, "prefer", cfg.DBSSLMode)
 	assert.Equal(t, "public", cfg.DBSchema)
-	assert.Equal(t, 25, cfg.DBMaxOpenConns)
-	assert.Equal(t, 5, cfg.DBMaxIdleConns)
+	assert.Equal(t, 5, cfg.DBMaxOpenConns)
+	assert.Equal(t, 2, cfg.DBMaxIdleConns)
 
 	// Redis defaults
 	assert.Equal(t, "localhost", cfg.RedisHost)
