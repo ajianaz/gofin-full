@@ -55,7 +55,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return apperrors.NewWithDetail(403, "Forbidden", "User account is blocked.")
 	}
 
-	tokens, err := h.jwtMgr.GenerateTokenPair(identity, nil)
+	tokens, err := h.jwtMgr.GenerateTokenPair(identity, identity.UserGroupID)
 	if err != nil {
 		return apperrors.ErrInternal
 	}
@@ -197,6 +197,16 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	claims, err := h.jwtMgr.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
 		return apperrors.NewWithDetail(401, "Unauthenticated", "Invalid or expired refresh token.")
+	}
+
+	// Verify the token exists in the database (guards against replay of rotated tokens)
+	if h.refreshRepo != nil {
+		oldHash := auth.HashRefreshToken(req.RefreshToken)
+		if _, _, dbErr := h.refreshRepo.GetByHash(c.Context(), oldHash); dbErr != nil {
+			return apperrors.NewWithDetail(401, "Unauthenticated", "Refresh token has been revoked or does not exist.")
+		}
+		// Rotate: revoke the old token so it cannot be reused
+		_ = h.refreshRepo.RevokeByHash(c.Context(), oldHash)
 	}
 
 	identity := &auth.UserIdentity{

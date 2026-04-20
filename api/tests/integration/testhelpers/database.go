@@ -96,8 +96,9 @@ func SetupTestDB(cfg *TestConfig) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-// TruncateAllTables removes all rows from data tables, preserving reference data
-// (roles, user_roles) that are seeded by migrations.
+// TruncateAllTables removes all rows from data tables and resets their
+// sequences so that IDs are predictable across test runs. Reference data
+// (roles, user_roles) seeded by migrations is preserved.
 func TruncateAllTables(db *pgxpool.Pool) {
 	ctx := context.Background()
 	tables := []string{
@@ -113,6 +114,21 @@ func TruncateAllTables(db *pgxpool.Pool) {
 	}
 	for _, t := range tables {
 		_, _ = db.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s CASCADE", t))
+	}
+
+	// Reset serial sequences so IDs start from 1 after truncation.
+	sequences := []string{
+		"users_id_seq",
+		"user_groups_id_seq",
+		"group_memberships_id_seq",
+		"wallets_id_seq",
+		"wallet_members_id_seq",
+		"refresh_tokens_id_seq",
+		"api_keys_id_seq",
+		"oauth_states_id_seq",
+	}
+	for _, seq := range sequences {
+		_, _ = db.Exec(ctx, fmt.Sprintf("ALTER SEQUENCE IF EXISTS %s RESTART WITH 1", seq))
 	}
 }
 
