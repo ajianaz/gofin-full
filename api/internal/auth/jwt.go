@@ -59,6 +59,7 @@ func (m *JWTManager) GenerateTokenPair(identity *UserIdentity, groupID *int64) (
 	// Access token
 	accessClaims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        generateTokenID(),
 			Subject:   fmt.Sprintf("%d", identity.ID),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.accessExpiry)),
