@@ -31,16 +31,16 @@ api-tidy:
 # ─── Web (SvelteKit frontend) ───────────────────────────────
 
 web-install:
-	cd web && npm install
+	cd web && bun install
 
 web-dev:
-	cd web && npm run dev
+	cd web && bun run dev
 
 web-build:
-	cd web && npm run build
+	cd web && bun run build
 
 web-lint:
-	cd web && npm run lint
+	cd web && bun run lint
 
 # ─── Docker ─────────────────────────────────────────────────
 
