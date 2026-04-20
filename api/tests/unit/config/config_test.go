@@ -48,8 +48,8 @@ func TestLoad_Defaults(t *testing.T) {
 	// Database defaults
 	assert.Equal(t, "localhost", cfg.DBHost)
 	assert.Equal(t, 5432, cfg.DBPort)
-	assert.Equal(t, "firefly", cfg.DBDatabase)
-	assert.Equal(t, "firefly", cfg.DBUsername)
+	assert.Equal(t, "gofin", cfg.DBDatabase)
+	assert.Equal(t, "gofin", cfg.DBUsername)
 	assert.Equal(t, "prefer", cfg.DBSSLMode)
 	assert.Equal(t, "public", cfg.DBSchema)
 	assert.Equal(t, 25, cfg.DBMaxOpenConns)
@@ -64,9 +64,9 @@ func TestLoad_Defaults(t *testing.T) {
 
 	// Keycloak defaults
 	assert.Equal(t, "http://localhost:8088", cfg.KeycloakURL)
-	assert.Equal(t, "firefly", cfg.KeycloakRealm)
-	assert.Equal(t, "firefly-go-api", cfg.KeycloakClientID)
-	assert.Equal(t, "http://localhost:8088/realms/firefly", cfg.KeycloakRealmURL())
+	assert.Equal(t, "gofin", cfg.KeycloakRealm)
+	assert.Equal(t, "gofin-api", cfg.KeycloakClientID)
+	assert.Equal(t, "http://localhost:8088/realms/gofin", cfg.KeycloakRealmURL())
 	assert.Contains(t, cfg.KeycloakJWKSURL(), "/protocol/openid-connect/certs")
 	assert.Contains(t, cfg.KeycloakTokenURL(), "/protocol/openid-connect/token")
 
@@ -129,9 +129,9 @@ func TestLoad_DatabaseDSN(t *testing.T) {
 	cfg := &config.Config{
 		DBHost:     "localhost",
 		DBPort:     5432,
-		DBUsername: "firefly",
+		DBUsername: "gofin",
 		DBPassword: "secret",
-		DBDatabase: "firefly",
+		DBDatabase: "gofin",
 		DBSSLMode:  "prefer",
 		DBSchema:   "public",
 	}
@@ -139,9 +139,9 @@ func TestLoad_DatabaseDSN(t *testing.T) {
 	dsn := cfg.DatabaseDSN()
 	assert.Contains(t, dsn, "host=localhost")
 	assert.Contains(t, dsn, "port=5432")
-	assert.Contains(t, dsn, "user=firefly")
+	assert.Contains(t, dsn, "user=gofin")
 	assert.Contains(t, dsn, "password=secret")
-	assert.Contains(t, dsn, "dbname=firefly")
+	assert.Contains(t, dsn, "dbname=gofin")
 	assert.Contains(t, dsn, "sslmode=prefer")
 	assert.Contains(t, dsn, "search_path=public")
 }
