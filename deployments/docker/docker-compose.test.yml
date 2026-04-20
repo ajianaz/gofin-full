@@ -1,12 +1,11 @@
 # Full test environment: Postgres + Redis + test runner.
 # Usage:
+#   make docker-test
+#
+# Or manually (must swap .dockerignore first so tests/ are included):
 #   cp deployments/docker/.dockerignore.test api/.dockerignore
 #   docker compose -f deployments/docker/docker-compose.test.yml up --build --abort-on-container-exit
-#   git checkout api/.dockerignore  # restore original
-#
-# Or without modifying .dockerignore (recommended):
-#   docker compose -f deployments/docker/docker-compose.test.yml up --build --abort-on-container-exit
-#   (uses DOCKER_IGNORE_PATH if supported, otherwise build script handles it)
+#   cp deployments/docker/.dockerignore.test api/.dockerignore  # restore
 services:
   postgres:
     image: postgres:16-alpine
