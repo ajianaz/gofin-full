@@ -11,6 +11,138 @@ Gofin is a personal finance management API built in Go (Fiber v2 + PostgreSQL + 
 - **Real-time**: Server-Sent Events (SSE) for notifications
 - **Decimal Math**: shopspring/decimal for financial precision
 
+## Local Development
+
+### Docker Development (recommended)
+
+The fastest way to get running is with Docker, which starts the API, PostgreSQL, and Redis together:
+
+```bash
+# Start backend services (API + Postgres + Redis)
+make docker-dev
+
+# In a separate terminal, start the frontend dev server
+make web-dev
+```
+
+- API runs on http://localhost:8080
+- Frontend runs on http://localhost:5173 and proxies `/api` requests to the backend
+- PostgreSQL is available on `localhost:5432`
+- Redis is available on `localhost:6379`
+
+### OAuth Development
+
+For Keycloak-based OAuth, use the full compose file instead:
+
+```bash
+docker compose -f deployments/docker/docker-compose.yml up -d
+```
+
+This adds Keycloak on http://localhost:8081. Set `AUTH_PROVIDER=keycloak` in your `.env`.
+
+### Manual Setup
+
+If you prefer to run services individually:
+
+**Backend:**
+```bash
+cd api
+cp .env.example .env
+go run ./cmd/server
+```
+
+**Frontend:**
+```bash
+cd web
+bun install
+bun run dev
+```
+
+## Testing
+
+### Test Types
+
+| Test Type | What it tests | Requires Docker |
+|-----------|---------------|----------------|
+| Unit tests | Domain models, handlers, middleware, services, config | No |
+| Integration tests | Auth, RBAC, wallet permissions against real PostgreSQL + Redis | Yes |
+| E2E tests | Full browser flows via Playwright | Yes |
+
+### Running Tests
+
+```bash
+# Unit tests only (no Docker needed)
+make api-test-unit
+
+# Integration tests (start infra first)
+make api-test-integration-infra
+make api-test-integration
+
+# Full test suite in Docker (spins up Postgres + Redis + runs all tests)
+make docker-test
+
+# Web type check
+make web-lint
+
+# E2E tests (requires running backend)
+cd web && bunx playwright test
+```
+
+### Integration Test Details
+
+Integration tests use `docker-compose.test.yml` which provides PostgreSQL on port 5433 and Redis on port 6380 (non-standard ports to avoid conflicts). Four seed users are created per test run: owner, full, manage_transactions, and read_only roles.
+
+### Test Infrastructure
+
+See `docs/tests/TEST_REPORT.md` for the latest test results and RBAC coverage matrix.
+
+## Docker Commands
+
+### Quick Reference
+
+```bash
+# Daily development (API + Postgres + Redis)
+make docker-dev
+docker compose -f deployments/docker/docker-compose.dev.yml up -d
+docker compose -f deployments/docker/docker-compose.dev.yml down
+
+# OAuth development (API + Postgres + Redis + Keycloak)
+docker compose -f deployments/docker/docker-compose.yml up -d
+docker compose -f deployments/docker/docker-compose.yml down
+
+# Self-hosted production (Caddy + API + Web + Postgres + Redis)
+make docker-selfhost
+docker compose -f deployments/docker/docker-compose.selfhost.yml up -d
+docker compose -f deployments/docker/docker-compose.selfhost.yml down
+
+# Run tests (Postgres + Redis + Test runner)
+make docker-test
+docker compose -f deployments/docker/docker-compose.test.yml up --abort-on-container-exit
+docker compose -f deployments/docker/docker-compose.test.yml down -v
+```
+
+### Compose Files
+
+| Compose File | Use Case | Services |
+|--------------|----------|----------|
+| `docker-compose.dev.yml` | Daily development | API + Postgres + Redis |
+| `docker-compose.yml` | OAuth development | API + Postgres + Redis + Keycloak |
+| `docker-compose.selfhost.yml` | Production deployment | Caddy + API + Web + Postgres + Redis |
+| `docker-compose.test.yml` | CI/testing | Postgres + Redis + Test runner |
+
+### Useful Docker Tips
+
+```bash
+# View API logs
+docker compose -f deployments/docker/docker-compose.dev.yml logs -f api
+
+# Rebuild after code changes
+docker compose -f deployments/docker/docker-compose.dev.yml up -d --build
+
+# Reset database volumes
+docker compose -f deployments/docker/docker-compose.dev.yml down -v
+```
+
 ## Deployment
 
 ### Environment Variables

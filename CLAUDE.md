@@ -20,11 +20,15 @@ Personal finance tracker monorepo. Go API backend + SvelteKit frontend.
 - Module path is `github.com/ajianaz/gofin-full/api` (NOT mis-puragroup, NOT azfirazka).
 
 ## Commands
+- `make docker-dev` — Start daily dev stack (API + Postgres + Redis)
+- `make docker-up` — Start full dev stack (API + Postgres + Redis + Keycloak)
+- `make docker-test` — Run full test suite in Docker (Postgres + Redis + Test runner)
+- `make docker-selfhost` — Start self-hosted production stack
 - `make api-test-unit` — Unit tests only
 - `make api-test-integration` — Integration tests (needs Docker)
-- `make docker-up` — Start dev stack (postgres, redis, keycloak, api)
+- `make api-test-integration-infra` — Start integration test infrastructure (Postgres:5433, Redis:6380)
 - `make web-dev` — Start SvelteKit dev server
-- `make docker-test` — Run full test suite in Docker
+- `make web-lint` — Web type check
 
 ## Commit Style
 - `feat: description` — New feature
