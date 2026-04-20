@@ -38,11 +38,12 @@ func (p *localProvider) Authenticate(ctx context.Context, creds Credentials) (*U
 	var hashedPassword string
 	var blocked bool
 	var deletedAt *string
+	var userGroupID *int64
 
 	err := p.db.QueryRow(ctx,
-		`SELECT id, password, blocked, deleted_at::text
-			 FROM users WHERE email = $1`, creds.Email,
-	).Scan(&id, &hashedPassword, &blocked, &deletedAt)
+		`SELECT id, password, blocked, deleted_at::text, user_group_id
+				 FROM users WHERE email = $1`, creds.Email,
+	).Scan(&id, &hashedPassword, &blocked, &deletedAt, &userGroupID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid credentials")
 	}
@@ -55,10 +56,11 @@ func (p *localProvider) Authenticate(ctx context.Context, creds Credentials) (*U
 	}
 
 	return &UserIdentity{
-		ID:       id,
-		Email:    creds.Email,
-		Blocked:  blocked,
-		DemoUser: false,
+		ID:          id,
+		Email:       creds.Email,
+		Blocked:     blocked,
+		DemoUser:    false,
+		UserGroupID: userGroupID,
 	}, nil
 }
 
