@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS transaction_journal_links;
+DROP TABLE IF EXISTS transaction_journal_meta;
+DROP TABLE IF EXISTS journal_tag;
+DROP TABLE IF EXISTS category_transaction;
+DROP TABLE IF EXISTS transactions;
+DROP TABLE IF EXISTS transaction_journals;
+DROP TABLE IF EXISTS transaction_groups;
+DROP TABLE IF EXISTS link_types;
+DROP TABLE IF EXISTS transaction_types;

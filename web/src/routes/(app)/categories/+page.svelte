@@ -1,0 +1,50 @@
+<script lang="ts">
+	import { PageHeader } from '$lib/components/shared/index.js';
+	import { Card, CardContent } from '$lib/components/ui/card/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Plus } from '@lucide/svelte';
+	import { mockCategories } from '$lib/data/mock-categories.js';
+	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	const t = localeStore.t;
+</script>
+
+<PageHeader title={t('categories.list.title')} description={t('categories.list.description')}>
+	{#snippet actions()}
+		<Button asChild size="sm">
+			<a href="/categories/create">
+				<Plus class="size-4" />
+				{t('categories.list.add')}
+			</a>
+		</Button>
+	{/snippet}
+</PageHeader>
+
+<Card>
+	<CardContent class="p-0">
+		<div class="overflow-x-auto">
+			<table class="w-full text-sm">
+				<thead>
+					<tr class="border-b bg-muted/50">
+						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colName')}</th>
+						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colType')}</th>
+						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colTransactions')}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each mockCategories as cat}
+						<tr class="border-b hover:bg-muted/30">
+							<td class="p-3 font-medium text-foreground">{cat.name}</td>
+							<td class="p-3">
+								<Badge variant={cat.type === 'income' ? 'default' : 'secondary'}>
+									{cat.type === 'expense' ? t('categories.list.expense') : cat.type === 'income' ? t('categories.list.income') : t('categories.list.transfer')}
+								</Badge>
+							</td>
+							<td class="p-3 text-muted-foreground">{cat.transaction_count}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	</CardContent>
+</Card>

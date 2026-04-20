@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS locations;
+DROP TABLE IF EXISTS notes;
+DROP TABLE IF EXISTS object_groups;
+DROP TABLE IF EXISTS configurations;
+DROP TABLE IF EXISTS preferences;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS attachments;
+DROP TABLE IF EXISTS webhook_deliveries;
+DROP TABLE IF EXISTS webhook_messages;
+DROP TABLE IF EXISTS webhook_triggers;
+DROP TABLE IF EXISTS webhooks;
+DROP TABLE IF EXISTS exchange_rates;
+DROP TABLE IF EXISTS bills;
+DROP TABLE IF EXISTS account_types;
+DROP TABLE IF EXISTS currencies;

@@ -1,0 +1,49 @@
+# Tests
+tests/
+*_test.go
+**/*_test.go
+
+# Documentation
+docs/
+*.md
+README.md
+LICENSE
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Docker
+postgres_data/
+redis_data/
+deployments/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Misc
+.env
+.env.local
+.DS_Store
+tmp/
+coverage.out
+*.out
+go.work
+go.work.sum
+.claude/
+_bmad/
+_bmad-output/

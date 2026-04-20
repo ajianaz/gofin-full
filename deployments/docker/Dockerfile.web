@@ -1,0 +1,32 @@
+# Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json* pnpm-lock.yaml* ./
+RUN if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then npm ci; \
+    else npm install; fi
+
+COPY . .
+RUN npm run build
+
+# Runtime stage — serve SvelteKit static output
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+
+COPY --from=builder /app/package.json /app/package-lock.json* /app/
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; \
+    elif [ -d node_modules ]; then echo "node_modules copied from build"; fi
+
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package.json ./
+
+EXPOSE 3000
+
+CMD ["node", "build"]

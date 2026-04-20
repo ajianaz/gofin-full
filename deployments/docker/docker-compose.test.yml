@@ -1,0 +1,73 @@
+# Full test environment: Postgres + Redis + test runner.
+# Usage:
+#   cp deployments/docker/.dockerignore.test api/.dockerignore
+#   docker compose -f deployments/docker/docker-compose.test.yml up --build --abort-on-container-exit
+#   git checkout api/.dockerignore  # restore original
+#
+# Or without modifying .dockerignore (recommended):
+#   docker compose -f deployments/docker/docker-compose.test.yml up --build --abort-on-container-exit
+#   (uses DOCKER_IGNORE_PATH if supported, otherwise build script handles it)
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: gofin_test
+      POSTGRES_USER: gofin_test
+      POSTGRES_PASSWORD: gofin_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gofin_test -d gofin_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  test:
+    build:
+      context: ../../api
+      dockerfile: ../deployments/docker/Dockerfile.api.test
+    environment:
+      APP_ENV: testing
+      APP_DEBUG: "false"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: gofin_test
+      DB_USERNAME: gofin_test
+      DB_PASSWORD: gofin_test
+      DB_DSN: postgres://gofin_test:gofin_test@postgres:5432/gofin_test?sslmode=disable
+      DB_SCHEMA: public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AUTH_PROVIDER: local
+      AUTH_JWT_SECRET: test-jwt-secret-for-integration-tests-32ch
+      AUTH_JWT_EXPIRY_MINUTES: 60
+      AUTH_REFRESH_EXPIRY_DAYS: 30
+      AUTH_ALLOW_REGISTRATION: "true"
+      RATE_LIMIT_MAX: 0
+      RATE_LIMIT_WINDOW_SECONDS: 60
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    working_dir: /app
+    command: >
+      sh -c "
+        echo 'Waiting for database to be fully ready...'
+        sleep 2 &&
+        go test ./tests/unit/... -v -count=1 &&
+        echo '--- Unit tests passed ---' &&
+        go test ./tests/integration/... -v -count=1 &&
+        echo '--- Integration tests passed ---'
+      "
