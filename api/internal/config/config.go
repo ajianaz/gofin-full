@@ -150,8 +150,8 @@ func setDefaults(v *viper.Viper) {
 
 	v.SetDefault("DB_HOST", "localhost")
 	v.SetDefault("DB_PORT", 5432)
-	v.SetDefault("DB_DATABASE", "firefly")
-	v.SetDefault("DB_USERNAME", "firefly")
+	v.SetDefault("DB_DATABASE", "gofin")
+	v.SetDefault("DB_USERNAME", "gofin")
 	v.SetDefault("DB_PASSWORD", "")
 	v.SetDefault("DB_SSL_MODE", "prefer")
 	v.SetDefault("DB_SCHEMA", "public")
@@ -166,8 +166,8 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("REDIS_CACHE_DB", 1)
 
 	v.SetDefault("KEYCLOAK_URL", "http://localhost:8088")
-	v.SetDefault("KEYCLOAK_REALM", "firefly")
-	v.SetDefault("KEYCLOAK_CLIENT_ID", "firefly-go-api")
+	v.SetDefault("KEYCLOAK_REALM", "gofin")
+	v.SetDefault("KEYCLOAK_CLIENT_ID", "gofin-api")
 
 	v.SetDefault("LOG_LEVEL", "info")
 	v.SetDefault("LOG_FORMAT", "json")
