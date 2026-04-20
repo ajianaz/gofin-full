@@ -1,0 +1,75 @@
+# Development: Postgres + Redis + API in Docker, Web on host.
+# Usage:
+#   make docker-dev
+#   make web-dev
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: gofin
+      POSTGRES_USER: gofin
+      POSTGRES_PASSWORD: gofin_secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gofin -d gofin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../../api
+      dockerfile: ../deployments/docker/Dockerfile.api
+    ports:
+      - "8080:8080"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      TZ: UTC
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: gofin
+      DB_USERNAME: gofin
+      DB_PASSWORD: gofin_secret
+      DB_SSL_MODE: disable
+      DB_DSN: postgres://gofin:gofin_secret@postgres:5432/gofin?sslmode=disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AUTH_PROVIDER: disabled
+      AUTH_JWT_SECRET: dev-jwt-secret-not-for-production-32chars!!
+      AUTH_ALLOW_REGISTRATION: "true"
+      RATE_LIMIT_MAX: 0
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+      LOG_LEVEL: debug
+      LOG_FORMAT: console
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "-O", "/dev/null", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  postgres_data:
+  redis_data:
