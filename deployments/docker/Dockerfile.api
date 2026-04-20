@@ -1,0 +1,36 @@
+# Build stage
+FROM golang:1.25-alpine AS builder
+
+RUN apk add --no-cache git ca-certificates tzdata
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Build server binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /gofin ./cmd/server
+
+# Build migrate binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /migrate ./cmd/migrate
+
+# Runtime stage
+FROM alpine:3.21
+
+RUN apk add --no-cache ca-certificates tzdata wget
+
+WORKDIR /app
+
+COPY --from=builder /gofin /app/gofin
+COPY --from=builder /migrate /app/migrate
+COPY --from=builder /app/migrations/postgres /app/migrations/postgres
+COPY --from=builder /app/entrypoint.sh /app/entrypoint.sh
+COPY --from=builder /app/.env.example /app/.env.example
+
+RUN chmod +x /app/entrypoint.sh
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS recurring_transaction_meta;
+DROP TABLE IF EXISTS recurrence_meta;
+DROP TABLE IF EXISTS recurring_repetitions;
+DROP TABLE IF EXISTS recurring_transactions;
+DROP TABLE IF EXISTS recurrences;
+DROP TABLE IF EXISTS rule_actions;
+DROP TABLE IF EXISTS rule_triggers;
+DROP TABLE IF EXISTS rules;
+DROP TABLE IF EXISTS rule_groups;
