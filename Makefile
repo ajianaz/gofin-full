@@ -1,6 +1,6 @@
 .PHONY: api-build api-run api-test api-test-unit api-test-integration api-lint api-tidy \
         web-dev web-build web-install \
-        docker-up docker-down docker-selfhost docker-selfhost-down docker-test \
+        docker-up docker-down docker-selfhost docker-selfhost-down docker-test docker-test-down \
         help
 
 COMPOSE_DIR := deployments/docker
@@ -56,8 +56,15 @@ docker-selfhost:
 docker-selfhost-down:
 	docker compose -f $(COMPOSE_DIR)/docker-compose.selfhost.yml down
 
-docker-test:
+docker-test: docker-test-down
+	@cp api/.dockerignore api/.dockerignore.bak
+	@cp $(COMPOSE_DIR)/.dockerignore.test api/.dockerignore
 	docker compose -f $(COMPOSE_DIR)/docker-compose.test.yml up --build --abort-on-container-exit
+	@cp api/.dockerignore.bak api/.dockerignore
+	@rm api/.dockerignore.bak
+
+docker-test-down:
+	docker compose -f $(COMPOSE_DIR)/docker-compose.test.yml down -v 2>/dev/null || true
 
 # ─── Help ───────────────────────────────────────────────────
 
@@ -85,3 +92,4 @@ help:
 	@echo "  docker-selfhost      Start self-hosted stack (Caddy + API + Web)"
 	@echo "  docker-selfhost-down Stop self-hosted stack"
 	@echo "  docker-test          Run full test suite in containers"
+	@echo "  docker-test-down     Tear down test containers and volumes"
