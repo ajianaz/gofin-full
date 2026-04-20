@@ -12,6 +12,7 @@ Personal finance tracker monorepo. Go API backend + SvelteKit frontend.
 
 ## Rules
 - **No `Co-Authored-By` in commits.** Just write the commit message.
+- **Always create a new branch for each task/group of related work.** Never commit directly to `main`. Branch naming: `feat/<short-name>`, `fix/<short-name>`, `chore/<short-name>`.
 - Use `bun` for web, not npm/node.
 - API runs on port 8080, web dev on port 5173.
 - Integration tests require Docker (postgres:5433, redis:6380).
