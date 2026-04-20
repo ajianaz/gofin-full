@@ -1,6 +1,7 @@
 .PHONY: api-build api-run api-test api-test-unit api-test-integration api-lint api-tidy \
         web-dev web-build web-install \
-        docker-up docker-down docker-selfhost docker-selfhost-down docker-test docker-test-down \
+        docker-up docker-down docker-dev docker-dev-down docker-dev-logs \
+        docker-selfhost docker-selfhost-down docker-test docker-test-down \
         help
 
 COMPOSE_DIR := deployments/docker
@@ -56,6 +57,15 @@ docker-selfhost:
 docker-selfhost-down:
 	docker compose -f $(COMPOSE_DIR)/docker-compose.selfhost.yml down
 
+docker-dev:
+	docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml up -d
+
+docker-dev-down:
+	docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml down
+
+docker-dev-logs:
+	docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml logs -f api
+
 docker-test: docker-test-down
 	@cp api/.dockerignore api/.dockerignore.bak
 	@cp $(COMPOSE_DIR)/.dockerignore.test api/.dockerignore
@@ -89,6 +99,9 @@ help:
 	@echo "Docker:"
 	@echo "  docker-up            Start dev stack (Postgres + Redis + Keycloak)"
 	@echo "  docker-down          Stop dev stack"
+	@echo "  docker-dev           Start lightweight dev stack (Postgres + Redis + API)"
+	@echo "  docker-dev-down      Stop lightweight dev stack"
+	@echo "  docker-dev-logs      Tail API logs from dev stack"
 	@echo "  docker-selfhost      Start self-hosted stack (Caddy + API + Web)"
 	@echo "  docker-selfhost-down Stop self-hosted stack"
 	@echo "  docker-test          Run full test suite in containers"
