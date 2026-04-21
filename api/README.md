@@ -1,6 +1,6 @@
 # Gofin API
 
-A self-hosted personal finance manager built with Go -- inspired by [Firefly III](https://www.firefly-iii.org/).
+A self-hosted personal finance manager built with Go.
 
 Gofin is designed for performance, multi-tenancy, and fine-grained access control. It uses **wallets** (not accounts) as the primary financial container, with double-entry bookkeeping, hierarchical RBAC, and real-time notifications.
 

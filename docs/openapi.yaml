@@ -2,7 +2,7 @@ openapi: "3.0.3"
 info:
   title: Gofin API
   description: >
-    Go rewrite of Firefly III personal finance manager.
+    Personal finance management API.
     All protected endpoints require a JWT bearer token in the Authorization header.
     All ID fields use UUID v7 format.
   version: "1.0.0"

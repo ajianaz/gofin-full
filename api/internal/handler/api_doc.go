@@ -49,7 +49,7 @@ func getFallbackOpenAPISpec() []byte {
   "openapi": "3.0.3",
   "info": {
     "title": "Gofin API",
-    "description": "Personal finance management API — a Go rewrite of Firefly III",
+    "description": "Personal finance management API",
     "version": "1.0.0",
     "contact": { "name": "Gofin" },
     "license": { "name": "MIT" }
@@ -266,7 +266,7 @@ func getAPIDocsHTML() []byte {
   <h2>Export</h2>
   <div class="endpoint">
     <p><span class="method">GET</span> <span class="path">/api/v1/export/csv</span></p>
-    <p>Export transactions as CSV (Firefly III compatible).</p>
+    <p>Export transactions as CSV.</p>
   </div>
   <div class="endpoint">
     <p><span class="method">GET</span> <span class="path">/api/v1/export/ofx</span></p>

@@ -8,7 +8,7 @@ Self-hosted personal finance tracker. Go API + SvelteKit web frontend.
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-Gofin is a self-hosted personal finance tracker inspired by [Firefly III](https://www.firefly-iii.org/). It uses **wallets** as the primary financial container, supports double-entry bookkeeping with split transactions, hierarchical role-based access control across groups and wallets, and real-time notifications via Server-Sent Events.
+Gofin is a self-hosted personal finance tracker. It uses **wallets** as the primary financial container, supports double-entry bookkeeping with split transactions, hierarchical role-based access control across groups and wallets, and real-time notifications via Server-Sent Events.
 
 ## Features
 

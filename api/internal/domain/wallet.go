@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// WalletType represents the 14 wallet types from Firefly III.
+// WalletType represents the supported wallet types.
 type WalletType string
 
 const (

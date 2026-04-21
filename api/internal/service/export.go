@@ -36,7 +36,7 @@ type CSVRow struct {
 	Tags               string
 }
 
-// ExportTransactionsCSV exports transactions as CSV compatible with Firefly III import format.
+// ExportTransactionsCSV exports transactions as CSV.
 func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.UUID, w io.Writer) error {
 	groups, _, err := s.txRepo.ListGroups(ctx, groupID, repository.TransactionFilter{})
 	if err != nil {
