@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
@@ -19,7 +20,7 @@ func NewRecurrenceRepository(db *pgxpool.Pool) *RecurrenceRepository {
 	return &RecurrenceRepository{db: db}
 }
 
-func (r *RecurrenceRepository) Create(ctx context.Context, userID, groupID int64, title string, firstDate time.Time, repeatFreq string) (*domain.Recurrence, error) {
+func (r *RecurrenceRepository) Create(ctx context.Context, userID, groupID uuid.UUID, title string, firstDate time.Time, repeatFreq string) (*domain.Recurrence, error) {
 	now := time.Now().UTC()
 	var rec domain.Recurrence
 	err := r.db.QueryRow(ctx,
@@ -37,7 +38,7 @@ func (r *RecurrenceRepository) Create(ctx context.Context, userID, groupID int64
 	return &rec, nil
 }
 
-func (r *RecurrenceRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.Recurrence, error) {
+func (r *RecurrenceRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.Recurrence, error) {
 	var rec domain.Recurrence
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -62,7 +63,7 @@ func (r *RecurrenceRepository) FindByID(ctx context.Context, id, groupID int64) 
 	return &rec, nil
 }
 
-func (r *RecurrenceRepository) List(ctx context.Context, groupID int64) ([]domain.Recurrence, error) {
+func (r *RecurrenceRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.Recurrence, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, title, description, first_date, latest_date, repeat_until,
 		  repeat_freq, skip, active, apply_rules, created_at, updated_at
@@ -86,7 +87,7 @@ func (r *RecurrenceRepository) List(ctx context.Context, groupID int64) ([]domai
 	return recurrences, rows.Err()
 }
 
-func (r *RecurrenceRepository) Update(ctx context.Context, id, groupID int64, title string, repeatFreq string, active *bool, description *string, repeatUntil *time.Time) error {
+func (r *RecurrenceRepository) Update(ctx context.Context, id, groupID uuid.UUID, title string, repeatFreq string, active *bool, description *string, repeatUntil *time.Time) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE recurrences SET
 		  title = COALESCE(NULLIF($1, ''), title),
@@ -100,7 +101,7 @@ func (r *RecurrenceRepository) Update(ctx context.Context, id, groupID int64, ti
 	return err
 }
 
-func (r *RecurrenceRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *RecurrenceRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE recurrences SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID)
@@ -108,7 +109,7 @@ func (r *RecurrenceRepository) Delete(ctx context.Context, id, groupID int64) er
 }
 
 // AddTransaction adds a transaction template to a recurrence.
-func (r *RecurrenceRepository) AddTransaction(ctx context.Context, recID int64, txn *domain.RecurringTransaction) error {
+func (r *RecurrenceRepository) AddTransaction(ctx context.Context, recID uuid.UUID, txn *domain.RecurringTransaction) error {
 	now := time.Now().UTC()
 	_, err := r.db.Exec(ctx,
 		`INSERT INTO recurring_transactions
@@ -120,7 +121,7 @@ func (r *RecurrenceRepository) AddTransaction(ctx context.Context, recID int64, 
 	return err
 }
 
-func (r *RecurrenceRepository) findTransactions(ctx context.Context, recID int64) ([]domain.RecurringTransaction, error) {
+func (r *RecurrenceRepository) findTransactions(ctx context.Context, recID uuid.UUID) ([]domain.RecurringTransaction, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, recurrence_id, type, description, amount, transaction_currency_id, source_id, destination_id,
 		  budget_id, category_id, piggy_bank_id, "order", created_at, updated_at
@@ -143,7 +144,7 @@ func (r *RecurrenceRepository) findTransactions(ctx context.Context, recID int64
 	return txns, rows.Err()
 }
 
-func (r *RecurrenceRepository) findRepetitions(ctx context.Context, recID int64) ([]domain.RecurringRepetition, error) {
+func (r *RecurrenceRepository) findRepetitions(ctx context.Context, recID uuid.UUID) ([]domain.RecurringRepetition, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, recurrence_id, relevant_date, created_at, updated_at
 		 FROM recurring_repetitions WHERE recurrence_id = $1 ORDER BY relevant_date DESC`, recID)

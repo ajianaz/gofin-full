@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -69,13 +70,13 @@ func (h *NotificationHandler) Unread(c *fiber.Ctx) error {
 func (h *NotificationHandler) MarkRead(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.MarkRead(c.Context(), int64(id), user.ID); err != nil {
-		return apperrors.NotFoundResource("notification", int64(id))
+	if err := h.repo.MarkRead(c.Context(), id, user.ID); err != nil {
+		return apperrors.NotFoundResource("notification", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

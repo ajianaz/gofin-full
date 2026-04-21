@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -20,16 +21,23 @@ func (h *LocationHandler) Show(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
 	locatableType := c.Query("locatable_type")
-	locatableID := c.QueryInt("locatable_id")
-	if locatableType == "" || locatableID == 0 {
+	locatableIDStr := c.Query("locatable_id")
+	if locatableType == "" || locatableIDStr == "" {
 		return apperrors.NewValidationError(map[string][]string{
 			"query": {"locatable_type and locatable_id query params are required"},
 		})
 	}
 
-	loc, err := h.repo.GetByEntity(c.Context(), locatableType, int64(locatableID))
+	locatableID, err := uuid.Parse(locatableIDStr)
 	if err != nil {
-		return apperrors.NotFoundResource("location", 0)
+		return apperrors.NewValidationError(map[string][]string{
+			"locatable_id": {"invalid locatable_id format"},
+		})
+	}
+
+	loc, err := h.repo.GetByEntity(c.Context(), locatableType, locatableID)
+	if err != nil {
+		return apperrors.NotFoundResource("location", uuid.Nil)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -50,10 +58,10 @@ func (h *LocationHandler) Store(c *fiber.Ctx) error {
 
 	var req struct {
 		LocatableType string   `json:"locatable_type"`
-		LocatableID   int64    `json:"locatable_id"`
+		LocatableID   uuid.UUID `json:"locatable_id"`
 		Latitude      *float64 `json:"latitude"`
-		Longitude     *float64 `json:"longitude"`
-		ZoomLevel     int      `json:"zoom_level"`
+	Longitude     *float64 `json:"longitude"`
+	ZoomLevel     int      `json:"zoom_level"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
@@ -83,13 +91,13 @@ func (h *LocationHandler) Store(c *fiber.Ctx) error {
 func (h *LocationHandler) Delete(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id)); err != nil {
-		return apperrors.NotFoundResource("location", int64(id))
+	if err := h.repo.Delete(c.Context(), id); err != nil {
+		return apperrors.NotFoundResource("location", id)
 	}
 
 	return c.Status(204).Send(nil)

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -75,14 +76,14 @@ func (h *RuleGroupHandler) Show(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	g, err := h.repo.FindByID(c.Context(), int64(id), *groupID)
+	g, err := h.repo.FindByID(c.Context(), id, *groupID)
 	if err != nil {
-		return apperrors.NotFoundResource("rule_group", int64(id))
+		return apperrors.NotFoundResource("rule_group", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -98,9 +99,9 @@ func (h *RuleGroupHandler) Update(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -111,8 +112,8 @@ func (h *RuleGroupHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), int64(id), *groupID, req.Title, req.Active); err != nil {
-		return apperrors.NotFoundResource("rule_group", int64(id))
+	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.Active); err != nil {
+		return apperrors.NotFoundResource("rule_group", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -128,13 +129,13 @@ func (h *RuleGroupHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id), *groupID); err != nil {
-		return apperrors.NotFoundResource("rule_group", int64(id))
+	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("rule_group", id)
 	}
 
 	return c.Status(204).Send(nil)
@@ -181,14 +182,14 @@ func (h *RuleHandler) Show(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	rule, err := h.repo.FindByID(c.Context(), int64(id), *groupID)
+	rule, err := h.repo.FindByID(c.Context(), id, *groupID)
 	if err != nil {
-		return apperrors.NotFoundResource("rule", int64(id))
+		return apperrors.NotFoundResource("rule", id)
 	}
 
 	return c.JSON(fiber.Map{"data": ruleToMap(rule)})
@@ -204,7 +205,7 @@ func (h *RuleHandler) Store(c *fiber.Ctx) error {
 	var req struct {
 		Title      string               `json:"title"`
 		Priority   int                  `json:"priority"`
-		RuleGroupID *int64              `json:"rule_group_id"`
+		RuleGroupID *uuid.UUID          `json:"rule_group_id"`
 		Triggers   []domain.RuleTrigger `json:"triggers"`
 		Actions    []domain.RuleAction  `json:"actions"`
 	}
@@ -240,9 +241,9 @@ func (h *RuleHandler) Update(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -257,15 +258,15 @@ func (h *RuleHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), int64(id), *groupID, req.Title, req.Active, req.Strict, req.StopProcessing); err != nil {
-		return apperrors.NotFoundResource("rule", int64(id))
+	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.Active, req.Strict, req.StopProcessing); err != nil {
+		return apperrors.NotFoundResource("rule", id)
 	}
 
 	if req.Triggers != nil {
-		h.repo.SetTriggers(c.Context(), int64(id), req.Triggers)
+		h.repo.SetTriggers(c.Context(), id, req.Triggers)
 	}
 	if req.Actions != nil {
-		h.repo.SetActions(c.Context(), int64(id), req.Actions)
+		h.repo.SetActions(c.Context(), id, req.Actions)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -281,13 +282,13 @@ func (h *RuleHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id), *groupID); err != nil {
-		return apperrors.NotFoundResource("rule", int64(id))
+	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("rule", id)
 	}
 
 	return c.Status(204).Send(nil)

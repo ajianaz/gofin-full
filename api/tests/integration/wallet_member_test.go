@@ -17,15 +17,15 @@ func TestOwnerCanShareWallet(t *testing.T) {
 	readOnlyUserID := testApp.Seed.ReadOnlyUserID
 
 	t.Run("owner_can_list_wallet_members", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/wallets/%d/members", walletID)
+		path := fmt.Sprintf("/api/v1/wallets/%s/members", walletID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "GET", path, "", token)
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"owner should be able to list wallet members")
 	})
 
 	t.Run("owner_can_share_wallet", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/wallets/%d/members", walletID)
-		body := fmt.Sprintf(`{"user_id":%d,"role":"viewer"}`, readOnlyUserID)
+		path := fmt.Sprintf("/api/v1/wallets/%s/members", walletID)
+		body := fmt.Sprintf(`{"user_id":"%s","role":"viewer"}`, readOnlyUserID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", path, body, token)
 		// Accept 200 (success) or 422 (validation) — not 403.
 		require.NotEqual(t, http.StatusForbidden, resp.StatusCode,
@@ -43,15 +43,15 @@ func TestViewerCanOnlyRead(t *testing.T) {
 	// First, owner shares the wallet with the read_only user as a viewer.
 	// This ensures the membership exists for the read operations.
 	t.Run("setup_share_wallet_as_viewer", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/wallets/%d/members", walletID)
-		body := fmt.Sprintf(`{"user_id":%d,"role":"viewer"}`, readOnlyUserID)
+		path := fmt.Sprintf("/api/v1/wallets/%s/members", walletID)
+		body := fmt.Sprintf(`{"user_id":"%s","role":"viewer"}`, readOnlyUserID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", path, body, ownerToken)
 		require.NotEqual(t, http.StatusForbidden, resp.StatusCode,
 			"owner should be able to share wallet during setup")
 	})
 
 	t.Run("viewer_can_read_wallet", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/wallets/%d", walletID)
+		path := fmt.Sprintf("/api/v1/wallets/%s", walletID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "GET", path, "", readOnlyToken)
 		// The viewer should be able to read — accept 200 or 404 (wallet might not belong to their scope),
 		// but not 403 from RBAC.
@@ -60,15 +60,15 @@ func TestViewerCanOnlyRead(t *testing.T) {
 	})
 
 	t.Run("viewer_can_list_wallet_members", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/wallets/%d/members", walletID)
+		path := fmt.Sprintf("/api/v1/wallets/%s/members", walletID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "GET", path, "", readOnlyToken)
 		require.Equal(t, http.StatusOK, resp.StatusCode,
 			"viewer should be able to list wallet members (read)")
 	})
 
 	t.Run("viewer_cannot_share_wallet", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/wallets/%d/members", walletID)
-		body := fmt.Sprintf(`{"user_id":%d,"role":"viewer"}`, readOnlyUserID)
+		path := fmt.Sprintf("/api/v1/wallets/%s/members", walletID)
+		body := fmt.Sprintf(`{"user_id":"%s","role":"viewer"}`, readOnlyUserID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", path, body, readOnlyToken)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode,
 			"viewer should get 403 when trying to share a wallet (requires owner role)")
@@ -82,7 +82,7 @@ func TestViewerCanOnlyRead(t *testing.T) {
 	})
 
 	t.Run("viewer_cannot_create_transaction", func(t *testing.T) {
-		body := fmt.Sprintf(`{"type":"withdrawal","amount":"5.00","description":"viewer attempt","source_id":%d}`, walletID)
+		body := fmt.Sprintf(`{"type":"withdrawal","amount":"5.00","description":"viewer attempt","source_id":"%s"}`, walletID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", "/api/v1/transactions", body, readOnlyToken)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode,
 			"viewer should get 403 when creating transactions")
@@ -96,8 +96,8 @@ func TestReadOnlyCannotShareWallet(t *testing.T) {
 	txUserID := testApp.Seed.TxUserID
 
 	t.Run("read_only_cannot_share_wallet", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/wallets/%d/members", walletID)
-		body := fmt.Sprintf(`{"user_id":%d,"role":"viewer"}`, txUserID)
+		path := fmt.Sprintf("/api/v1/wallets/%s/members", walletID)
+		body := fmt.Sprintf(`{"user_id":"%s","role":"viewer"}`, txUserID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", path, body, readOnlyToken)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode,
 			"read_only user should get 403 when trying to share wallet")
@@ -111,8 +111,8 @@ func TestManageTransactionsCannotShareWallet(t *testing.T) {
 	readOnlyUserID := testApp.Seed.ReadOnlyUserID
 
 	t.Run("manage_transactions_cannot_share_wallet", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/wallets/%d/members", walletID)
-		body := fmt.Sprintf(`{"user_id":%d,"role":"viewer"}`, readOnlyUserID)
+		path := fmt.Sprintf("/api/v1/wallets/%s/members", walletID)
+		body := fmt.Sprintf(`{"user_id":"%s","role":"viewer"}`, readOnlyUserID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", path, body, txToken)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode,
 			"manage_transactions user should get 403 when trying to share wallet (requires owner)")

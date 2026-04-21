@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
@@ -82,7 +83,7 @@ func (p *gitHubProvider) AuthURL(state string) string {
 type githubProfile struct {
 	Login string `json:"login"`
 	Email string `json:"email"`
-	ID    int64  `json:"id"`
+	ID    uuid.UUID `json:"id"`
 }
 
 // githubEmail represents an entry from GitHub's /user/emails response.

@@ -3,7 +3,7 @@
 
 -- User groups (shared workspaces — all financial data scoped to group)
 CREATE TABLE user_groups (
-    id          BIGSERIAL PRIMARY KEY,
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title       VARCHAR(255) NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -12,7 +12,7 @@ CREATE TABLE user_groups (
 
 -- Group-level roles (Tier 2: 22 permissions)
 CREATE TABLE user_roles (
-    id          BIGSERIAL PRIMARY KEY,
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title       VARCHAR(255) NOT NULL UNIQUE,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -46,10 +46,10 @@ ON CONFLICT DO NOTHING;
 
 -- Group memberships (user belongs to group with a role)
 CREATE TABLE group_memberships (
-    id              BIGSERIAL PRIMARY KEY,
-    user_id         BIGINT NOT NULL,
-    user_group_id   BIGINT NOT NULL REFERENCES user_groups(id) ON DELETE CASCADE,
-    user_role_id    BIGINT NOT NULL REFERENCES user_roles(id),
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL,
+    user_group_id   UUID NOT NULL REFERENCES user_groups(id) ON DELETE CASCADE,
+    user_role_id    UUID NOT NULL REFERENCES user_roles(id),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(user_id, user_group_id)
@@ -57,24 +57,23 @@ CREATE TABLE group_memberships (
 
 -- Global role assignments (owner, demo)
 CREATE TABLE role_user (
-    user_id     BIGINT NOT NULL,
-    role_id     BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    user_id     UUID NOT NULL,
+    role_id     UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, role_id)
 );
 
--- Users table
+-- Users table (object_guid removed — all IDs are now UUIDs)
 CREATE TABLE users (
-    id              BIGSERIAL PRIMARY KEY,
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email           VARCHAR(255) NOT NULL UNIQUE,
     password        VARCHAR(255),
-    object_guid     UUID,
     remember_token  VARCHAR(100),
     reset_token     VARCHAR(32),
     blocked         BOOLEAN NOT NULL DEFAULT FALSE,
     blocked_code    VARCHAR(25),
     mfa_secret      VARCHAR(50),
     domain          VARCHAR(255),
-    user_group_id   BIGINT REFERENCES user_groups(id) ON DELETE SET NULL,
+    user_group_id   UUID REFERENCES user_groups(id) ON DELETE SET NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at      TIMESTAMPTZ
@@ -82,8 +81,8 @@ CREATE TABLE users (
 
 -- Refresh tokens
 CREATE TABLE refresh_tokens (
-    id          BIGSERIAL PRIMARY KEY,
-    user_id     BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash  VARCHAR(255) NOT NULL UNIQUE,
     expires_at  TIMESTAMPTZ NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()

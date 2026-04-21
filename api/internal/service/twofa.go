@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 
@@ -27,7 +28,7 @@ type TOTPSecret struct {
 }
 
 // GenerateTOTP creates a new TOTP secret for a user.
-func (s *TwoFAService) GenerateTOTP(ctx context.Context, userID int64, email string) (*TOTPSecret, error) {
+func (s *TwoFAService) GenerateTOTP(ctx context.Context, userID uuid.UUID, email string) (*TOTPSecret, error) {
 	key, err := GenerateRandomBytes(32)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate secret: %w", err)

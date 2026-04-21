@@ -1,13 +1,15 @@
 package domain
 
 import (
-	"github.com/shopspring/decimal"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 type PiggyBank struct {
-	ID                  int64           `json:"id" db:"id"`
-	AccountID           int64           `json:"wallet_id" db:"account_id"`
+	ID                  uuid.UUID       `json:"id" db:"id"`
+	AccountID           uuid.UUID       `json:"wallet_id" db:"account_id"`
 	Name                string          `json:"name" db:"name"`
 	TargetAmount        decimal.Decimal `json:"target_amount" db:"target_amount"`
 	StartDate           *time.Time      `json:"start_date,omitempty" db:"start_date"`
@@ -29,16 +31,16 @@ type PiggyBank struct {
 }
 
 type PiggyBankEvent struct {
-	ID          int64           `json:"id" db:"id"`
-	PiggyBankID int64           `json:"piggy_bank_id" db:"piggy_bank_id"`
+	ID          uuid.UUID       `json:"id" db:"id"`
+	PiggyBankID uuid.UUID       `json:"piggy_bank_id" db:"piggy_bank_id"`
 	Amount      decimal.Decimal `json:"amount" db:"amount"`
 	CreatedAt   time.Time       `json:"created_at" db:"created_at"`
 	UpdatedAt   time.Time       `json:"updated_at" db:"updated_at"`
 }
 
 type PiggyBankRepetition struct {
-	ID              int64           `json:"id" db:"id"`
-	PiggyBankID     int64           `json:"piggy_bank_id" db:"piggy_bank_id"`
+	ID              uuid.UUID       `json:"id" db:"id"`
+	PiggyBankID     uuid.UUID       `json:"piggy_bank_id" db:"piggy_bank_id"`
 	TargetAmount    decimal.Decimal `json:"target_amount" db:"target_amount"`
 	CurrentAmount   decimal.Decimal `json:"current_amount" db:"current_amount"`
 	StartDate       time.Time       `json:"start_date" db:"start_date"`

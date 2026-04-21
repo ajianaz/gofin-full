@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -49,14 +50,14 @@ func (h *ObjectGroupHandler) Show(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	g, err := h.repo.FindByID(c.Context(), int64(id), *groupID)
+	g, err := h.repo.FindByID(c.Context(), id, *groupID)
 	if err != nil {
-		return apperrors.NotFoundResource("object_group", int64(id))
+		return apperrors.NotFoundResource("object_group", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -109,9 +110,9 @@ func (h *ObjectGroupHandler) Update(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -122,8 +123,8 @@ func (h *ObjectGroupHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), int64(id), *groupID, req.Title, req.Order); err != nil {
-		return apperrors.NotFoundResource("object_group", int64(id))
+	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.Order); err != nil {
+		return apperrors.NotFoundResource("object_group", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -139,13 +140,13 @@ func (h *ObjectGroupHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id), *groupID); err != nil {
-		return apperrors.NotFoundResource("object_group", int64(id))
+	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("object_group", id)
 	}
 
 	return c.Status(204).Send(nil)

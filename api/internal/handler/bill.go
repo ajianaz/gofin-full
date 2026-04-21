@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -58,14 +59,14 @@ func (h *BillHandler) Show(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	b, err := h.repo.FindByID(c.Context(), int64(id), *groupID)
+	b, err := h.repo.FindByID(c.Context(), id, *groupID)
 	if err != nil {
-		return apperrors.NotFoundResource("bill", int64(id))
+		return apperrors.NotFoundResource("bill", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -154,9 +155,9 @@ func (h *BillHandler) Update(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -168,8 +169,8 @@ func (h *BillHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), int64(id), *groupID, req.Name, req.Active, req.Notes); err != nil {
-		return apperrors.NotFoundResource("bill", int64(id))
+	if err := h.repo.Update(c.Context(), id, *groupID, req.Name, req.Active, req.Notes); err != nil {
+		return apperrors.NotFoundResource("bill", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -185,13 +186,13 @@ func (h *BillHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id), *groupID); err != nil {
-		return apperrors.NotFoundResource("bill", int64(id))
+	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("bill", id)
 	}
 
 	return c.Status(204).Send(nil)

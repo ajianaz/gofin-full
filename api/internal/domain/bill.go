@@ -1,14 +1,16 @@
 package domain
 
 import (
-	"github.com/shopspring/decimal"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 type Bill struct {
-	ID                 int64           `json:"id" db:"id"`
-	UserID             int64           `json:"user_id" db:"user_id"`
-	UserGroupID        int64           `json:"user_group_id" db:"user_group_id"`
+	ID                 uuid.UUID       `json:"id" db:"id"`
+	UserID             uuid.UUID       `json:"user_id" db:"user_id"`
+	UserGroupID        uuid.UUID       `json:"user_group_id" db:"user_group_id"`
 	Name               string          `json:"name" db:"name"`
 	AmountMin          decimal.Decimal `json:"amount_min" db:"amount_min"`
 	AmountMax          decimal.Decimal `json:"amount_max" db:"amount_max"`

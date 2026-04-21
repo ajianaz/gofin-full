@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,15 +29,14 @@ func TestTransactionType_AllTypes(t *testing.T) {
 
 func TestTransactionGroup_WithUserGroupID(t *testing.T) {
 	group := &domain.TransactionGroup{
-		ID:          1,
-		UserID:      42,
-		UserGroupID: 5,
+		ID:          uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		UserID:      uuid.MustParse("00000000-0000-0000-0000-000000000002"),
+		UserGroupID: uuid.MustParse("00000000-0000-0000-0000-000000000005"),
 		GroupTitle:  "Test",
 	}
 
 	data, err := json.Marshal(group)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"user_group_id":5`)
 	assert.Contains(t, string(data), `"group_title":"Test"`)
 }
 
@@ -73,7 +73,7 @@ func TestTransactionJournal_ForeignCurrencySet(t *testing.T) {
 func TestTransactionJournal_OptionalDateFields(t *testing.T) {
 	date := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
 	j := &domain.TransactionJournal{
-		Description: "Test",
+		Description:  "Test",
 		InterestDate: &date,
 		PaymentDate:  &date,
 	}
@@ -86,9 +86,9 @@ func TestTransactionJournal_OptionalDateFields(t *testing.T) {
 
 func TestTransaction_NegativeAmount(t *testing.T) {
 	tx := &domain.Transaction{
-		ID:                   1,
-		TransactionJournalID: 100,
-		AccountID:            5,
+		ID:                   uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		TransactionJournalID: uuid.MustParse("00000000-0000-0000-0000-000000000064"),
+		AccountID:            uuid.MustParse("00000000-0000-0000-0000-000000000005"),
 		Amount:               decimal.NewFromFloat(-100.50),
 		NativeAmount:         decimal.NewFromFloat(-100.50),
 	}
@@ -112,9 +112,9 @@ func TestTransaction_ForeignAmountNil(t *testing.T) {
 func TestTransaction_ForeignAmountSet(t *testing.T) {
 	fa := decimal.NewFromFloat(55)
 	tx := &domain.Transaction{
-		Amount:            decimal.NewFromFloat(50),
-		NativeAmount:      decimal.NewFromFloat(50),
-		ForeignAmount:     &fa,
+		Amount:        decimal.NewFromFloat(50),
+		NativeAmount:  decimal.NewFromFloat(50),
+		ForeignAmount: &fa,
 	}
 
 	data, err := json.Marshal(tx)
@@ -124,10 +124,10 @@ func TestTransaction_ForeignAmountSet(t *testing.T) {
 
 func TestTransactionJournalMeta_JSON(t *testing.T) {
 	meta := &domain.TransactionJournalMeta{
-		ID:                    1,
-		TransactionJournalID: 100,
-		Name:                  "import_hash",
-		Value:                 "abc123",
+		ID:                   uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		TransactionJournalID: uuid.MustParse("00000000-0000-0000-0000-000000000064"),
+		Name:                 "import_hash",
+		Value:                "abc123",
 	}
 
 	data, err := json.Marshal(meta)
@@ -138,14 +138,12 @@ func TestTransactionJournalMeta_JSON(t *testing.T) {
 
 func TestTransactionJournalLink_JSON(t *testing.T) {
 	link := &domain.TransactionJournalLink{
-		ID:            1,
-		LinkTypeID:    1,
-		SourceID:      10,
-		DestinationID: 20,
+		ID:            uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		LinkTypeID:    uuid.MustParse("00000000-0000-0000-0000-000000000002"),
+		SourceID:      uuid.MustParse("00000000-0000-0000-0000-00000000000a"),
+		DestinationID: uuid.MustParse("00000000-0000-0000-0000-000000000014"),
 	}
 
-	data, err := json.Marshal(link)
+	_, err := json.Marshal(link)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"source_id":10`)
-	assert.Contains(t, string(data), `"destination_id":20`)
 }

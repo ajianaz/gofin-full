@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -14,7 +15,7 @@ func TestJWTManager_GenerateAndValidate(t *testing.T) {
 	mgr := auth.NewJWTManager("test-secret-key-32-chars-min!", 60, 30)
 
 	identity := &auth.UserIdentity{
-		ID:       1,
+		ID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Email:    "test@example.com",
 		Blocked:  false,
 		DemoUser: false,
@@ -31,7 +32,7 @@ func TestJWTManager_GenerateAndValidate(t *testing.T) {
 	// Validate the access token
 	claims, err := mgr.ValidateAccessToken(tokens.AccessToken)
 	require.NoError(t, err)
-	assert.Equal(t, int64(1), claims.UserID)
+	assert.Equal(t, uuid.MustParse("00000000-0000-0000-0000-000000000001"), claims.UserID)
 	assert.Equal(t, "test@example.com", claims.Email)
 }
 
@@ -47,7 +48,7 @@ func TestJWTManager_WrongSecret(t *testing.T) {
 	mgr1 := auth.NewJWTManager("secret-one-32-chars-minimum", 60, 30)
 	mgr2 := auth.NewJWTManager("secret-two-32-chars-minimum", 60, 30)
 
-	identity := &auth.UserIdentity{ID: 1, Email: "test@example.com"}
+	identity := &auth.UserIdentity{ID: uuid.MustParse("00000000-0000-0000-0000-000000000001"), Email: "test@example.com"}
 	tokens, err := mgr1.GenerateTokenPair(identity, nil)
 	require.NoError(t, err)
 
@@ -59,7 +60,7 @@ func TestJWTManager_ExpiredToken(t *testing.T) {
 	// Create a manager with 0-minute expiry for testing
 	mgr := auth.NewJWTManager("test-secret-key-32-chars-min!", 0, 30)
 
-	identity := &auth.UserIdentity{ID: 1, Email: "test@example.com"}
+	identity := &auth.UserIdentity{ID: uuid.MustParse("00000000-0000-0000-0000-000000000001"), Email: "test@example.com"}
 	tokens, err := mgr.GenerateTokenPair(identity, nil)
 	require.NoError(t, err)
 
@@ -73,21 +74,21 @@ func TestJWTManager_ExpiredToken(t *testing.T) {
 func TestJWTManager_GroupID(t *testing.T) {
 	mgr := auth.NewJWTManager("test-secret-key-32-chars-min!", 60, 30)
 
-	identity := &auth.UserIdentity{ID: 1, Email: "test@example.com"}
-	groupID := int64(42)
-	tokens, err := mgr.GenerateTokenPair(identity, &groupID)
+	testGroupID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+	identity := &auth.UserIdentity{ID: uuid.MustParse("00000000-0000-0000-0000-000000000001"), Email: "test@example.com"}
+	tokens, err := mgr.GenerateTokenPair(identity, &testGroupID)
 	require.NoError(t, err)
 
 	claims, err := mgr.ValidateAccessToken(tokens.AccessToken)
 	require.NoError(t, err)
 	require.NotNil(t, claims.GroupID)
-	assert.Equal(t, int64(42), *claims.GroupID)
+	assert.Equal(t, testGroupID, *claims.GroupID)
 }
 
 func TestJWTManager_DemoUser(t *testing.T) {
 	mgr := auth.NewJWTManager("test-secret-key-32-chars-min!", 60, 30)
 
-	identity := &auth.UserIdentity{ID: 1, Email: "demo@example.com", DemoUser: true}
+	identity := &auth.UserIdentity{ID: uuid.MustParse("00000000-0000-0000-0000-000000000001"), Email: "demo@example.com", DemoUser: true}
 	tokens, err := mgr.GenerateTokenPair(identity, nil)
 	require.NoError(t, err)
 
@@ -110,7 +111,7 @@ func TestHashRefreshToken(t *testing.T) {
 }
 
 func TestAuthProvider_LocalDefault(t *testing.T) {
-provider := auth.NewDisabledProvider()
+	provider := auth.NewDisabledProvider()
 	assert.Equal(t, "disabled", provider.Name())
 }
 
@@ -118,7 +119,7 @@ func TestAuthProvider_DisabledAuth(t *testing.T) {
 	provider := auth.NewDisabledProvider()
 	identity, err := provider.Authenticate(nil, auth.Credentials{})
 	require.NoError(t, err)
-	assert.Equal(t, int64(1), identity.ID)
+	assert.Equal(t, uuid.MustParse("00000000-0000-0000-0000-000000000001"), identity.ID)
 	assert.Equal(t, "admin@local", identity.Email)
 	assert.False(t, identity.Blocked)
 	assert.False(t, identity.DemoUser)

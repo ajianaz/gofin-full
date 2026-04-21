@@ -3,6 +3,8 @@ package errors
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 // AppError is the base application error with HTTP status code.
@@ -90,11 +92,11 @@ var (
 )
 
 // NotFoundResource creates a not-found error for a specific resource type.
-func NotFoundResource(resourceType string, id int64) *AppError {
+func NotFoundResource(resourceType string, id uuid.UUID) *AppError {
 	return &AppError{
 		StatusCode: http.StatusNotFound,
 		Title:      "Resource not found",
-		Detail:     fmt.Sprintf("%s with ID %d not found", resourceType, id),
+		Detail:     fmt.Sprintf("%s with ID %s not found", resourceType, id),
 		Exception:  "NotFoundHttpException",
 	}
 }

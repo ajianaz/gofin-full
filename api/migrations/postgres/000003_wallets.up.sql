@@ -3,9 +3,9 @@
 
 -- Wallets (accounts) table
 CREATE TABLE wallets (
-    id                      BIGSERIAL PRIMARY KEY,
-    user_id                 BIGINT NOT NULL,
-    user_group_id           BIGINT NOT NULL,
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id                 UUID NOT NULL,
+    user_group_id           UUID NOT NULL,
     name                    VARCHAR(255) NOT NULL,
     account_type            VARCHAR(255) NOT NULL DEFAULT 'asset',
     iban                    VARCHAR(255),
@@ -32,9 +32,9 @@ CREATE TABLE wallets (
 
 -- Wallet members (sharing)
 CREATE TABLE wallet_members (
-    id          BIGSERIAL PRIMARY KEY,
-    wallet_id   BIGINT NOT NULL,
-    user_id     BIGINT NOT NULL,
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    wallet_id   UUID NOT NULL,
+    user_id     UUID NOT NULL,
     role        VARCHAR(255) NOT NULL DEFAULT 'viewer',
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),

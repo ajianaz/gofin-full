@@ -162,7 +162,7 @@ func TestFirstUserOnlyOwner(t *testing.T) {
 
 	// Create a second user via admin endpoint
 	t.Run("admin_creates_second_user", func(t *testing.T) {
-		email := fmt.Sprintf("second-user-%d@gofin.io", testApp.Seed.GroupID)
+		email := fmt.Sprintf("second-user-%s@gofin.io", testApp.Seed.GroupID)
 		body := fmt.Sprintf(`{"email":"%s","password":"password1234"}`, email)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", "/api/v1/admin/users", body, testApp.Seed.OwnerToken)
 		require.Equal(t, http.StatusCreated, resp.StatusCode)
@@ -170,7 +170,7 @@ func TestFirstUserOnlyOwner(t *testing.T) {
 
 	// Login as second user
 	t.Run("second_user_can_login", func(t *testing.T) {
-		email := fmt.Sprintf("second-user-%d@gofin.io", testApp.Seed.GroupID)
+		email := fmt.Sprintf("second-user-%s@gofin.io", testApp.Seed.GroupID)
 		body := fmt.Sprintf(`{"email":"%s","password":"password1234"}`, email)
 		resp := testhelpers.MakeRequest(t, app, "POST", "/api/v1/auth/login", body, "")
 		require.Equal(t, http.StatusOK, resp.StatusCode)

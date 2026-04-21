@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewNotificationRepository(db *pgxpool.Pool) *NotificationRepository {
 	return &NotificationRepository{db: db}
 }
 
-func (r *NotificationRepository) Create(ctx context.Context, userID int64, channel, notifType, title, message string) (*domain.Notification, error) {
+func (r *NotificationRepository) Create(ctx context.Context, userID uuid.UUID, channel, notifType, title, message string) (*domain.Notification, error) {
 	now := time.Now().UTC()
 	var n domain.Notification
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *NotificationRepository) Create(ctx context.Context, userID int64, chann
 	return &n, nil
 }
 
-func (r *NotificationRepository) List(ctx context.Context, userID int64) ([]domain.Notification, error) {
+func (r *NotificationRepository) List(ctx context.Context, userID uuid.UUID) ([]domain.Notification, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, channel, type, title, message, "read", created_at, updated_at
 		 FROM notifications WHERE user_id = $1 ORDER BY created_at DESC`, userID)
@@ -53,7 +54,7 @@ func (r *NotificationRepository) List(ctx context.Context, userID int64) ([]doma
 	return notifications, rows.Err()
 }
 
-func (r *NotificationRepository) ListUnread(ctx context.Context, userID int64) ([]domain.Notification, error) {
+func (r *NotificationRepository) ListUnread(ctx context.Context, userID uuid.UUID) ([]domain.Notification, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, channel, type, title, message, "read", created_at, updated_at
 		 FROM notifications WHERE user_id = $1 AND "read" = FALSE ORDER BY created_at DESC`, userID)
@@ -73,14 +74,14 @@ func (r *NotificationRepository) ListUnread(ctx context.Context, userID int64) (
 	return notifications, rows.Err()
 }
 
-func (r *NotificationRepository) MarkRead(ctx context.Context, id, userID int64) error {
+func (r *NotificationRepository) MarkRead(ctx context.Context, id, userID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE notifications SET "read" = TRUE, updated_at = $1 WHERE id = $2 AND user_id = $3`,
 		time.Now().UTC(), id, userID)
 	return err
 }
 
-func (r *NotificationRepository) MarkAllRead(ctx context.Context, userID int64) error {
+func (r *NotificationRepository) MarkAllRead(ctx context.Context, userID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE notifications SET "read" = TRUE, updated_at = $1 WHERE user_id = $2 AND "read" = FALSE`,
 		time.Now().UTC(), userID)

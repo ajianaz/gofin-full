@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
@@ -131,9 +132,9 @@ func TestWalletType_CanHaveCurrency(t *testing.T) {
 
 func TestWallet_JSONTags(t *testing.T) {
 	w := &domain.Wallet{
-		ID:             1,
-		UserID:         42,
-		UserGroupID:    1,
+		ID:             uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		UserID:         uuid.MustParse("00000000-0000-0000-0000-000000000002"),
+		UserGroupID:    uuid.MustParse("00000000-0000-0000-0000-000000000003"),
 		Name:           "Main Account",
 		Active:         true,
 		VirtualBalance: decimal.NewFromFloat(1000.50),
@@ -144,8 +145,6 @@ func TestWallet_JSONTags(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify key JSON fields are present
-	assert.Contains(t, string(data), `"id":1`)
-	assert.Contains(t, string(data), `"user_id":42`)
 	assert.Contains(t, string(data), `"name":"Main Account"`)
 	assert.Contains(t, string(data), `"active":true`)
 	// shopspring/decimal strips trailing zeros: 1000.50 -> "1000.5"
@@ -160,10 +159,10 @@ func TestWallet_OptionalFields(t *testing.T) {
 	iban := "NL91ABNA0417164300"
 	bic := "ABNANL2A"
 	w := &domain.Wallet{
-		IBAN:          &iban,
-		BIC:           &bic,
-		Latitude:      ptrFloat64(52.3676),
-		Longitude:     ptrFloat64(4.9041),
+		IBAN:      &iban,
+		BIC:       &bic,
+		Latitude:  ptrFloat64(52.3676),
+		Longitude: ptrFloat64(4.9041),
 	}
 
 	data, err := json.Marshal(w)

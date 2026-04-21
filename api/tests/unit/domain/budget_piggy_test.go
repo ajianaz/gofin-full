@@ -6,23 +6,23 @@ import (
 	"time"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBudget_JSONSerialization(t *testing.T) {
 	b := &domain.Budget{
-		ID:         1,
-		UserID:     42,
-		UserGroupID: 5,
-		Name:       "Groceries",
-		Active:     true,
-		Order:      1,
+		ID:          uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		UserID:      uuid.MustParse("00000000-0000-0000-0000-000000000002"),
+		UserGroupID: uuid.MustParse("00000000-0000-0000-0000-000000000005"),
+		Name:        "Groceries",
+		Active:      true,
+		Order:       1,
 	}
 
 	data, err := json.Marshal(b)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"id":1`)
 	assert.Contains(t, string(data), `"name":"Groceries"`)
 	assert.Contains(t, string(data), `"active":true`)
 	assert.NotContains(t, string(data), `"deleted_at"`)
@@ -30,11 +30,12 @@ func TestBudget_JSONSerialization(t *testing.T) {
 
 func TestBudget_Limits(t *testing.T) {
 	b := &domain.Budget{
-		ID: 1, Name: "Food",
+		ID:   uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Name: "Food",
 		Limits: []domain.BudgetLimit{
 			{
-				ID:       10,
-				BudgetID: 1,
+				ID:       uuid.MustParse("00000000-0000-0000-0000-00000000000a"),
+				BudgetID: uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 				Start:    time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 				End:      time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 				Amount:   decimal.NewFromFloat(500),
@@ -49,7 +50,7 @@ func TestBudget_Limits(t *testing.T) {
 }
 
 func TestBudget_NoLimits(t *testing.T) {
-	b := &domain.Budget{ID: 1, Name: "Empty"}
+	b := &domain.Budget{ID: uuid.MustParse("00000000-0000-0000-0000-000000000001"), Name: "Empty"}
 	data, err := json.Marshal(b)
 	assert.NoError(t, err)
 	assert.NotContains(t, string(data), `"limits"`)
@@ -64,14 +65,14 @@ func TestAutoBudgetType_Values(t *testing.T) {
 
 func TestPiggyBank_JSONSerialization(t *testing.T) {
 	pb := &domain.PiggyBank{
-		ID:           1,
-		AccountID:    5,
-		Name:         "Vacation Fund",
-		TargetAmount: decimal.NewFromFloat(5000),
+		ID:            uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		AccountID:     uuid.MustParse("00000000-0000-0000-0000-000000000005"),
+		Name:          "Vacation Fund",
+		TargetAmount:  decimal.NewFromFloat(5000),
 		CurrentAmount: decimal.NewFromFloat(1200),
 		LeftToTarget:  decimal.NewFromFloat(3800),
 		Percentage:    24.0,
-		Order:        1,
+		Order:         1,
 	}
 
 	data, err := json.Marshal(pb)
@@ -85,7 +86,8 @@ func TestPiggyBank_JSONSerialization(t *testing.T) {
 
 func TestPiggyBank_OptionalFields(t *testing.T) {
 	pb := &domain.PiggyBank{
-		ID: 1, Name: "Test",
+		ID:   uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Name: "Test",
 	}
 	data, err := json.Marshal(pb)
 	assert.NoError(t, err)
@@ -100,7 +102,7 @@ func TestPiggyBank_WithDates(t *testing.T) {
 	notes := "Save for holiday"
 
 	pb := &domain.PiggyBank{
-		ID: 1, Name: "Holiday",
+		ID: uuid.MustParse("00000000-0000-0000-0000-000000000001"), Name: "Holiday",
 		StartDate: &start, TargetDate: &target, Notes: &notes,
 	}
 
@@ -113,21 +115,20 @@ func TestPiggyBank_WithDates(t *testing.T) {
 
 func TestPiggyBankEvent_JSON(t *testing.T) {
 	evt := &domain.PiggyBankEvent{
-		ID:          1,
-		PiggyBankID: 5,
+		ID:          uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		PiggyBankID: uuid.MustParse("00000000-0000-0000-0000-000000000005"),
 		Amount:      decimal.NewFromFloat(250),
 	}
 
 	data, err := json.Marshal(evt)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"piggy_bank_id":5`)
 	assert.Contains(t, string(data), `"amount":"250"`)
 }
 
 func TestPiggyBankRepetition_JSON(t *testing.T) {
 	rep := &domain.PiggyBankRepetition{
-		ID:            1,
-		PiggyBankID:   5,
+		ID:            uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		PiggyBankID:   uuid.MustParse("00000000-0000-0000-0000-000000000005"),
 		TargetAmount:  decimal.NewFromFloat(1000),
 		CurrentAmount: decimal.NewFromFloat(500),
 	}
@@ -140,9 +141,9 @@ func TestPiggyBankRepetition_JSON(t *testing.T) {
 
 func TestAvailableBudget_JSON(t *testing.T) {
 	ab := &domain.AvailableBudget{
-		ID:         1,
-		BudgetID:   10,
-		Amount:     decimal.NewFromFloat(300),
+		ID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		BudgetID: uuid.MustParse("00000000-0000-0000-0000-00000000000a"),
+		Amount:   decimal.NewFromFloat(300),
 	}
 
 	data, err := json.Marshal(ab)

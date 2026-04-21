@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -32,7 +33,7 @@ func (r *UserRepository) Create(ctx context.Context, email, passwordHash string)
 	now := time.Now().UTC()
 
 	// Create default group for user
-	var groupID int64
+	var groupID uuid.UUID
 	err = tx.QueryRow(ctx,
 		`INSERT INTO user_groups (title, created_at, updated_at) VALUES ($1, $2, $3) RETURNING id`,
 		email, now, now,
@@ -42,7 +43,7 @@ func (r *UserRepository) Create(ctx context.Context, email, passwordHash string)
 	}
 
 	// Get the 'owner' group role
-	var ownerRoleID int64
+	var ownerRoleID uuid.UUID
 	err = tx.QueryRow(ctx,
 		`SELECT id FROM user_roles WHERE title = 'owner' LIMIT 1`,
 	).Scan(&ownerRoleID)
@@ -51,7 +52,7 @@ func (r *UserRepository) Create(ctx context.Context, email, passwordHash string)
 	}
 
 	// Create user
-	var userID int64
+	var userID uuid.UUID
 	err = tx.QueryRow(ctx,
 		`INSERT INTO users (email, password, user_group_id, created_at, updated_at)
 		 VALUES ($1, $2, $3, $4, $5) RETURNING id`,
@@ -72,7 +73,7 @@ func (r *UserRepository) Create(ctx context.Context, email, passwordHash string)
 	}
 
 	// Get the global 'owner' role
-	var globalOwnerRoleID int64
+	var globalOwnerRoleID uuid.UUID
 	err = tx.QueryRow(ctx,
 		`SELECT id FROM roles WHERE title = 'owner' LIMIT 1`,
 	).Scan(&globalOwnerRoleID)
@@ -110,7 +111,7 @@ func (r *UserRepository) Create(ctx context.Context, email, passwordHash string)
 }
 
 // FindByID finds a user by ID (soft-delete aware).
-func (r *UserRepository) FindByID(ctx context.Context, id int64) (*domain.User, error) {
+func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	var u domain.User
 	var deletedAt *time.Time
 
@@ -148,7 +149,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 }
 
 // Update updates user fields.
-func (r *UserRepository) Update(ctx context.Context, id int64, email, password string) error {
+func (r *UserRepository) Update(ctx context.Context, id uuid.UUID, email, password string) error {
 	if password != "" {
 		_, err := r.db.Exec(ctx,
 			`UPDATE users SET email = $1, password = $2, updated_at = $3 WHERE id = $4 AND deleted_at IS NULL`,
@@ -174,7 +175,7 @@ func (r *UserRepository) Exists(ctx context.Context) (bool, error) {
 }
 
 // HasGlobalRole checks if a user has a specific global role.
-func (r *UserRepository) HasGlobalRole(ctx context.Context, userID int64, roleTitle string) (bool, error) {
+func (r *UserRepository) HasGlobalRole(ctx context.Context, userID uuid.UUID, roleTitle string) (bool, error) {
 	var count int
 	err := r.db.QueryRow(ctx,
 		`SELECT COUNT(*) FROM role_user ru
@@ -186,7 +187,7 @@ func (r *UserRepository) HasGlobalRole(ctx context.Context, userID int64, roleTi
 }
 
 // GetUserRoleInGroup returns the user's role in a specific group.
-func (r *UserRepository) GetUserRoleInGroup(ctx context.Context, userID, groupID int64) (auth.GroupRole, error) {
+func (r *UserRepository) GetUserRoleInGroup(ctx context.Context, userID, groupID uuid.UUID) (auth.GroupRole, error) {
 	var roleTitle string
 	err := r.db.QueryRow(ctx,
 		`SELECT ur.title FROM group_memberships gm
@@ -201,7 +202,7 @@ func (r *UserRepository) GetUserRoleInGroup(ctx context.Context, userID, groupID
 }
 
 // SetActiveGroup updates the user's active group.
-func (r *UserRepository) SetActiveGroup(ctx context.Context, userID, groupID int64) error {
+func (r *UserRepository) SetActiveGroup(ctx context.Context, userID, groupID uuid.UUID) error {
 	// Verify membership
 	var exists bool
 	err := r.db.QueryRow(ctx,

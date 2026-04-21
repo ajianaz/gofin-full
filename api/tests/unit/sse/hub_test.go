@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 
 	"github.com/ajianaz/gofin-full/api/internal/sse"
@@ -15,8 +16,8 @@ func TestHubSubscribeUnsubscribe(t *testing.T) {
 	hub := sse.NewHub(log)
 
 	client := &sse.Client{
-		ID:     1,
-		UserID: 10,
+		ID:     uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		UserID: uuid.MustParse("00000000-0000-0000-0000-00000000000a"),
 		Ch:     make(chan sse.Event, 16),
 		Done:   make(chan struct{}),
 	}
@@ -36,9 +37,10 @@ func TestHubSendToUser(t *testing.T) {
 	log := zerolog.Nop()
 	hub := sse.NewHub(log)
 
+	testUserID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
 	client := &sse.Client{
-		ID:     1,
-		UserID: 42,
+		ID:     uuid.MustParse("00000000-0000-0000-0000-000000000003"),
+		UserID: testUserID,
 		Ch:     make(chan sse.Event, 16),
 		Done:   make(chan struct{}),
 	}
@@ -47,7 +49,7 @@ func TestHubSendToUser(t *testing.T) {
 	defer hub.Unsubscribe(client)
 
 	event := sse.Event{Type: "test", Data: map[string]string{"msg": "hello"}}
-	hub.SendToUser(42, event)
+	hub.SendToUser(testUserID, event)
 
 	select {
 	case received := <-client.Ch:
@@ -63,8 +65,10 @@ func TestHubBroadcast(t *testing.T) {
 	log := zerolog.Nop()
 	hub := sse.NewHub(log)
 
-	c1 := &sse.Client{ID: 1, UserID: 1, Ch: make(chan sse.Event, 16), Done: make(chan struct{})}
-	c2 := &sse.Client{ID: 2, UserID: 2, Ch: make(chan sse.Event, 16), Done: make(chan struct{})}
+	userID1 := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	userID2 := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+	c1 := &sse.Client{ID: uuid.MustParse("00000000-0000-0000-0000-000000000003"), UserID: userID1, Ch: make(chan sse.Event, 16), Done: make(chan struct{})}
+	c2 := &sse.Client{ID: uuid.MustParse("00000000-0000-0000-0000-000000000004"), UserID: userID2, Ch: make(chan sse.Event, 16), Done: make(chan struct{})}
 
 	hub.Subscribe(c1)
 	hub.Subscribe(c2)
@@ -94,7 +98,7 @@ func TestHubSendToNonexistentUser(t *testing.T) {
 
 	done := make(chan struct{})
 	go func() {
-		hub.SendToUser(999, sse.Event{Type: "test", Data: "noop"})
+		hub.SendToUser(uuid.MustParse("00000000-0000-0000-0000-ffffffffffff"), sse.Event{Type: "test", Data: "noop"})
 		close(done)
 	}()
 
@@ -114,9 +118,12 @@ func TestHubConcurrentAccess(t *testing.T) {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			client := &sse.Client{ID: int64(id), UserID: int64(id % 10), Ch: make(chan sse.Event, 16), Done: make(chan struct{})}
+			clientID := uuid.New()
+			userID := uuid.MustParse("00000000-0000-0000-0000-000000000000")
+			userID[15] = byte(id % 10)
+			client := &sse.Client{ID: clientID, UserID: userID, Ch: make(chan sse.Event, 16), Done: make(chan struct{})}
 			hub.Subscribe(client)
-			hub.SendToUser(int64(id%10), sse.Event{Type: "test", Data: id})
+			hub.SendToUser(userID, sse.Event{Type: "test", Data: id})
 			hub.Unsubscribe(client)
 		}(i)
 	}

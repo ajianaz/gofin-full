@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
@@ -25,7 +26,7 @@ func NewWalletRepository(db *pgxpool.Pool) *WalletRepository {
 // Create inserts a new wallet.
 func (r *WalletRepository) Create(ctx context.Context, w *domain.Wallet) (*domain.Wallet, error) {
 	now := time.Now().UTC()
-	var id int64
+	var id uuid.UUID
 
 	err := r.db.QueryRow(ctx,
 		`INSERT INTO wallets (user_id, user_group_id, name, account_type, iban, bic,
@@ -54,7 +55,7 @@ func (r *WalletRepository) Create(ctx context.Context, w *domain.Wallet) (*domai
 }
 
 // FindByID finds a wallet by ID within a group (soft-delete aware).
-func (r *WalletRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.Wallet, error) {
+func (r *WalletRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.Wallet, error) {
 	var w domain.Wallet
 	var deletedAt *time.Time
 	var iban, bic, currencyID, liabilityType, liabilityDirection, interestPeriod, creditCardType sqlString
@@ -110,7 +111,7 @@ func (r *WalletRepository) FindByID(ctx context.Context, id, groupID int64) (*do
 }
 
 // List returns all wallets in a group, optionally filtered by type and active status.
-func (r *WalletRepository) List(ctx context.Context, groupID int64, walletType string, activeOnly bool) ([]domain.Wallet, error) {
+func (r *WalletRepository) List(ctx context.Context, groupID uuid.UUID, walletType string, activeOnly bool) ([]domain.Wallet, error) {
 	query := `SELECT id, user_id, user_group_id, name, account_type,
 		  COALESCE(iban, ''), COALESCE(bic, ''), COALESCE(currency_id, ''),
 		  active, virtual_balance, include_net_worth,
@@ -143,7 +144,7 @@ func (r *WalletRepository) List(ctx context.Context, groupID int64, walletType s
 }
 
 // Update updates wallet fields.
-func (r *WalletRepository) Update(ctx context.Context, id, groupID int64, name string, active, includeNetWorth *bool, notes *string) error {
+func (r *WalletRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, active, includeNetWorth *bool, notes *string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE wallets SET name = COALESCE(NULLIF($1, ''), name),
 		  active = COALESCE($2, active),
@@ -157,7 +158,7 @@ func (r *WalletRepository) Update(ctx context.Context, id, groupID int64, name s
 }
 
 // Delete soft-deletes a wallet.
-func (r *WalletRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *WalletRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE wallets SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID,

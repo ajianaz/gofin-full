@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -51,14 +52,14 @@ func (h *RecurrenceHandler) Show(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	rec, err := h.repo.FindByID(c.Context(), int64(id), *groupID)
+	rec, err := h.repo.FindByID(c.Context(), id, *groupID)
 	if err != nil {
-		return apperrors.NotFoundResource("recurrence", int64(id))
+		return apperrors.NotFoundResource("recurrence", id)
 	}
 
 	return c.JSON(fiber.Map{"data": recurrenceToMap(rec)})
@@ -121,9 +122,9 @@ func (h *RecurrenceHandler) Update(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -137,8 +138,8 @@ func (h *RecurrenceHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), int64(id), *groupID, req.Title, req.RepeatFreq, req.Active, req.Description, req.RepeatUntil); err != nil {
-		return apperrors.NotFoundResource("recurrence", int64(id))
+	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.RepeatFreq, req.Active, req.Description, req.RepeatUntil); err != nil {
+		return apperrors.NotFoundResource("recurrence", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -154,13 +155,13 @@ func (h *RecurrenceHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id), *groupID); err != nil {
-		return apperrors.NotFoundResource("recurrence", int64(id))
+	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("recurrence", id)
 	}
 
 	return c.Status(204).Send(nil)
@@ -173,10 +174,10 @@ func recurrenceToMap(r *domain.Recurrence) fiber.Map {
 			"id": t.ID, "type": t.Type, "description": t.Description,
 			"amount": t.Amount.StringFixed(2),
 		}
-		if t.SourceID != 0 {
+		if t.SourceID != uuid.Nil {
 			txn["source_id"] = t.SourceID
 		}
-		if t.DestinationID != 0 {
+		if t.DestinationID != uuid.Nil {
 			txn["destination_id"] = t.DestinationID
 		}
 		txns = append(txns, txn)

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -23,12 +24,12 @@ func newTestAppWithMiddleware(jwtMgr *auth.JWTManager, mw fiber.Handler) *fiber.
 		if groupID == nil {
 			return c.JSON(fiber.Map{"group_id": nil})
 		}
-		return c.JSON(fiber.Map{"group_id": *groupID})
+		return c.JSON(fiber.Map{"group_id": groupID.String()})
 	})
 	return app
 }
 
-func generateTestToken(t *testing.T, jwtMgr *auth.JWTManager, userID int64, email string, groupID *int64) string {
+func generateTestToken(t *testing.T, jwtMgr *auth.JWTManager, userID uuid.UUID, email string, groupID *uuid.UUID) string {
 	t.Helper()
 	identity := &auth.UserIdentity{ID: userID, Email: email}
 	pair, err := jwtMgr.GenerateTokenPair(identity, groupID)
@@ -40,11 +41,11 @@ func TestAuthMiddleware_GroupOverrideQueryParamIgnored(t *testing.T) {
 	jwtMgr := auth.NewJWTManager("test-secret-32-chars-minimum!!", 60, 30)
 
 	// Token with NO group ID in claims
-	token := generateTestToken(t, jwtMgr, 1, "user@example.com", nil)
+	token := generateTestToken(t, jwtMgr, uuid.MustParse("00000000-0000-0000-0000-000000000001"), "user@example.com", nil)
 
 	app := newTestAppWithMiddleware(jwtMgr, auth.AuthMiddleware(jwtMgr))
 
-	// Try to override group via query param — should be ignored
+	// Try to override group via query param -- should be ignored
 	req := httptest.NewRequest("GET", "/me?user_group_id=999", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
@@ -57,15 +58,15 @@ func TestAuthMiddleware_GroupOverrideQueryParamIgnored(t *testing.T) {
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(bodyBytes, &body)
 
-	// group_id should be nil — query param override must be ignored
+	// group_id should be nil -- query param override must be ignored
 	assert.Nil(t, body["group_id"], "group override via query param must be ignored")
 }
 
 func TestAuthMiddleware_GroupIDFromClaims(t *testing.T) {
 	jwtMgr := auth.NewJWTManager("test-secret-32-chars-minimum!!", 60, 30)
 
-	groupID := int64(42)
-	token := generateTestToken(t, jwtMgr, 1, "user@example.com", &groupID)
+	testGroupID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+	token := generateTestToken(t, jwtMgr, uuid.MustParse("00000000-0000-0000-0000-000000000001"), "user@example.com", &testGroupID)
 
 	app := newTestAppWithMiddleware(jwtMgr, auth.AuthMiddleware(jwtMgr))
 
@@ -81,14 +82,14 @@ func TestAuthMiddleware_GroupIDFromClaims(t *testing.T) {
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(bodyBytes, &body)
 
-	assert.Equal(t, float64(42), body["group_id"], "group_id should come from JWT claims")
+	assert.Equal(t, testGroupID.String(), body["group_id"], "group_id should come from JWT claims")
 }
 
 func TestAuthMiddleware_QueryParamDoesNotOverrideClaims(t *testing.T) {
 	jwtMgr := auth.NewJWTManager("test-secret-32-chars-minimum!!", 60, 30)
 
-	groupID := int64(42)
-	token := generateTestToken(t, jwtMgr, 1, "user@example.com", &groupID)
+	testGroupID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+	token := generateTestToken(t, jwtMgr, uuid.MustParse("00000000-0000-0000-0000-000000000001"), "user@example.com", &testGroupID)
 
 	app := newTestAppWithMiddleware(jwtMgr, auth.AuthMiddleware(jwtMgr))
 
@@ -104,14 +105,14 @@ func TestAuthMiddleware_QueryParamDoesNotOverrideClaims(t *testing.T) {
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	json.Unmarshal(bodyBytes, &body)
 
-	// Should still be 42 from claims, not 999 from query
-	assert.Equal(t, float64(42), body["group_id"], "query param must not override JWT claims")
+	// Should still be from claims, not from query
+	assert.Equal(t, testGroupID.String(), body["group_id"], "query param must not override JWT claims")
 }
 
 func TestOptionalAuthMiddleware_GroupOverrideIgnored(t *testing.T) {
 	jwtMgr := auth.NewJWTManager("test-secret-32-chars-minimum!!", 60, 30)
 
-	token := generateTestToken(t, jwtMgr, 1, "user@example.com", nil)
+	token := generateTestToken(t, jwtMgr, uuid.MustParse("00000000-0000-0000-0000-000000000001"), "user@example.com", nil)
 
 	app := newTestAppWithMiddleware(jwtMgr, auth.OptionalAuthMiddleware(jwtMgr))
 

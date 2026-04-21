@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewRuleGroupRepository(db *pgxpool.Pool) *RuleGroupRepository {
 	return &RuleGroupRepository{db: db}
 }
 
-func (r *RuleGroupRepository) Create(ctx context.Context, userID, groupID int64, title string, order int) (*domain.RuleGroup, error) {
+func (r *RuleGroupRepository) Create(ctx context.Context, userID, groupID uuid.UUID, title string, order int) (*domain.RuleGroup, error) {
 	now := time.Now().UTC()
 	var rg domain.RuleGroup
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *RuleGroupRepository) Create(ctx context.Context, userID, groupID int64,
 	return &rg, nil
 }
 
-func (r *RuleGroupRepository) List(ctx context.Context, groupID int64) ([]domain.RuleGroup, error) {
+func (r *RuleGroupRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.RuleGroup, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, title, active, "order", created_at, updated_at
 		 FROM rule_groups WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", title`, groupID)
@@ -53,7 +54,7 @@ func (r *RuleGroupRepository) List(ctx context.Context, groupID int64) ([]domain
 	return groups, rows.Err()
 }
 
-func (r *RuleGroupRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.RuleGroup, error) {
+func (r *RuleGroupRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.RuleGroup, error) {
 	var rg domain.RuleGroup
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -69,7 +70,7 @@ func (r *RuleGroupRepository) FindByID(ctx context.Context, id, groupID int64) (
 	return &rg, nil
 }
 
-func (r *RuleGroupRepository) Update(ctx context.Context, id, groupID int64, title string, active *bool) error {
+func (r *RuleGroupRepository) Update(ctx context.Context, id, groupID uuid.UUID, title string, active *bool) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE rule_groups SET title = COALESCE(NULLIF($1, ''), title), active = COALESCE($2, active), updated_at = $3
 		 WHERE id = $4 AND user_group_id = $5 AND deleted_at IS NULL`,
@@ -77,7 +78,7 @@ func (r *RuleGroupRepository) Update(ctx context.Context, id, groupID int64, tit
 	return err
 }
 
-func (r *RuleGroupRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *RuleGroupRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE rule_groups SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID)

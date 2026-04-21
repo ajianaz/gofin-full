@@ -15,7 +15,7 @@ func TestAdminCreateUser(t *testing.T) {
 	token := testApp.Seed.OwnerToken
 
 	t.Run("admin_can_create_user", func(t *testing.T) {
-		email := fmt.Sprintf("newuser-%d@gofin.io", testApp.Seed.GroupID)
+		email := fmt.Sprintf("newuser-%s@gofin.io", testApp.Seed.GroupID)
 		body := fmt.Sprintf(`{"email":"%s","password":"securepass123"}`, email)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", "/api/v1/admin/users", body, token)
 		require.Equal(t, http.StatusCreated, resp.StatusCode,
@@ -23,7 +23,7 @@ func TestAdminCreateUser(t *testing.T) {
 	})
 
 	t.Run("created_user_can_login", func(t *testing.T) {
-		email := fmt.Sprintf("login-test-%d@gofin.io", testApp.Seed.GroupID)
+		email := fmt.Sprintf("login-test-%s@gofin.io", testApp.Seed.GroupID)
 		body := fmt.Sprintf(`{"email":"%s","password":"securepass123"}`, email)
 
 		// Create user via admin
@@ -70,7 +70,7 @@ func TestSelfRegistration(t *testing.T) {
 	app := testApp.App
 
 	t.Run("self_register_enabled_creates_user_and_returns_tokens", func(t *testing.T) {
-		email := fmt.Sprintf("register-%d@gofin.io", testApp.Seed.GroupID)
+		email := fmt.Sprintf("register-%s@gofin.io", testApp.Seed.GroupID)
 		body := fmt.Sprintf(`{"email":"%s","password":"registerpass1"}`, email)
 		resp := testhelpers.MakeRequest(t, app, "POST", "/api/v1/auth/register", body, "")
 		require.Equal(t, http.StatusCreated, resp.StatusCode,

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 
@@ -17,20 +18,20 @@ import (
 
 // SeedData holds the IDs and tokens created by SeedTestData.
 type SeedData struct {
-	OwnerUserID    int64
+	OwnerUserID    uuid.UUID
 	OwnerEmail     string
 	OwnerToken     string
-	ReadOnlyUserID int64
+	ReadOnlyUserID uuid.UUID
 	ReadOnlyEmail  string
 	ReadOnlyToken  string
-	FullUserID     int64
+	FullUserID     uuid.UUID
 	FullEmail      string
 	FullToken      string
-	TxUserID       int64
+	TxUserID       uuid.UUID
 	TxEmail        string
 	TxUserToken    string
-	GroupID        int64
-	WalletID       int64
+	GroupID        uuid.UUID
+	WalletID       uuid.UUID
 }
 
 // SetupTestDB connects to the test database and runs all pending up-migrations.
@@ -96,9 +97,9 @@ func SetupTestDB(cfg *TestConfig) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-// TruncateAllTables removes all rows from data tables and resets their
-// sequences so that IDs are predictable across test runs. Reference data
-// (roles, user_roles) seeded by migrations is preserved.
+// TruncateAllTables removes all rows from data tables.
+// Reference data (roles, user_roles) seeded by migrations is preserved.
+// Note: UUIDs don't use sequences, so no sequence reset is needed.
 func TruncateAllTables(db *pgxpool.Pool) {
 	ctx := context.Background()
 	tables := []string{
@@ -115,21 +116,6 @@ func TruncateAllTables(db *pgxpool.Pool) {
 	for _, t := range tables {
 		_, _ = db.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s CASCADE", t))
 	}
-
-	// Reset serial sequences so IDs start from 1 after truncation.
-	sequences := []string{
-		"users_id_seq",
-		"user_groups_id_seq",
-		"group_memberships_id_seq",
-		"wallets_id_seq",
-		"wallet_members_id_seq",
-		"refresh_tokens_id_seq",
-		"api_keys_id_seq",
-		"oauth_states_id_seq",
-	}
-	for _, seq := range sequences {
-		_, _ = db.Exec(ctx, fmt.Sprintf("ALTER SEQUENCE IF EXISTS %s RESTART WITH 1", seq))
-	}
 }
 
 // SeedTestData creates a full set of test fixtures: owner user with group and wallet,
@@ -138,7 +124,7 @@ func SeedTestData(db *pgxpool.Pool, jwtMgr *auth.JWTManager) (*SeedData, error) 
 	ctx := context.Background()
 
 	// ---------- resolve user_role IDs ----------
-	var ownerRoleID, readOnlyRoleID, fullRoleID, txRoleID int64
+	var ownerRoleID, readOnlyRoleID, fullRoleID, txRoleID uuid.UUID
 	if err := db.QueryRow(ctx, `SELECT id FROM user_roles WHERE title = 'owner'`).Scan(&ownerRoleID); err != nil {
 		return nil, fmt.Errorf("find owner role: %w", err)
 	}
@@ -153,13 +139,13 @@ func SeedTestData(db *pgxpool.Pool, jwtMgr *auth.JWTManager) (*SeedData, error) 
 	}
 
 	// ---------- resolve global role IDs ----------
-	var globalOwnerRoleID int64
+	var globalOwnerRoleID uuid.UUID
 	if err := db.QueryRow(ctx, `SELECT id FROM roles WHERE title = 'owner' LIMIT 1`).Scan(&globalOwnerRoleID); err != nil {
 		return nil, fmt.Errorf("find global owner role: %w", err)
 	}
 
 	// ---------- create user group ----------
-	var groupID int64
+	var groupID uuid.UUID
 	err := db.QueryRow(ctx,
 		`INSERT INTO user_groups (title, created_at, updated_at) VALUES ($1, NOW(), NOW()) RETURNING id`,
 		"Test Group",
@@ -171,8 +157,8 @@ func SeedTestData(db *pgxpool.Pool, jwtMgr *auth.JWTManager) (*SeedData, error) 
 	// ---------- insert users ----------
 	type userSpec struct {
 		email  string
-		roleID int64
-		userID *int64
+		roleID uuid.UUID
+		userID *uuid.UUID
 		token  *string
 	}
 
@@ -189,7 +175,7 @@ func SeedTestData(db *pgxpool.Pool, jwtMgr *auth.JWTManager) (*SeedData, error) 
 	}
 
 	for i := range specs {
-		var uid int64
+		var uid uuid.UUID
 		err := db.QueryRow(ctx,
 			`INSERT INTO users (email, password, user_group_id, created_at, updated_at)
 			 VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id`,
@@ -229,10 +215,10 @@ func SeedTestData(db *pgxpool.Pool, jwtMgr *auth.JWTManager) (*SeedData, error) 
 	}
 
 	// ---------- create wallet for owner ----------
-	var walletID int64
+	var walletID uuid.UUID
 	err = db.QueryRow(ctx,
 		`INSERT INTO wallets (user_id, user_group_id, name, account_type, active, virtual_balance, include_net_worth, created_at, updated_at)
-		 VALUES ($1, $2, 'Test Wallet', 'asset', TRUE, 0, TRUE, NOW(), NOW()) RETURNING id`,
+			 VALUES ($1, $2, 'Test Wallet', 'asset', TRUE, 0, TRUE, NOW(), NOW()) RETURNING id`,
 		*specs[0].userID, groupID,
 	).Scan(&walletID)
 	if err != nil {
@@ -262,10 +248,10 @@ func SeedTestData(db *pgxpool.Pool, jwtMgr *auth.JWTManager) (*SeedData, error) 
 // ensureMigrationsTable creates the schema_migrations tracking table if absent.
 func ensureMigrationsTable(ctx context.Context, pool *pgxpool.Pool) {
 	_, _ = pool.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS schema_migrations (
-			name       TEXT PRIMARY KEY,
-			applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-		)
+			CREATE TABLE IF NOT EXISTS schema_migrations (
+				name       TEXT PRIMARY KEY,
+				applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+			)
 	`)
 }
 

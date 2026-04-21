@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 
@@ -34,11 +35,11 @@ func (p *localProvider) Authenticate(ctx context.Context, creds Credentials) (*U
 		return nil, fmt.Errorf("email and password required")
 	}
 
-	var id int64
+	var id uuid.UUID
 	var hashedPassword string
 	var blocked bool
 	var deletedAt *string
-	var userGroupID *int64
+	var userGroupID *uuid.UUID
 
 	err := p.db.QueryRow(ctx,
 		`SELECT id, password, blocked, deleted_at::text, user_group_id

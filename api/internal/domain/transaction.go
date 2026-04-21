@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"time"
 )
@@ -21,9 +22,9 @@ const (
 // TransactionGroup is the top-level transaction container.
 // Groups one or more TransactionJournals (split transactions).
 type TransactionGroup struct {
-	ID         int64                `json:"id" db:"id"`
-	UserID     int64                `json:"user_id" db:"user_id"`
-	UserGroupID int64               `json:"user_group_id" db:"user_group_id"`
+	ID         uuid.UUID            `json:"id" db:"id"`
+	UserID     uuid.UUID            `json:"user_id" db:"user_id"`
+	UserGroupID uuid.UUID           `json:"user_group_id" db:"user_group_id"`
 	GroupTitle string               `json:"group_title" db:"group_title"`
 	CreatedAt  time.Time            `json:"created_at" db:"created_at"`
 	UpdatedAt  time.Time            `json:"updated_at" db:"updated_at"`
@@ -33,20 +34,20 @@ type TransactionGroup struct {
 
 // TransactionJournal represents a single journal within a transaction group.
 type TransactionJournal struct {
-	ID                     int64                     `json:"transaction_journal_id" db:"id"`
-	TransactionGroupID     int64                     `json:"-" db:"transaction_group_id"`
-	UserID                 int64                     `json:"user" db:"user_id"`
-	UserGroupID            int64                     `json:"user_group" db:"user_group_id"`
-	TransactionTypeID      int64                     `json:"-" db:"transaction_type_id"`
+	ID                     uuid.UUID                 `json:"transaction_journal_id" db:"id"`
+	TransactionGroupID     uuid.UUID                 `json:"-" db:"transaction_group_id"`
+	UserID                 uuid.UUID                 `json:"user" db:"user_id"`
+	UserGroupID            uuid.UUID                 `json:"user_group" db:"user_group_id"`
+	TransactionTypeID      uuid.UUID                 `json:"-" db:"transaction_type_id"`
 	Type                   TransactionType           `json:"type" db:"-"`
 	Date                   time.Time                 `json:"date" db:"date"`
 	Order                  int                       `json:"order" db:"order"`
 	Description            string                    `json:"description" db:"description"`
 	CurrencyID             string                    `json:"currency_id" db:"transaction_currency_id"`
 	ForeignCurrencyID      *string                   `json:"foreign_currency_id,omitempty" db:"foreign_currency_id"`
-	BudgetID               *int64                    `json:"budget_id,omitempty" db:"budget_id"`
-	BillID                 *int64                    `json:"bill_id,omitempty" db:"bill_id"`
-	PiggyBankID            *int64                    `json:"piggy_bank_id,omitempty" db:"piggy_bank_id"`
+	BudgetID               *uuid.UUID                `json:"budget_id,omitempty" db:"budget_id"`
+	BillID                 *uuid.UUID                `json:"bill_id,omitempty" db:"bill_id"`
+	PiggyBankID            *uuid.UUID                `json:"piggy_bank_id,omitempty" db:"piggy_bank_id"`
 	Reconciled             bool                      `json:"reconciled" db:"reconciled"`
 	Notes                  *string                   `json:"notes,omitempty" db:"notes"`
 	InterestDate           *time.Time                `json:"interest_date,omitempty" db:"interest_date"`
@@ -58,7 +59,7 @@ type TransactionJournal struct {
 	ExternalID             *string                   `json:"external_id,omitempty" db:"external_id"`
 	ExternalURL            *string                   `json:"external_url,omitempty" db:"external_url"`
 	InternalReference      *string                   `json:"internal_reference,omitempty" db:"internal_reference"`
-	RecurrenceID           *int64                    `json:"recurrence_id,omitempty" db:"recurrence_id"`
+	RecurrenceID           *uuid.UUID                `json:"recurrence_id,omitempty" db:"recurrence_id"`
 	RecurrenceTotal        *int                      `json:"recurrence_total,omitempty" db:"recurrence_total"`
 	RecurrenceCount        *int                      `json:"recurrence_count,omitempty" db:"recurrence_count"`
 	ImportHashV2           *string                   `json:"import_hash_v2,omitempty" db:"import_hash_v2"`
@@ -93,9 +94,9 @@ type TransactionJournal struct {
 // Transaction represents the actual monetary movement (debit or credit).
 // Each journal has exactly 2 transactions: one debit, one credit.
 type Transaction struct {
-	ID                     int64           `json:"id" db:"id"`
-	TransactionJournalID   int64           `json:"transaction_journal_id" db:"transaction_journal_id"`
-	AccountID              int64           `json:"-" db:"account_id"`
+	ID                     uuid.UUID      `json:"id" db:"id"`
+	TransactionJournalID   uuid.UUID      `json:"transaction_journal_id" db:"transaction_journal_id"`
+	AccountID              uuid.UUID      `json:"-" db:"account_id"`
 	Amount                 decimal.Decimal `json:"amount" db:"amount"`
 	NativeAmount           decimal.Decimal `json:"native_amount,omitempty" db:"native_amount"`
 	ForeignAmount          *decimal.Decimal `json:"foreign_amount,omitempty" db:"foreign_amount"`
@@ -111,8 +112,8 @@ type Transaction struct {
 
 // TransactionJournalMeta stores key-value metadata for journals.
 type TransactionJournalMeta struct {
-	ID                    int64     `json:"id" db:"id"`
-	TransactionJournalID  int64     `json:"-" db:"transaction_journal_id"`
+	ID                    uuid.UUID `json:"id" db:"id"`
+	TransactionJournalID  uuid.UUID `json:"-" db:"transaction_journal_id"`
 	Name                  string    `json:"name" db:"name"`
 	Value                 string    `json:"value" db:"value"`
 	CreatedAt             time.Time `json:"created_at" db:"created_at"`
@@ -121,17 +122,17 @@ type TransactionJournalMeta struct {
 
 // TransactionJournalLink represents a link between two journals.
 type TransactionJournalLink struct {
-	ID                  int64     `json:"id" db:"id"`
-	LinkTypeID          int64     `json:"link_type_id" db:"link_type_id"`
-	SourceID            int64     `json:"source_id" db:"source_id"`
-	DestinationID       int64     `json:"destination_id" db:"destination_id"`
+	ID                  uuid.UUID `json:"id" db:"id"`
+	LinkTypeID          uuid.UUID `json:"link_type_id" db:"link_type_id"`
+	SourceID            uuid.UUID `json:"source_id" db:"source_id"`
+	DestinationID       uuid.UUID `json:"destination_id" db:"destination_id"`
 	CreatedAt           time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // LinkType defines the type of journal link.
 type LinkType struct {
-	ID        int64     `json:"id" db:"id"`
+	ID        uuid.UUID `json:"id" db:"id"`
 	Name      string    `json:"name" db:"name"`
 	Inward    string    `json:"inward" db:"inward"`
 	Outward   string    `json:"outward" db:"outward"`

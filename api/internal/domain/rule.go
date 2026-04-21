@@ -1,12 +1,15 @@
 package domain
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type Rule struct {
-	ID         int64     `json:"id" db:"id"`
-	UserID     int64     `json:"user_id" db:"user_id"`
-	UserGroupID int64    `json:"user_group_id" db:"user_group_id"`
-	RuleGroupID *int64   `json:"rule_group_id,omitempty" db:"rule_group_id"`
+	ID         uuid.UUID `json:"id" db:"id"`
+	UserID     uuid.UUID `json:"user_id" db:"user_id"`
+	UserGroupID uuid.UUID `json:"user_group_id" db:"user_group_id"`
+	RuleGroupID *uuid.UUID `json:"rule_group_id,omitempty" db:"rule_group_id"`
 	Title      string    `json:"title" db:"title"`
 	Description *string  `json:"description,omitempty" db:"description"`
 	Priority   int       `json:"priority" db:"priority"`
@@ -24,9 +27,9 @@ type Rule struct {
 }
 
 type RuleGroup struct {
-	ID         int64     `json:"id" db:"id"`
-	UserID     int64     `json:"user_id" db:"user_id"`
-	UserGroupID int64    `json:"user_group_id" db:"user_group_id"`
+	ID         uuid.UUID `json:"id" db:"id"`
+	UserID     uuid.UUID `json:"user_id" db:"user_id"`
+	UserGroupID uuid.UUID `json:"user_group_id" db:"user_group_id"`
 	Title      string    `json:"title" db:"title"`
 	Active     bool      `json:"active" db:"active"`
 	Order      int       `json:"order" db:"order"`
@@ -36,8 +39,8 @@ type RuleGroup struct {
 }
 
 type RuleTrigger struct {
-	ID         int64     `json:"id" db:"id"`
-	RuleID     int64     `json:"rule_id" db:"rule_id"`
+	ID         uuid.UUID `json:"id" db:"id"`
+	RuleID     uuid.UUID `json:"rule_id" db:"rule_id"`
 	TriggerType string   `json:"trigger_type" db:"trigger_type"`
 	TriggerValue string  `json:"trigger_value" db:"trigger_value"`
 	StopProcessing bool `json:"stop_processing" db:"stop_processing"`
@@ -46,8 +49,8 @@ type RuleTrigger struct {
 }
 
 type RuleAction struct {
-	ID        int64     `json:"id" db:"id"`
-	RuleID    int64     `json:"rule_id" db:"rule_id"`
+	ID        uuid.UUID `json:"id" db:"id"`
+	RuleID    uuid.UUID `json:"rule_id" db:"rule_id"`
 	ActionType string   `json:"action_type" db:"action_type"`
 	ActionValue string  `json:"action_value" db:"action_value"`
 	Order     int       `json:"order" db:"order"`

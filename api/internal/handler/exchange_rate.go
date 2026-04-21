@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -134,13 +135,13 @@ func (h *ExchangeRateHandler) Show(c *fiber.Ctx) error {
 func (h *ExchangeRateHandler) Delete(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id)); err != nil {
-		return apperrors.NotFoundResource("exchange_rate", int64(id))
+	if err := h.repo.Delete(c.Context(), id); err != nil {
+		return apperrors.NotFoundResource("exchange_rate", id)
 	}
 
 	return c.Status(204).Send(nil)
