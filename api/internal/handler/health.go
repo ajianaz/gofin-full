@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,7 +24,7 @@ func NewHealthHandler(db *pgxpool.Pool, rdb redis.Cmdable) *HealthHandler {
 
 // Check returns the health status of all services.
 func (h *HealthHandler) Check(c *fiber.Ctx) error {
-	ctx, cancel := context.WithTimeout(c.Context(), healthTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(healthTimeout)*time.Second)
 	defer cancel()
 
 	health := response.HealthResponse{
@@ -78,4 +79,4 @@ func (h *HealthHandler) checkRedis(ctx context.Context) error {
 	return h.redis.Ping(ctx).Err()
 }
 
-const healthTimeout = 5
+const healthTimeout = 10
