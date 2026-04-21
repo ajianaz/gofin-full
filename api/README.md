@@ -1,10 +1,10 @@
-# Gofin
+# Gofin API
 
-A self-hosted personal finance manager built with Go — inspired by [Firefly III](https://www.firefly-iii.org/).
+A self-hosted personal finance manager built with Go -- inspired by [Firefly III](https://www.firefly-iii.org/).
 
 Gofin is designed for performance, multi-tenancy, and fine-grained access control. It uses **wallets** (not accounts) as the primary financial container, with double-entry bookkeeping, hierarchical RBAC, and real-time notifications.
 
-Module: `github.com/azfirazka/gofin-full`
+Module: `github.com/ajianaz/gofin-full/api`
 
 ## Features
 
@@ -25,13 +25,15 @@ Module: `github.com/azfirazka/gofin-full`
 - API key support for long-lived integrations
 - Feature flags (export, webhooks, debts, expression engine, running balance)
 
+> All primary and foreign keys use UUID v7 for globally unique, time-sortable identifiers.
+
 ## Tech Stack
 
 | Component     | Technology                          |
 |---------------|-------------------------------------|
 | Language      | Go 1.25                             |
 | HTTP Framework| Fiber v2                            |
-| Database      | PostgreSQL 16                       |
+| Database      | PostgreSQL 17                       |
 | Cache         | Redis 7                             |
 | Auth          | JWT (golang-jwt/v5), Keycloak OIDC  |
 | Migrations    | Goose                               |
@@ -40,40 +42,17 @@ Module: `github.com/azfirazka/gofin-full`
 | Metrics       | Prometheus client_golang            |
 | Observability | OpenTelemetry-ready middleware      |
 
-## Quick Start (Docker)
-
-```bash
-# Clone the repository
-git clone https://github.com/ajianaz/gofin.git
-cd gofin
-
-# Copy environment file and adjust as needed
-cp .env.example .env
-
-# Start all services (app, PostgreSQL, Redis, Keycloak)
-docker compose -f deployments/docker/docker-compose.yml up -d
-```
-
-The API will be available at `http://localhost:8080`.
-
-| Service    | Port   |
-|-----------|--------|
-| API        | 8080   |
-| PostgreSQL | 5432   |
-| Redis      | 6379   |
-| Keycloak   | 8088   |
-
-Health check: `GET /health`
-
 ## Local Development
 
-Prerequisites: Go 1.25+, PostgreSQL 16, Redis 7
+Prerequisites: Go 1.25+, PostgreSQL 17, Redis 7
 
 ```bash
-# Copy and edit env
-cp .env.example .env
+# Start API + PostgreSQL + Redis via the monorepo Makefile
+cd .. && make docker-dev
 
-# Install dependencies
+# Or run manually:
+cd api
+cp .env.example .env
 go mod tidy
 
 # Run migrations (requires goose)
@@ -124,7 +103,7 @@ POST   /api/v1/auth/refresh     # Refresh JWT
 ## Project Structure
 
 ```
-gofin/
+api/
 ├── cmd/
 │   ├── server/main.go          # Application entry point
 │   ├── migrate/main.go         # Migration runner
@@ -141,7 +120,16 @@ gofin/
 │   ├── service/                # Business logic
 │   └── sse/                    # Server-Sent Events hub
 ├── pkg/
-│   └── errors/                 # Shared error types
+│   ├── bcrypt/                 # Password hashing
+│   ├── crypto/                 # Encryption utilities
+│   ├── currency/               # Currency formatting
+│   ├── decimal/                # Precise decimal arithmetic
+│   ├── errors/                 # Shared error types
+│   ├── hash/                   # Hashing utilities
+│   ├── hmac/                   # HMAC signatures
+│   ├── pagination/             # Cursor/offset pagination
+│   ├── pgxuuid/                # UUID type for pgx driver
+│   └── uuid/                   # UUID generation (v7)
 ├── deployments/
 │   └── docker/
 │       ├── Dockerfile
@@ -154,6 +142,7 @@ gofin/
 │   ├── unit/                   # Unit tests
 │   └── integration/            # Integration tests
 ├── docs/                       # Planning and research docs
+├── entrypoint.sh               # Container entry point script
 ├── .env.example                # Environment variable template
 ├── Makefile                    # Build, test, and migration targets
 └── go.mod

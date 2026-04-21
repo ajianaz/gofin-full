@@ -17,7 +17,7 @@ Personal finance tracker monorepo. Go API backend + SvelteKit frontend.
 - API runs on port 8080, web dev on port 5173.
 - Integration tests require Docker (postgres:5433, redis:6380).
 - Unit tests run without Docker.
-- Module path is `github.com/ajianaz/gofin-full/api` (NOT ajianaz, NOT azfirazka).
+- Module path is `github.com/ajianaz/gofin-full/api`.
 
 ## Commands
 - `make docker-dev` — Start daily dev stack (API + Postgres + Redis)

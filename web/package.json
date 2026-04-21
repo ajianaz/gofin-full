@@ -2,7 +2,14 @@
 	"name": "gofin-web",
 	"private": true,
 	"version": "0.0.1",
+	"description": "Gofin — Personal finance tracker web frontend",
 	"type": "module",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ajianaz/gofin-full",
+		"directory": "web"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",

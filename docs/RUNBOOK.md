@@ -5,7 +5,7 @@ Gofin is a personal finance management API built in Go (Fiber v2 + PostgreSQL + 
 
 ## Architecture
 - **HTTP Framework**: Fiber v2
-- **Database**: PostgreSQL 15+ via pgxpool
+- **Database**: PostgreSQL 17 via pgxpool
 - **Cache**: Redis (optional — app runs without it)
 - **Auth**: JWT access + refresh tokens, pluggable providers (local, Google, GitHub, Keycloak)
 - **Real-time**: Server-Sent Events (SSE) for notifications
@@ -127,7 +127,7 @@ docker compose -f deployments/docker/docker-compose.test.yml down -v
 |--------------|----------|----------|
 | `docker-compose.dev.yml` | Daily development | API + Postgres + Redis |
 | `docker-compose.yml` | OAuth development | API + Postgres + Redis + Keycloak |
-| `docker-compose.selfhost.yml` | Production deployment | Caddy + API + Web + Postgres + Redis |
+| `docker-compose.selfhost.yml` | Production deployment | Caddy + API + Web + Postgres + Redis + Backup |
 | `docker-compose.test.yml` | CI/testing | Postgres + Redis + Test runner |
 
 ### Useful Docker Tips
@@ -146,20 +146,31 @@ docker compose -f deployments/docker/docker-compose.dev.yml down -v
 ## Deployment
 
 ### Environment Variables
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `APP_ENV` | Yes | `development`, `staging`, `production` |
-| `APP_PORT` | No | HTTP port (default 8080) |
-| `DATABASE_URL` | Yes | PostgreSQL DSN |
-| `REDIS_ADDR` | No | Redis address (default localhost:6379) |
-| `REDIS_PASSWORD` | No | Redis password |
-| `REDIS_DB` | No | Redis DB number (default 0) |
-| `AUTH_JWT_SECRET` | Yes | JWT signing secret |
-| `AUTH_JWT_EXPIRY` | No | Access token expiry (default 15m) |
-| `AUTH_REFRESH_EXPIRY` | No | Refresh token expiry (default 168h) |
-| `AUTH_PROVIDER` | No | Auth provider: local, google, github, keycloak, disabled |
-| `LOG_FORMAT` | No | `json` or `console` (default console) |
-| `APP_DEBUG` | No | Enable debug logging |
+
+See `.env.example` for the full list. Key variables:
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `APP_ENV` | Yes | `production` | `local`, `testing`, `production` |
+| `APP_URL` | Yes | — | Public URL (e.g., `https://your-domain.com`) |
+| `HTTP_PORT` | No | `8080` | Server port |
+| `DB_HOST` | Yes | `localhost` | PostgreSQL host |
+| `DB_PORT` | No | `5432` | PostgreSQL port |
+| `DB_DATABASE` | Yes | `gofin` | Database name |
+| `DB_USERNAME` | Yes | `gofin` | Database user |
+| `DB_PASSWORD` | Yes | — | Database password |
+| `REDIS_HOST` | No | `localhost` | Redis host |
+| `REDIS_PORT` | No | `6379` | Redis port |
+| `REDIS_PASSWORD` | No | — | Redis password |
+| `AUTH_PROVIDER` | No | `local` | `local`, `google`, `github`, `keycloak`, `disabled` |
+| `AUTH_JWT_SECRET` | Yes | — | JWT signing secret (32+ characters) |
+| `AUTH_ALLOW_REGISTRATION` | No | `false` | Allow public self-registration |
+| `ADMIN_EMAIL` | No | — | Auto-seed admin user on first startup |
+| `ADMIN_PASSWORD` | No | — | Admin password (random if empty) |
+| `LOG_LEVEL` | No | `info` | `debug`, `info`, `warn`, `error` |
+| `LOG_FORMAT` | No | `json` | `json` or `console` |
+| `CORS_ALLOWED_ORIGINS` | Yes | — | Allowed frontend origins |
+| `DOMAIN` | No | `localhost` | Public domain for Caddy HTTPS |
 
 ### Database Migrations
 ```bash
@@ -169,6 +180,58 @@ go run ./cmd/migrate -dsn "$DATABASE_URL" -dir up
 # Rollback all migrations
 go run ./cmd/migrate -dsn "$DATABASE_URL" -dir down
 ```
+
+### Self-Hosted Deployment
+
+The `docker-compose.selfhost.yml` provides a production-ready stack:
+
+1. Copy `.env.example` to `.env` and configure:
+   - `DOMAIN` — your public domain (used by Caddy for HTTPS)
+   - `AUTH_JWT_SECRET` — strong random string (32+ chars)
+   - `DB_PASSWORD` — database password
+   - `ADMIN_EMAIL` — admin user email (auto-seeded on first run)
+
+2. Start the stack:
+   ```bash
+   make docker-selfhost
+   ```
+
+3. This starts: Caddy (reverse proxy + HTTPS), API, Web, PostgreSQL, Redis, Backup.
+
+4. The API entrypoint automatically runs migrations and seeds the admin user.
+
+5. Caddy auto-provisions HTTPS via Let's Encrypt for your `DOMAIN`.
+
+### Backup & Restore
+
+Backups run automatically via a cron container (daily at 03:00 UTC by default).
+
+**Manual backup:**
+```bash
+docker compose -f deployments/docker/docker-compose.selfhost.yml exec backup /backup.sh
+```
+
+**List backups:**
+```bash
+docker compose -f deployments/docker/docker-compose.selfhost.yml exec backup ls -la /backups/
+```
+
+**Restore from backup:**
+```bash
+# Copy backup out of the container
+docker cp <container_id>:/backups/gofin_YYYYMMDD_HHMMSS.sql.gz ./backup.sql.gz
+gunzip ./backup.sql.gz
+
+# Restore into a running PostgreSQL
+docker compose -f deployments/docker/docker-compose.selfhost.yml exec -T postgres \
+  psql -U gofin -d gofin < ./backup.sql
+```
+
+**Backup configuration:**
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BACKUP_CRON_SCHEDULE` | `0 3 * * *` | Cron schedule (daily at 03:00 UTC) |
+| `BACKUP_RETENTION_DAYS` | `30` | Days to keep backups |
 
 ### Starting the Server
 ```bash
@@ -245,7 +308,7 @@ UPDATE users SET password_hash = '$2a$10$...' WHERE email = 'user@example.com';
 | GET | /api/v1/auth/provider | No | Auth provider info |
 | GET/PUT | /api/v1/users/me | Yes | Current user profile |
 | CRUD | /api/v1/groups | Yes | User groups |
-| CRUD | /api/v1/accounts | Yes | Wallets/accounts |
+| CRUD | /api/v1/wallets | Yes | Wallets (financial accounts) |
 | CRUD | /api/v1/transactions | Yes | Transactions |
 | CRUD | /api/v1/categories | Yes | Categories |
 | CRUD | /api/v1/tags | Yes | Tags |
