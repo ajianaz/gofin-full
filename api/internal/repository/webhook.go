@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewWebhookRepository(db *pgxpool.Pool) *WebhookRepository {
 	return &WebhookRepository{db: db}
 }
 
-func (r *WebhookRepository) Create(ctx context.Context, userID, groupID int64, title, url string) (*domain.Webhook, error) {
+func (r *WebhookRepository) Create(ctx context.Context, userID, groupID uuid.UUID, title, url string) (*domain.Webhook, error) {
 	now := time.Now().UTC()
 	var w domain.Webhook
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *WebhookRepository) Create(ctx context.Context, userID, groupID int64, t
 	return &w, nil
 }
 
-func (r *WebhookRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.Webhook, error) {
+func (r *WebhookRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.Webhook, error) {
 	var w domain.Webhook
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -49,7 +50,7 @@ func (r *WebhookRepository) FindByID(ctx context.Context, id, groupID int64) (*d
 	return &w, nil
 }
 
-func (r *WebhookRepository) List(ctx context.Context, groupID int64) ([]domain.Webhook, error) {
+func (r *WebhookRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.Webhook, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, title, url, active, created_at, updated_at
 		 FROM webhooks WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC`, groupID)
@@ -69,7 +70,7 @@ func (r *WebhookRepository) List(ctx context.Context, groupID int64) ([]domain.W
 	return webhooks, rows.Err()
 }
 
-func (r *WebhookRepository) Update(ctx context.Context, id, groupID int64, title, url string, active *bool) error {
+func (r *WebhookRepository) Update(ctx context.Context, id, groupID uuid.UUID, title, url string, active *bool) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE webhooks SET title = COALESCE(NULLIF($1, ''), title), url = COALESCE(NULLIF($2, ''), url), active = COALESCE($3, active), updated_at = $4
 		 WHERE id = $5 AND user_group_id = $6 AND deleted_at IS NULL`,
@@ -77,7 +78,7 @@ func (r *WebhookRepository) Update(ctx context.Context, id, groupID int64, title
 	return err
 }
 
-func (r *WebhookRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *WebhookRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE webhooks SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID)
@@ -86,7 +87,7 @@ func (r *WebhookRepository) Delete(ctx context.Context, id, groupID int64) error
 
 // Trigger operations
 
-func (r *WebhookRepository) SetTriggers(ctx context.Context, webhookID int64, triggers []string) error {
+func (r *WebhookRepository) SetTriggers(ctx context.Context, webhookID uuid.UUID, triggers []string) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return err
@@ -108,7 +109,7 @@ func (r *WebhookRepository) SetTriggers(ctx context.Context, webhookID int64, tr
 	return tx.Commit(ctx)
 }
 
-func (r *WebhookRepository) ListTriggers(ctx context.Context, webhookID int64) ([]domain.WebhookTrigger, error) {
+func (r *WebhookRepository) ListTriggers(ctx context.Context, webhookID uuid.UUID) ([]domain.WebhookTrigger, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, webhook_id, trigger, created_at, updated_at FROM webhook_triggers WHERE webhook_id = $1`, webhookID)
 	if err != nil {
@@ -129,7 +130,7 @@ func (r *WebhookRepository) ListTriggers(ctx context.Context, webhookID int64) (
 
 // Message operations
 
-func (r *WebhookRepository) CreateMessage(ctx context.Context, webhookID int64, message string) (*domain.WebhookMessage, error) {
+func (r *WebhookRepository) CreateMessage(ctx context.Context, webhookID uuid.UUID, message string) (*domain.WebhookMessage, error) {
 	now := time.Now().UTC()
 	var m domain.WebhookMessage
 	err := r.db.QueryRow(ctx,
@@ -144,7 +145,7 @@ func (r *WebhookRepository) CreateMessage(ctx context.Context, webhookID int64, 
 	return &m, nil
 }
 
-func (r *WebhookRepository) ListMessages(ctx context.Context, webhookID int64) ([]domain.WebhookMessage, error) {
+func (r *WebhookRepository) ListMessages(ctx context.Context, webhookID uuid.UUID) ([]domain.WebhookMessage, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, webhook_id, message, created_at, updated_at
 		 FROM webhook_messages WHERE webhook_id = $1 ORDER BY created_at DESC`, webhookID)

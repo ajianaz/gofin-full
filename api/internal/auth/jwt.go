@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 // TokenPair holds access and refresh tokens.
@@ -20,20 +21,20 @@ type TokenPair struct {
 // Claims represents the JWT claims for access tokens.
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID   int64  `json:"user_id"`
-	Email    string `json:"email"`
-	GroupID  *int64 `json:"group_id,omitempty"`
-	DemoUser bool   `json:"demo_user,omitempty"`
+	UserID   uuid.UUID `json:"user_id"`
+	Email    string    `json:"email"`
+	GroupID  *uuid.UUID `json:"group_id,omitempty"`
+	DemoUser bool      `json:"demo_user,omitempty"`
 }
 
 // refreshClaims represents the JWT claims for refresh tokens.
 type refreshClaims struct {
 	jwt.RegisteredClaims
-	UserID   int64  `json:"user_id"`
-	Email    string `json:"email"`
-	GroupID  *int64 `json:"group_id,omitempty"`
-	DemoUser bool   `json:"demo_user,omitempty"`
-	TokenID  string `json:"tid"`
+	UserID   uuid.UUID  `json:"user_id"`
+	Email    string     `json:"email"`
+	GroupID  *uuid.UUID `json:"group_id,omitempty"`
+	DemoUser bool       `json:"demo_user,omitempty"`
+	TokenID  string     `json:"tid"`
 }
 
 // JWTManager handles JWT token creation and validation.
@@ -53,14 +54,14 @@ func NewJWTManager(secret string, accessExpiryMin, refreshExpiryDays int) *JWTMa
 }
 
 // GenerateTokenPair creates an access + refresh token pair.
-func (m *JWTManager) GenerateTokenPair(identity *UserIdentity, groupID *int64) (*TokenPair, error) {
+func (m *JWTManager) GenerateTokenPair(identity *UserIdentity, groupID *uuid.UUID) (*TokenPair, error) {
 	now := time.Now()
 
 	// Access token
 	accessClaims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        generateTokenID(),
-			Subject:   fmt.Sprintf("%d", identity.ID),
+			Subject:   identity.ID.String(),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.accessExpiry)),
 		},
@@ -80,7 +81,7 @@ func (m *JWTManager) GenerateTokenPair(identity *UserIdentity, groupID *int64) (
 	tid := generateTokenID()
 	refreshClaims := refreshClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   fmt.Sprintf("%d", identity.ID),
+			Subject:   identity.ID.String(),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.refreshExpiry)),
 		},

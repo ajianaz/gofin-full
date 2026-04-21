@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewAttachmentRepository(db *pgxpool.Pool) *AttachmentRepository {
 	return &AttachmentRepository{db: db}
 }
 
-func (r *AttachmentRepository) Create(ctx context.Context, userID int64, attachableType string, attachableID int64, filename, mimeType string, size int64) (*domain.Attachment, error) {
+func (r *AttachmentRepository) Create(ctx context.Context, userID uuid.UUID, attachableType string, attachableID uuid.UUID, filename, mimeType string, size int64) (*domain.Attachment, error) {
 	now := time.Now().UTC()
 	var a domain.Attachment
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *AttachmentRepository) Create(ctx context.Context, userID int64, attacha
 	return &a, nil
 }
 
-func (r *AttachmentRepository) FindByID(ctx context.Context, id int64) (*domain.Attachment, error) {
+func (r *AttachmentRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Attachment, error) {
 	var a domain.Attachment
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -49,7 +50,7 @@ func (r *AttachmentRepository) FindByID(ctx context.Context, id int64) (*domain.
 	return &a, nil
 }
 
-func (r *AttachmentRepository) ListByEntity(ctx context.Context, attachableType string, attachableID int64) ([]domain.Attachment, error) {
+func (r *AttachmentRepository) ListByEntity(ctx context.Context, attachableType string, attachableID uuid.UUID) ([]domain.Attachment, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, attachable_type, attachable_id, filename, mime_type, size, uploaded, created_at, updated_at
 		 FROM attachments WHERE attachable_type = $1 AND attachable_id = $2 AND deleted_at IS NULL ORDER BY created_at DESC`,
@@ -70,14 +71,14 @@ func (r *AttachmentRepository) ListByEntity(ctx context.Context, attachableType 
 	return attachments, rows.Err()
 }
 
-func (r *AttachmentRepository) MarkUploaded(ctx context.Context, id int64) error {
+func (r *AttachmentRepository) MarkUploaded(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE attachments SET uploaded = TRUE, updated_at = $1 WHERE id = $2 AND deleted_at IS NULL`,
 		time.Now().UTC(), id)
 	return err
 }
 
-func (r *AttachmentRepository) Delete(ctx context.Context, id int64) error {
+func (r *AttachmentRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE attachments SET deleted_at = $1 WHERE id = $2 AND deleted_at IS NULL`,
 		time.Now().UTC(), id)

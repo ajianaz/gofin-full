@@ -1,11 +1,15 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // APIKey represents a long-lived API key for programmatic access.
 type APIKey struct {
-	ID          int64
-	UserID      int64
+	ID          uuid.UUID
+	UserID      uuid.UUID
 	Name        string
 	KeyHash     string
 	KeyPrefix   string

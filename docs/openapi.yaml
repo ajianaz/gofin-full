@@ -4,6 +4,7 @@ info:
   description: >
     Go rewrite of Firefly III personal finance manager.
     All protected endpoints require a JWT bearer token in the Authorization header.
+    All ID fields use UUID v7 format.
   version: "1.0.0"
   contact:
     name: Gofin
@@ -23,8 +24,10 @@ tags:
     description: Current user profile
   - name: Groups
     description: User groups for multi-tenant access
-  - name: Accounts
+  - name: Wallets
     description: Financial accounts (wallets)
+  - name: Wallet Members
+    description: Wallet member management and sharing
   - name: Transactions
     description: Double-entry transactions
   - name: Categories
@@ -34,15 +37,17 @@ tags:
   - name: Budgets
     description: Budget management
   - name: Piggy Banks
-    description: Savings goals per account
+    description: Savings goals per wallet
+  - name: Rule Groups
+    description: Rule group management
   - name: Rules
-    description: Rule groups and automation rules
+    description: Automation rules
   - name: Recurrences
     description: Recurring transactions
   - name: Currencies
     description: Currency reference data
-  - name: Account Types
-    description: Account type reference data
+  - name: Wallet Types
+    description: Wallet type reference data
   - name: Bills
     description: Recurring bills
   - name: Exchange Rates
@@ -63,14 +68,14 @@ tags:
     description: Polymorphic notes
   - name: Locations
     description: Polymorphic locations
-  - name: Members
-    description: Wallet member management and sharing
   - name: Export
     description: Data export
   - name: Analytics
     description: Financial analytics and reporting
   - name: Audit
     description: Audit trail
+  - name: API Keys
+    description: API key management
   - name: Admin
     description: Admin-only system management
 
@@ -90,14 +95,22 @@ components:
         type: string
         format: uuid
       description: Group ID
-    AccountId:
+    WalletId:
       name: id
       in: path
       required: true
       schema:
         type: string
         format: uuid
-      description: Account ID
+      description: Wallet ID
+    WalletIdParam:
+      name: wallet_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Wallet ID (for nested routes)
     TransactionId:
       name: id
       in: path
@@ -130,6 +143,54 @@ components:
         type: string
         format: uuid
       description: Budget ID
+    PiggyBankId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Piggy bank ID
+    RuleGroupId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Rule group ID
+    RuleId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Rule ID
+    RecurrenceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Recurrence ID
+    BillId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Bill ID
+    ExchangeRateId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Exchange rate ID
     WebhookId:
       name: id
       in: path
@@ -138,6 +199,98 @@ components:
         type: string
         format: uuid
       description: Webhook ID
+    AttachmentId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Attachment ID
+    NotificationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Notification ID
+    NoteId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Note ID
+    LocationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Location ID
+    ObjectGroupId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Object group ID
+    ApiKeyId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: API key ID
+    WalletMemberId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Wallet member ID
+    WalletMemberUserId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: User ID (for removing wallet member)
+    CurrencyCode:
+      name: code
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Currency code (e.g. USD, EUR)
+    PreferenceName:
+      name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Preference name
+    ConfigurationName:
+      name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Configuration name
+    OAuthProvider:
+      name: provider
+      in: path
+      required: true
+      schema:
+        type: string
+      description: OAuth provider name
 
   schemas:
     Error:
@@ -167,6 +320,25 @@ components:
           type: string
           format: password
           example: secret123
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: secret123
+        name:
+          type: string
+          example: John Doe
 
     TokenResponse:
       type: object
@@ -214,7 +386,7 @@ components:
         description:
           type: string
 
-    AccountRequest:
+    WalletRequest:
       type: object
       required:
         - name
@@ -225,7 +397,7 @@ components:
           type: string
         type:
           type: string
-          description: Account type code
+          description: Wallet type code
         currency_code:
           type: string
           example: USD
@@ -329,6 +501,161 @@ components:
           type: string
           example: USD
 
+    PiggyBankRequest:
+      type: object
+      required:
+        - name
+        - target_amount
+      properties:
+        name:
+          type: string
+        target_amount:
+          type: string
+        start_date:
+          type: string
+          format: date
+        target_date:
+          type: string
+          format: date
+
+    PiggyBankMoneyRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: string
+          description: Amount to add or remove
+
+    RuleGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+          default: true
+
+    RuleRequest:
+      type: object
+      required:
+        - title
+        - rule_group_id
+        - triggers
+        - actions
+      properties:
+        title:
+          type: string
+        rule_group_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        active:
+          type: boolean
+          default: true
+        triggers:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              value:
+                type: string
+        actions:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              value:
+                type: string
+
+    RecurrenceRequest:
+      type: object
+      required:
+        - title
+        - type
+        - repetition_type
+        - repetition_end
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+          enum: [withdrawal, deposit, transfer]
+        description:
+          type: string
+        repetition_type:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        repetition_end:
+          type: string
+          format: date
+        apply_rules:
+          type: boolean
+          default: true
+        active:
+          type: boolean
+          default: true
+
+    BillRequest:
+      type: object
+      required:
+        - name
+        - amount_min
+        - currency_code
+        - date
+      properties:
+        name:
+          type: string
+        amount_min:
+          type: string
+        amount_max:
+          type: string
+        currency_code:
+          type: string
+          example: USD
+        date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        repeat_freq:
+          type: string
+        skip:
+          type: integer
+        notes:
+          type: string
+
+    ExchangeRateRequest:
+      type: object
+      required:
+        - from_currency
+        - to_currency
+        - rate
+        - date
+      properties:
+        from_currency:
+          type: string
+          example: USD
+        to_currency:
+          type: string
+          example: EUR
+        rate:
+          type: number
+          format: double
+        date:
+          type: string
+          format: date
+
     WebhookRequest:
       type: object
       required:
@@ -344,6 +671,107 @@ components:
         active:
           type: boolean
           default: true
+
+    AttachmentRequest:
+      type: object
+      required:
+        - filename
+        - mime_type
+      properties:
+        filename:
+          type: string
+        mime_type:
+          type: string
+        content:
+          type: string
+          format: byte
+          description: Base64-encoded file content
+
+    PreferenceRequest:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+
+    ConfigurationRequest:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+
+    ObjectGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        order:
+          type: integer
+
+    NoteRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+        noteable_id:
+          type: string
+          format: uuid
+        noteable_type:
+          type: string
+
+    LocationRequest:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        zoom_level:
+          type: integer
+        locatable_id:
+          type: string
+          format: uuid
+        locatable_type:
+          type: string
+
+    WalletMemberRequest:
+      type: object
+      required:
+        - user_id
+        - role
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [owner, manage_meta, manage_transactions, manage_budgets, manage_piggy_banks, manage_rules, manage_recurring, manage_currencies, manage_webhooks, view_memberships, view_reports]
+
+    FeatureFlagRequest:
+      type: object
+      required:
+        - name
+        - enabled
+      properties:
+        name:
+          type: string
+        enabled:
+          type: boolean
 
   responses:
     BadRequest:
@@ -377,6 +805,9 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
 
+security:
+  - BearerAuth: []
+
 paths:
   /health:
     get:
@@ -384,6 +815,7 @@ paths:
       description: Returns service health status including database and Redis connectivity.
       operationId: healthCheck
       tags: [System]
+      security: []
       responses:
         "200":
           description: Service is healthy
@@ -402,6 +834,7 @@ paths:
       description: Expose Prometheus-format metrics.
       operationId: metrics
       tags: [System]
+      security: []
       responses:
         "200":
           description: Prometheus metrics in text format
@@ -412,6 +845,7 @@ paths:
       description: Returns basic API version information.
       operationId: apiInfo
       tags: [System]
+      security: []
       responses:
         "200":
           description: API info
@@ -447,16 +881,42 @@ paths:
         "200":
           description: OpenAPI specification
 
-  # ── Auth ────────────────────────────────────────────────────────────
+  # -- Auth -----------------------------------------------------------------
   /api/v1/auth/provider:
     get:
       summary: Get auth provider
       description: Returns the configured authentication provider.
       operationId: getAuthProvider
       tags: [Auth]
+      security: []
       responses:
         "200":
           description: Auth provider info
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/auth/register:
+    post:
+      summary: Register
+      description: Create a new user account.
+      operationId: register
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalError"
 
@@ -466,6 +926,7 @@ paths:
       description: Authenticate user with email and password, returns JWT tokens.
       operationId: login
       tags: [Auth]
+      security: []
       requestBody:
         required: true
         content:
@@ -492,8 +953,6 @@ paths:
       description: Invalidate the current session/token.
       operationId: logout
       tags: [Auth]
-      security:
-        - BearerAuth: []
       responses:
         "200":
           description: Successfully logged out
@@ -506,6 +965,7 @@ paths:
       description: Exchange a refresh token for a new access token.
       operationId: refreshToken
       tags: [Auth]
+      security: []
       requestBody:
         required: true
         content:
@@ -524,15 +984,49 @@ paths:
         "500":
           $ref: "#/components/responses/InternalError"
 
-  # ── Users ───────────────────────────────────────────────────────────
+  /api/v1/auth/{provider}/url:
+    get:
+      summary: OAuth authorization URL
+      description: Get the OAuth authorization URL for the specified provider.
+      operationId: oauthURL
+      tags: [Auth]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/OAuthProvider"
+      responses:
+        "200":
+          description: OAuth authorization URL
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/auth/{provider}/callback:
+    get:
+      summary: OAuth callback
+      description: Handle OAuth callback from the specified provider.
+      operationId: oauthCallback
+      tags: [Auth]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/OAuthProvider"
+      responses:
+        "200":
+          description: OAuth authentication result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  # -- Users ----------------------------------------------------------------
   /api/v1/users/me:
     get:
       summary: Get current user
       description: Returns the authenticated user's profile.
       operationId: getCurrentUser
       tags: [Users]
-      security:
-        - BearerAuth: []
       responses:
         "200":
           description: User profile
@@ -547,8 +1041,6 @@ paths:
       description: Update the authenticated user's profile.
       operationId: updateCurrentUser
       tags: [Users]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -572,15 +1064,13 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
-  # ── Groups ──────────────────────────────────────────────────────────
+  # -- Groups ---------------------------------------------------------------
   /api/v1/groups:
     get:
       summary: List groups
       description: List all user groups the authenticated user belongs to.
       operationId: listGroups
       tags: [Groups]
-      security:
-        - BearerAuth: []
       parameters:
         - name: page
           in: query
@@ -602,8 +1092,6 @@ paths:
       description: Create a new user group.
       operationId: createGroup
       tags: [Groups]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -624,8 +1112,6 @@ paths:
       description: Switch the user's active group context for subsequent requests.
       operationId: switchGroup
       tags: [Groups]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -652,8 +1138,6 @@ paths:
       description: Get a specific group by ID.
       operationId: getGroup
       tags: [Groups]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/GroupId"
       responses:
@@ -668,8 +1152,6 @@ paths:
       description: Update a group's details.
       operationId: updateGroup
       tags: [Groups]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/GroupId"
       requestBody:
@@ -692,8 +1174,6 @@ paths:
       description: Delete a group. Requires owner role.
       operationId: deleteGroup
       tags: [Groups]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/GroupId"
       responses:
@@ -706,15 +1186,13 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Accounts (Wallets) ──────────────────────────────────────────────
-  /api/v1/accounts:
+  # -- Wallets --------------------------------------------------------------
+  /api/v1/wallets:
     get:
-      summary: List accounts
+      summary: List wallets
       description: List all financial accounts (wallets) for the active group.
-      operationId: listAccounts
-      tags: [Accounts]
-      security:
-        - BearerAuth: []
+      operationId: listWallets
+      tags: [Wallets]
       parameters:
         - name: page
           in: query
@@ -728,30 +1206,28 @@ paths:
             default: 50
         - name: type
           in: query
-          description: Filter by account type
+          description: Filter by wallet type
           schema:
             type: string
       responses:
         "200":
-          description: List of accounts
+          description: List of wallets
         "401":
           $ref: "#/components/responses/Unauthorized"
     post:
-      summary: Create account
+      summary: Create wallet
       description: Create a new financial account. Requires manage_meta role.
-      operationId: createAccount
-      tags: [Accounts]
-      security:
-        - BearerAuth: []
+      operationId: createWallet
+      tags: [Wallets]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AccountRequest"
+              $ref: "#/components/schemas/WalletRequest"
       responses:
         "201":
-          description: Account created
+          description: Wallet created
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -759,41 +1235,37 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  /api/v1/accounts/{id}:
+  /api/v1/wallets/{id}:
     get:
-      summary: Get account
-      description: Get account details by ID.
-      operationId: getAccount
-      tags: [Accounts]
-      security:
-        - BearerAuth: []
+      summary: Get wallet
+      description: Get wallet details by ID.
+      operationId: getWallet
+      tags: [Wallets]
       parameters:
-        - $ref: "#/components/parameters/AccountId"
+        - $ref: "#/components/parameters/WalletId"
       responses:
         "200":
-          description: Account details
+          description: Wallet details
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
     put:
-      summary: Update account
-      description: Update an account's details. Requires manage_meta role.
-      operationId: updateAccount
-      tags: [Accounts]
-      security:
-        - BearerAuth: []
+      summary: Update wallet
+      description: Update a wallet's details. Requires manage_meta role.
+      operationId: updateWallet
+      tags: [Wallets]
       parameters:
-        - $ref: "#/components/parameters/AccountId"
+        - $ref: "#/components/parameters/WalletId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AccountRequest"
+              $ref: "#/components/schemas/WalletRequest"
       responses:
         "200":
-          description: Account updated
+          description: Wallet updated
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -803,17 +1275,15 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
-      summary: Delete account
-      description: Delete an account. Requires manage_meta role.
-      operationId: deleteAccount
-      tags: [Accounts]
-      security:
-        - BearerAuth: []
+      summary: Delete wallet
+      description: Delete a wallet. Requires manage_meta role.
+      operationId: deleteWallet
+      tags: [Wallets]
       parameters:
-        - $ref: "#/components/parameters/AccountId"
+        - $ref: "#/components/parameters/WalletId"
       responses:
         "200":
-          description: Account deleted
+          description: Wallet deleted
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -821,15 +1291,248 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Transactions ────────────────────────────────────────────────────
+  # -- Wallet Members -------------------------------------------------------
+  /api/v1/wallets/{wallet_id}/members:
+    get:
+      summary: List wallet members
+      description: List all members of a wallet. Requires owner role.
+      operationId: listWalletMembers
+      tags: [Wallet Members]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+      responses:
+        "200":
+          description: List of wallet members
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Add wallet member
+      description: Add a member to a wallet. Requires owner role.
+      operationId: addWalletMember
+      tags: [Wallet Members]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletMemberRequest"
+      responses:
+        "201":
+          description: Wallet member added
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/wallets/{wallet_id}/members/{id}:
+    put:
+      summary: Update wallet member
+      description: Update a wallet member's role. Requires owner role.
+      operationId: updateWalletMember
+      tags: [Wallet Members]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+        - $ref: "#/components/parameters/WalletMemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletMemberRequest"
+      responses:
+        "200":
+          description: Wallet member updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/wallets/{wallet_id}/members/{user_id}:
+    delete:
+      summary: Remove wallet member
+      description: Remove a member from a wallet. Requires owner role.
+      operationId: removeWalletMember
+      tags: [Wallet Members]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+        - $ref: "#/components/parameters/WalletMemberUserId"
+      responses:
+        "200":
+          description: Wallet member removed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Piggy Banks (nested under wallets) -----------------------------------
+  /api/v1/wallets/{wallet_id}/piggy_banks:
+    get:
+      summary: List piggy banks
+      description: List all piggy banks for a wallet.
+      operationId: listPiggyBanks
+      tags: [Piggy Banks]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+      responses:
+        "200":
+          description: List of piggy banks
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create piggy bank
+      description: Create a new piggy bank for a wallet. Requires manage_piggy_banks role.
+      operationId: createPiggyBank
+      tags: [Piggy Banks]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PiggyBankRequest"
+      responses:
+        "201":
+          description: Piggy bank created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/wallets/{wallet_id}/piggy_banks/{id}:
+    get:
+      summary: Get piggy bank
+      description: Get piggy bank details.
+      operationId: getPiggyBank
+      tags: [Piggy Banks]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+        - $ref: "#/components/parameters/PiggyBankId"
+      responses:
+        "200":
+          description: Piggy bank details
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update piggy bank
+      description: Update a piggy bank. Requires manage_piggy_banks role.
+      operationId: updatePiggyBank
+      tags: [Piggy Banks]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+        - $ref: "#/components/parameters/PiggyBankId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PiggyBankRequest"
+      responses:
+        "200":
+          description: Piggy bank updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete piggy bank
+      description: Delete a piggy bank. Requires manage_piggy_banks role.
+      operationId: deletePiggyBank
+      tags: [Piggy Banks]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+        - $ref: "#/components/parameters/PiggyBankId"
+      responses:
+        "200":
+          description: Piggy bank deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/wallets/{wallet_id}/piggy_banks/{id}/add-money:
+    post:
+      summary: Add money to piggy bank
+      description: Add money to a piggy bank. Requires manage_piggy_banks role.
+      operationId: addMoneyToPiggyBank
+      tags: [Piggy Banks]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+        - $ref: "#/components/parameters/PiggyBankId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PiggyBankMoneyRequest"
+      responses:
+        "200":
+          description: Money added
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/wallets/{wallet_id}/piggy_banks/{id}/remove-money:
+    post:
+      summary: Remove money from piggy bank
+      description: Remove money from a piggy bank. Requires manage_piggy_banks role.
+      operationId: removeMoneyFromPiggyBank
+      tags: [Piggy Banks]
+      parameters:
+        - $ref: "#/components/parameters/WalletIdParam"
+        - $ref: "#/components/parameters/PiggyBankId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PiggyBankMoneyRequest"
+      responses:
+        "200":
+          description: Money removed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Transactions ---------------------------------------------------------
   /api/v1/transactions:
     get:
       summary: List transactions
       description: List transactions with optional filtering and pagination.
       operationId: listTransactions
       tags: [Transactions]
-      security:
-        - BearerAuth: []
       parameters:
         - name: page
           in: query
@@ -877,8 +1580,6 @@ paths:
       description: Create a new double-entry transaction. Requires manage_transactions role.
       operationId: createTransaction
       tags: [Transactions]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -901,8 +1602,6 @@ paths:
       description: Create a split transaction with multiple journals. Requires manage_transactions role.
       operationId: createSplitTransaction
       tags: [Transactions]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -925,8 +1624,6 @@ paths:
       description: Get transaction details by ID.
       operationId: getTransaction
       tags: [Transactions]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/TransactionId"
       responses:
@@ -941,8 +1638,6 @@ paths:
       description: Update a transaction. Requires manage_transactions role.
       operationId: updateTransaction
       tags: [Transactions]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/TransactionId"
       requestBody:
@@ -967,8 +1662,6 @@ paths:
       description: Delete a transaction. Requires manage_transactions role.
       operationId: deleteTransaction
       tags: [Transactions]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/TransactionId"
       responses:
@@ -981,15 +1674,13 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Categories ──────────────────────────────────────────────────────
+  # -- Categories -----------------------------------------------------------
   /api/v1/categories:
     get:
       summary: List categories
       description: List all categories for the active group.
       operationId: listCategories
       tags: [Categories]
-      security:
-        - BearerAuth: []
       parameters:
         - name: page
           in: query
@@ -1011,8 +1702,6 @@ paths:
       description: Create a new category. Requires manage_meta role.
       operationId: createCategory
       tags: [Categories]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -1034,8 +1723,6 @@ paths:
       summary: Get category
       operationId: getCategory
       tags: [Categories]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/CategoryId"
       responses:
@@ -1049,8 +1736,6 @@ paths:
       summary: Update category
       operationId: updateCategory
       tags: [Categories]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/CategoryId"
       requestBody:
@@ -1074,8 +1759,6 @@ paths:
       summary: Delete category
       operationId: deleteCategory
       tags: [Categories]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/CategoryId"
       responses:
@@ -1088,14 +1771,12 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Tags ────────────────────────────────────────────────────────────
+  # -- Tags -----------------------------------------------------------------
   /api/v1/tags:
     get:
       summary: List tags
       operationId: listTags
       tags: [Tags]
-      security:
-        - BearerAuth: []
       parameters:
         - name: page
           in: query
@@ -1116,8 +1797,6 @@ paths:
       summary: Create tag
       operationId: createTag
       tags: [Tags]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -1139,8 +1818,6 @@ paths:
       summary: Get tag
       operationId: getTag
       tags: [Tags]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/TagId"
       responses:
@@ -1154,8 +1831,6 @@ paths:
       summary: Update tag
       operationId: updateTag
       tags: [Tags]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/TagId"
       requestBody:
@@ -1179,8 +1854,6 @@ paths:
       summary: Delete tag
       operationId: deleteTag
       tags: [Tags]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/TagId"
       responses:
@@ -1193,14 +1866,12 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Budgets ─────────────────────────────────────────────────────────
+  # -- Budgets --------------------------------------------------------------
   /api/v1/budgets:
     get:
       summary: List budgets
       operationId: listBudgets
       tags: [Budgets]
-      security:
-        - BearerAuth: []
       parameters:
         - name: page
           in: query
@@ -1222,8 +1893,6 @@ paths:
       description: Create a new budget. Requires manage_budgets role.
       operationId: createBudget
       tags: [Budgets]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -1245,8 +1914,6 @@ paths:
       summary: Get budget
       operationId: getBudget
       tags: [Budgets]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/BudgetId"
       responses:
@@ -1260,8 +1927,6 @@ paths:
       summary: Update budget
       operationId: updateBudget
       tags: [Budgets]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/BudgetId"
       requestBody:
@@ -1285,8 +1950,6 @@ paths:
       summary: Delete budget
       operationId: deleteBudget
       tags: [Budgets]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/BudgetId"
       responses:
@@ -1299,14 +1962,471 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Webhooks ────────────────────────────────────────────────────────
+  # -- Rule Groups ----------------------------------------------------------
+  /api/v1/rule-groups:
+    get:
+      summary: List rule groups
+      operationId: listRuleGroups
+      tags: [Rule Groups]
+      responses:
+        "200":
+          description: List of rule groups
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create rule group
+      description: Create a new rule group. Requires manage_rules role.
+      operationId: createRuleGroup
+      tags: [Rule Groups]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleGroupRequest"
+      responses:
+        "201":
+          description: Rule group created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/rule-groups/{id}:
+    get:
+      summary: Get rule group
+      operationId: getRuleGroup
+      tags: [Rule Groups]
+      parameters:
+        - $ref: "#/components/parameters/RuleGroupId"
+      responses:
+        "200":
+          description: Rule group details
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update rule group
+      operationId: updateRuleGroup
+      tags: [Rule Groups]
+      parameters:
+        - $ref: "#/components/parameters/RuleGroupId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleGroupRequest"
+      responses:
+        "200":
+          description: Rule group updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete rule group
+      operationId: deleteRuleGroup
+      tags: [Rule Groups]
+      parameters:
+        - $ref: "#/components/parameters/RuleGroupId"
+      responses:
+        "200":
+          description: Rule group deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Rules ----------------------------------------------------------------
+  /api/v1/rules:
+    get:
+      summary: List rules
+      operationId: listRules
+      tags: [Rules]
+      responses:
+        "200":
+          description: List of rules
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create rule
+      description: Create a new automation rule. Requires manage_rules role.
+      operationId: createRule
+      tags: [Rules]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleRequest"
+      responses:
+        "201":
+          description: Rule created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/rules/{id}:
+    get:
+      summary: Get rule
+      operationId: getRule
+      tags: [Rules]
+      parameters:
+        - $ref: "#/components/parameters/RuleId"
+      responses:
+        "200":
+          description: Rule details
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update rule
+      operationId: updateRule
+      tags: [Rules]
+      parameters:
+        - $ref: "#/components/parameters/RuleId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleRequest"
+      responses:
+        "200":
+          description: Rule updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete rule
+      operationId: deleteRule
+      tags: [Rules]
+      parameters:
+        - $ref: "#/components/parameters/RuleId"
+      responses:
+        "200":
+          description: Rule deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Recurrences ----------------------------------------------------------
+  /api/v1/recurrences:
+    get:
+      summary: List recurrences
+      operationId: listRecurrences
+      tags: [Recurrences]
+      responses:
+        "200":
+          description: List of recurrences
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create recurrence
+      description: Create a new recurring transaction. Requires manage_recurring role.
+      operationId: createRecurrence
+      tags: [Recurrences]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecurrenceRequest"
+      responses:
+        "201":
+          description: Recurrence created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/recurrences/{id}:
+    get:
+      summary: Get recurrence
+      operationId: getRecurrence
+      tags: [Recurrences]
+      parameters:
+        - $ref: "#/components/parameters/RecurrenceId"
+      responses:
+        "200":
+          description: Recurrence details
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update recurrence
+      operationId: updateRecurrence
+      tags: [Recurrences]
+      parameters:
+        - $ref: "#/components/parameters/RecurrenceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecurrenceRequest"
+      responses:
+        "200":
+          description: Recurrence updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete recurrence
+      operationId: deleteRecurrence
+      tags: [Recurrences]
+      parameters:
+        - $ref: "#/components/parameters/RecurrenceId"
+      responses:
+        "200":
+          description: Recurrence deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Currencies -----------------------------------------------------------
+  /api/v1/currencies:
+    get:
+      summary: List currencies
+      description: List all available currencies. Cacheable reference data.
+      operationId: listCurrencies
+      tags: [Currencies]
+      responses:
+        "200":
+          description: List of currencies
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/currencies/{code}:
+    get:
+      summary: Get currency
+      description: Get a specific currency by code.
+      operationId: getCurrency
+      tags: [Currencies]
+      parameters:
+        - $ref: "#/components/parameters/CurrencyCode"
+      responses:
+        "200":
+          description: Currency details
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Wallet Types ---------------------------------------------------------
+  /api/v1/wallet-types:
+    get:
+      summary: List wallet types
+      description: List all available wallet types. Cacheable reference data.
+      operationId: listWalletTypes
+      tags: [Wallet Types]
+      responses:
+        "200":
+          description: List of wallet types
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # -- Bills ----------------------------------------------------------------
+  /api/v1/bills:
+    get:
+      summary: List bills
+      operationId: listBills
+      tags: [Bills]
+      responses:
+        "200":
+          description: List of bills
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create bill
+      description: Create a new recurring bill. Requires manage_transactions role.
+      operationId: createBill
+      tags: [Bills]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillRequest"
+      responses:
+        "201":
+          description: Bill created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/bills/{id}:
+    get:
+      summary: Get bill
+      operationId: getBill
+      tags: [Bills]
+      parameters:
+        - $ref: "#/components/parameters/BillId"
+      responses:
+        "200":
+          description: Bill details
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update bill
+      operationId: updateBill
+      tags: [Bills]
+      parameters:
+        - $ref: "#/components/parameters/BillId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillRequest"
+      responses:
+        "200":
+          description: Bill updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete bill
+      operationId: deleteBill
+      tags: [Bills]
+      parameters:
+        - $ref: "#/components/parameters/BillId"
+      responses:
+        "200":
+          description: Bill deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Exchange Rates -------------------------------------------------------
+  /api/v1/exchange-rates:
+    get:
+      summary: List exchange rates
+      operationId: listExchangeRates
+      tags: [Exchange Rates]
+      responses:
+        "200":
+          description: List of exchange rates
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create exchange rate
+      description: Create a new exchange rate entry. Requires manage_currencies role.
+      operationId: createExchangeRate
+      tags: [Exchange Rates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeRateRequest"
+      responses:
+        "201":
+          description: Exchange rate created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/exchange-rates/rate:
+    get:
+      summary: Get exchange rate
+      description: Get the current exchange rate between two currencies.
+      operationId: getExchangeRate
+      tags: [Exchange Rates]
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Source currency code
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Target currency code
+      responses:
+        "200":
+          description: Exchange rate
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/exchange-rates/{id}:
+    delete:
+      summary: Delete exchange rate
+      description: Delete an exchange rate entry. Requires manage_currencies role.
+      operationId: deleteExchangeRate
+      tags: [Exchange Rates]
+      parameters:
+        - $ref: "#/components/parameters/ExchangeRateId"
+      responses:
+        "200":
+          description: Exchange rate deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Webhooks -------------------------------------------------------------
   /api/v1/webhooks:
     get:
       summary: List webhooks
       operationId: listWebhooks
       tags: [Webhooks]
-      security:
-        - BearerAuth: []
       responses:
         "200":
           description: List of webhooks
@@ -1317,8 +2437,6 @@ paths:
       description: Create a new webhook. Requires manage_webhooks role.
       operationId: createWebhook
       tags: [Webhooks]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -1340,8 +2458,6 @@ paths:
       summary: Get webhook
       operationId: getWebhook
       tags: [Webhooks]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/WebhookId"
       responses:
@@ -1355,8 +2471,6 @@ paths:
       summary: Update webhook
       operationId: updateWebhook
       tags: [Webhooks]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/WebhookId"
       requestBody:
@@ -1380,8 +2494,6 @@ paths:
       summary: Delete webhook
       operationId: deleteWebhook
       tags: [Webhooks]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/WebhookId"
       responses:
@@ -1400,8 +2512,6 @@ paths:
       description: List messages sent by a webhook.
       operationId: getWebhookMessages
       tags: [Webhooks]
-      security:
-        - BearerAuth: []
       parameters:
         - $ref: "#/components/parameters/WebhookId"
       responses:
@@ -1412,15 +2522,508 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Analytics ───────────────────────────────────────────────────────
+  # -- Attachments ----------------------------------------------------------
+  /api/v1/attachments:
+    get:
+      summary: List attachments
+      operationId: listAttachments
+      tags: [Attachments]
+      responses:
+        "200":
+          description: List of attachments
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Upload attachment
+      description: Upload a file attachment. Requires manage_meta role.
+      operationId: createAttachment
+      tags: [Attachments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttachmentRequest"
+      responses:
+        "201":
+          description: Attachment uploaded
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/attachments/{id}:
+    get:
+      summary: Get attachment
+      operationId: getAttachment
+      tags: [Attachments]
+      parameters:
+        - $ref: "#/components/parameters/AttachmentId"
+      responses:
+        "200":
+          description: Attachment details
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete attachment
+      operationId: deleteAttachment
+      tags: [Attachments]
+      parameters:
+        - $ref: "#/components/parameters/AttachmentId"
+      responses:
+        "200":
+          description: Attachment deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Notifications --------------------------------------------------------
+  /api/v1/notifications:
+    get:
+      summary: List notifications
+      operationId: listNotifications
+      tags: [Notifications]
+      responses:
+        "200":
+          description: List of notifications
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/notifications/unread:
+    get:
+      summary: Get unread notifications
+      operationId: unreadNotifications
+      tags: [Notifications]
+      responses:
+        "200":
+          description: Unread notifications
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/notifications/{id}/read:
+    put:
+      summary: Mark notification as read
+      operationId: markNotificationRead
+      tags: [Notifications]
+      parameters:
+        - $ref: "#/components/parameters/NotificationId"
+      responses:
+        "200":
+          description: Notification marked as read
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/notifications/read-all:
+    put:
+      summary: Mark all notifications as read
+      operationId: markAllNotificationsRead
+      tags: [Notifications]
+      responses:
+        "200":
+          description: All notifications marked as read
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/notifications/stream:
+    get:
+      summary: SSE notification stream
+      description: Server-Sent Events stream for real-time notifications. Rate limited to 5 connections per minute.
+      operationId: notificationStream
+      tags: [Notifications]
+      responses:
+        "200":
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: object
+                properties:
+                  event:
+                    type: string
+                  data:
+                    type: object
+
+  # -- Preferences ----------------------------------------------------------
+  /api/v1/preferences:
+    get:
+      summary: List preferences
+      description: List all user preferences.
+      operationId: listPreferences
+      tags: [Preferences]
+      responses:
+        "200":
+          description: List of preferences
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Set preference
+      description: Set a user preference.
+      operationId: setPreference
+      tags: [Preferences]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreferenceRequest"
+      responses:
+        "200":
+          description: Preference set
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/preferences/{name}:
+    get:
+      summary: Get preference
+      description: Get a specific preference by name.
+      operationId: getPreference
+      tags: [Preferences]
+      parameters:
+        - $ref: "#/components/parameters/PreferenceName"
+      responses:
+        "200":
+          description: Preference value
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete preference
+      description: Delete a user preference.
+      operationId: deletePreference
+      tags: [Preferences]
+      parameters:
+        - $ref: "#/components/parameters/PreferenceName"
+      responses:
+        "200":
+          description: Preference deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Configurations -------------------------------------------------------
+  /api/v1/configurations:
+    get:
+      summary: List configurations
+      description: List system-level configurations. Requires view_memberships role.
+      operationId: listConfigurations
+      tags: [Configurations]
+      responses:
+        "200":
+          description: List of configurations
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Set configuration
+      description: Set a system-level configuration. Requires owner role.
+      operationId: setConfiguration
+      tags: [Configurations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigurationRequest"
+      responses:
+        "200":
+          description: Configuration set
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/configurations/{name}:
+    get:
+      summary: Get configuration
+      description: Get a specific configuration by name. Requires view_memberships role.
+      operationId: getConfiguration
+      tags: [Configurations]
+      parameters:
+        - $ref: "#/components/parameters/ConfigurationName"
+      responses:
+        "200":
+          description: Configuration value
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Object Groups --------------------------------------------------------
+  /api/v1/object-groups:
+    get:
+      summary: List object groups
+      operationId: listObjectGroups
+      tags: [Object Groups]
+      responses:
+        "200":
+          description: List of object groups
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create object group
+      description: Create a new object group. Requires manage_meta role.
+      operationId: createObjectGroup
+      tags: [Object Groups]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObjectGroupRequest"
+      responses:
+        "201":
+          description: Object group created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/object-groups/{id}:
+    get:
+      summary: Get object group
+      operationId: getObjectGroup
+      tags: [Object Groups]
+      parameters:
+        - $ref: "#/components/parameters/ObjectGroupId"
+      responses:
+        "200":
+          description: Object group details
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      summary: Update object group
+      operationId: updateObjectGroup
+      tags: [Object Groups]
+      parameters:
+        - $ref: "#/components/parameters/ObjectGroupId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObjectGroupRequest"
+      responses:
+        "200":
+          description: Object group updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete object group
+      operationId: deleteObjectGroup
+      tags: [Object Groups]
+      parameters:
+        - $ref: "#/components/parameters/ObjectGroupId"
+      responses:
+        "200":
+          description: Object group deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Notes ----------------------------------------------------------------
+  /api/v1/notes:
+    get:
+      summary: List notes
+      operationId: listNotes
+      tags: [Notes]
+      responses:
+        "200":
+          description: List of notes
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create note
+      description: Create a polymorphic note. Requires manage_meta role.
+      operationId: createNote
+      tags: [Notes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteRequest"
+      responses:
+        "201":
+          description: Note created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/notes/{id}:
+    put:
+      summary: Update note
+      operationId: updateNote
+      tags: [Notes]
+      parameters:
+        - $ref: "#/components/parameters/NoteId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteRequest"
+      responses:
+        "200":
+          description: Note updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: Delete note
+      operationId: deleteNote
+      tags: [Notes]
+      parameters:
+        - $ref: "#/components/parameters/NoteId"
+      responses:
+        "200":
+          description: Note deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Locations ------------------------------------------------------------
+  /api/v1/locations:
+    get:
+      summary: List locations
+      operationId: listLocations
+      tags: [Locations]
+      responses:
+        "200":
+          description: List of locations
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create location
+      description: Create a polymorphic location. Requires manage_meta role.
+      operationId: createLocation
+      tags: [Locations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationRequest"
+      responses:
+        "201":
+          description: Location created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v1/locations/{id}:
+    delete:
+      summary: Delete location
+      operationId: deleteLocation
+      tags: [Locations]
+      parameters:
+        - $ref: "#/components/parameters/LocationId"
+      responses:
+        "200":
+          description: Location deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Export ---------------------------------------------------------------
+  /api/v1/export/csv:
+    get:
+      summary: Export transactions as CSV
+      operationId: exportCSV
+      tags: [Export]
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/export/ofx:
+    get:
+      summary: Export transactions as OFX
+      operationId: exportOFX
+      tags: [Export]
+      responses:
+        "200":
+          description: OFX file
+          content:
+            application/xml:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/export/reconcile:
+    post:
+      summary: Reconcile import
+      description: Reconcile imported data.
+      operationId: exportReconcile
+      tags: [Export]
+      responses:
+        "200":
+          description: Reconciliation result
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # -- Analytics ------------------------------------------------------------
   /api/v1/analytics/spending-by-category:
     get:
       summary: Spending by category
       description: Get spending totals grouped by category for a date range. Requires view_reports role.
       operationId: spendingByCategory
       tags: [Analytics]
-      security:
-        - BearerAuth: []
       parameters:
         - name: start_date
           in: query
@@ -1455,8 +3058,6 @@ paths:
       description: Get spending totals grouped by time period. Requires view_reports role.
       operationId: spendingByPeriod
       tags: [Analytics]
-      security:
-        - BearerAuth: []
       parameters:
         - name: start_date
           in: query
@@ -1492,8 +3093,6 @@ paths:
       description: Get net worth calculation (assets minus liabilities). Requires view_reports role.
       operationId: netWorth
       tags: [Analytics]
-      security:
-        - BearerAuth: []
       parameters:
         - name: start_date
           in: query
@@ -1517,15 +3116,13 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  # ── Audit ───────────────────────────────────────────────────────────
+  # -- Audit ----------------------------------------------------------------
   /api/v1/audit-logs:
     get:
       summary: List audit logs
       description: Retrieve audit trail entries. Requires view_memberships role.
       operationId: listAuditLogs
       tags: [Audit]
-      security:
-        - BearerAuth: []
       parameters:
         - name: page
           in: query
@@ -1554,15 +3151,52 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  # ── Admin ───────────────────────────────────────────────────────────
+  # -- API Keys -------------------------------------------------------------
+  /api/v1/api-keys:
+    get:
+      summary: List API keys
+      description: List all API keys for the authenticated user.
+      operationId: listApiKeys
+      tags: [API Keys]
+      responses:
+        "200":
+          description: List of API keys
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create API key
+      description: Create a new API key.
+      operationId: createApiKey
+      tags: [API Keys]
+      responses:
+        "201":
+          description: API key created
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/api-keys/{id}:
+    delete:
+      summary: Delete API key
+      description: Delete an API key.
+      operationId: deleteApiKey
+      tags: [API Keys]
+      parameters:
+        - $ref: "#/components/parameters/ApiKeyId"
+      responses:
+        "200":
+          description: API key deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # -- Admin ----------------------------------------------------------------
   /api/v1/admin/users:
     get:
       summary: List all users (admin)
       description: List all users in the system. Admin only.
       operationId: adminListUsers
       tags: [Admin]
-      security:
-        - BearerAuth: []
       parameters:
         - name: page
           in: query
@@ -1581,6 +3215,26 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+    post:
+      summary: Create user (admin)
+      description: Create a user in the system. Admin only.
+      operationId: adminCreateUser
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /api/v1/admin/feature-flags:
     get:
@@ -1588,8 +3242,6 @@ paths:
       description: Get all feature flags. Admin only.
       operationId: adminGetFeatureFlags
       tags: [Admin]
-      security:
-        - BearerAuth: []
       responses:
         "200":
           description: Feature flags
@@ -1602,22 +3254,12 @@ paths:
       description: Create or update a feature flag. Admin only.
       operationId: adminSetFeatureFlag
       tags: [Admin]
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - name
-                - enabled
-              properties:
-                name:
-                  type: string
-                enabled:
-                  type: boolean
+              $ref: "#/components/schemas/FeatureFlagRequest"
       responses:
         "200":
           description: Feature flag set

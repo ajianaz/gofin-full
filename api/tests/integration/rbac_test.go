@@ -38,7 +38,7 @@ func TestOwnerFullAccess(t *testing.T) {
 	})
 
 	t.Run("owner_can_create_transaction", func(t *testing.T) {
-		body := fmt.Sprintf(`{"type":"withdrawal","amount":"10.00","description":"test tx","source_id":%d}`, testApp.Seed.WalletID)
+		body := fmt.Sprintf(`{"type":"withdrawal","amount":"10.00","description":"test tx","source_id":"%s"}`, testApp.Seed.WalletID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", "/api/v1/transactions", body, token)
 		require.NotEqual(t, http.StatusForbidden, resp.StatusCode,
 			"owner should not get 403 when creating transactions")
@@ -111,7 +111,7 @@ func TestReadOnlyCannotWrite(t *testing.T) {
 	})
 
 	t.Run("read_only_cannot_create_transaction", func(t *testing.T) {
-		body := fmt.Sprintf(`{"type":"withdrawal","amount":"10.00","description":"blocked","source_id":%d}`, testApp.Seed.WalletID)
+		body := fmt.Sprintf(`{"type":"withdrawal","amount":"10.00","description":"blocked","source_id":"%s"}`, testApp.Seed.WalletID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", "/api/v1/transactions", body, token)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode,
 			"read_only should get 403 when creating transactions")
@@ -148,7 +148,7 @@ func TestManageTransactionsCanCreateTx(t *testing.T) {
 	})
 
 	t.Run("manage_transactions_can_create_transaction", func(t *testing.T) {
-		body := fmt.Sprintf(`{"type":"withdrawal","amount":"25.00","description":"tx role test","source_id":%d}`, testApp.Seed.WalletID)
+		body := fmt.Sprintf(`{"type":"withdrawal","amount":"25.00","description":"tx role test","source_id":"%s"}`, testApp.Seed.WalletID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", "/api/v1/transactions", body, token)
 		require.NotEqual(t, http.StatusForbidden, resp.StatusCode,
 			"manage_transactions should not get 403 when creating transactions")
@@ -210,7 +210,7 @@ func TestFullRoleAccess(t *testing.T) {
 	})
 
 	t.Run("full_can_create_transaction", func(t *testing.T) {
-		body := fmt.Sprintf(`{"type":"withdrawal","amount":"50.00","description":"full role tx","source_id":%d}`, testApp.Seed.WalletID)
+		body := fmt.Sprintf(`{"type":"withdrawal","amount":"50.00","description":"full role tx","source_id":"%s"}`, testApp.Seed.WalletID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", "/api/v1/transactions", body, token)
 		require.NotEqual(t, http.StatusForbidden, resp.StatusCode,
 			"full role should not get 403 when creating transactions")

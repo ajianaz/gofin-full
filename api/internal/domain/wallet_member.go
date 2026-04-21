@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // WalletMemberRole represents the role of a wallet member.
 type WalletMemberRole string
@@ -13,9 +17,9 @@ const (
 
 // WalletMember represents per-wallet access control for sharing.
 type WalletMember struct {
-	ID        int64      `json:"id" db:"id"`
-	WalletID  int64      `json:"wallet_id" db:"wallet_id"`
-	UserID    int64      `json:"user_id" db:"user_id"`
+	ID        uuid.UUID  `json:"id" db:"id"`
+	WalletID  uuid.UUID  `json:"wallet_id" db:"wallet_id"`
+	UserID    uuid.UUID  `json:"user_id" db:"user_id"`
 	Role      string     `json:"role" db:"role"` // owner, editor, viewer
 	CreatedAt time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`

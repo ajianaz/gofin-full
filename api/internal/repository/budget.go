@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
@@ -19,7 +20,7 @@ func NewBudgetRepository(db *pgxpool.Pool) *BudgetRepository {
 	return &BudgetRepository{db: db}
 }
 
-func (r *BudgetRepository) Create(ctx context.Context, userID, groupID int64, name string, order int) (*domain.Budget, error) {
+func (r *BudgetRepository) Create(ctx context.Context, userID, groupID uuid.UUID, name string, order int) (*domain.Budget, error) {
 	now := time.Now().UTC()
 	var b domain.Budget
 	err := r.db.QueryRow(ctx,
@@ -34,7 +35,7 @@ func (r *BudgetRepository) Create(ctx context.Context, userID, groupID int64, na
 	return &b, nil
 }
 
-func (r *BudgetRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.Budget, error) {
+func (r *BudgetRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.Budget, error) {
 	var b domain.Budget
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -53,7 +54,7 @@ func (r *BudgetRepository) FindByID(ctx context.Context, id, groupID int64) (*do
 	return &b, nil
 }
 
-func (r *BudgetRepository) List(ctx context.Context, groupID int64) ([]domain.Budget, error) {
+func (r *BudgetRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.Budget, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, name, active, "order", created_at, updated_at
 		 FROM budgets WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", name`, groupID)
@@ -73,7 +74,7 @@ func (r *BudgetRepository) List(ctx context.Context, groupID int64) ([]domain.Bu
 	return budgets, rows.Err()
 }
 
-func (r *BudgetRepository) Update(ctx context.Context, id, groupID int64, name string, active *bool) error {
+func (r *BudgetRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, active *bool) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE budgets SET
 		  name = COALESCE(NULLIF($1, ''), name),
@@ -84,14 +85,14 @@ func (r *BudgetRepository) Update(ctx context.Context, id, groupID int64, name s
 	return err
 }
 
-func (r *BudgetRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *BudgetRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE budgets SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID)
 	return err
 }
 
-func (r *BudgetRepository) findLimits(ctx context.Context, budgetID int64) ([]domain.BudgetLimit, error) {
+func (r *BudgetRepository) findLimits(ctx context.Context, budgetID uuid.UUID) ([]domain.BudgetLimit, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, budget_id, start, "end", amount, created_at, updated_at
 		 FROM budget_limits WHERE budget_id = $1 ORDER BY start`, budgetID)
@@ -111,7 +112,7 @@ func (r *BudgetRepository) findLimits(ctx context.Context, budgetID int64) ([]do
 	return limits, rows.Err()
 }
 
-func (r *BudgetRepository) CreateLimit(ctx context.Context, budgetID int64, start, end time.Time, amount decimal.Decimal) (*domain.BudgetLimit, error) {
+func (r *BudgetRepository) CreateLimit(ctx context.Context, budgetID uuid.UUID, start, end time.Time, amount decimal.Decimal) (*domain.BudgetLimit, error) {
 	now := time.Now().UTC()
 	var l domain.BudgetLimit
 	err := r.db.QueryRow(ctx,
@@ -126,12 +127,12 @@ func (r *BudgetRepository) CreateLimit(ctx context.Context, budgetID int64, star
 	return &l, nil
 }
 
-func (r *BudgetRepository) DeleteLimit(ctx context.Context, id int64) error {
+func (r *BudgetRepository) DeleteLimit(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM budget_limits WHERE id = $1`, id)
 	return err
 }
 
-func (r *BudgetRepository) SetAutoBudget(ctx context.Context, budgetID int64, autoType, period string) error {
+func (r *BudgetRepository) SetAutoBudget(ctx context.Context, budgetID uuid.UUID, autoType, period string) error {
 	now := time.Now().UTC()
 	_, err := r.db.Exec(ctx,
 		`INSERT INTO auto_budgets (budget_id, auto_budget_type, period, created_at, updated_at)
@@ -141,7 +142,7 @@ func (r *BudgetRepository) SetAutoBudget(ctx context.Context, budgetID int64, au
 	return err
 }
 
-func (r *BudgetRepository) RemoveAutoBudget(ctx context.Context, budgetID int64) error {
+func (r *BudgetRepository) RemoveAutoBudget(ctx context.Context, budgetID uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM auto_budgets WHERE budget_id = $1`, budgetID)
 	return err
 }

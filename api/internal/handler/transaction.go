@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -48,7 +48,7 @@ func (h *TransactionHandler) Index(c *fiber.Ctx) error {
 		filter.Type = v
 	}
 	if v := c.Query("wallet_id"); v != "" {
-		if id, err := strconv.ParseInt(v, 10, 64); err == nil {
+		if id, err := uuid.Parse(v); err == nil {
 			filter.WalletID = &id
 		}
 	}
@@ -97,14 +97,14 @@ func (h *TransactionHandler) Show(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	group, err := h.txRepo.FindGroupByID(c.Context(), int64(id), *groupID)
+	group, err := h.txRepo.FindGroupByID(c.Context(), id, *groupID)
 	if err != nil {
-		return apperrors.NotFoundResource("transaction", int64(id))
+		return apperrors.NotFoundResource("transaction", id)
 	}
 
 	return c.JSON(fiber.Map{"data": transactionGroupToMap(group)})
@@ -129,10 +129,10 @@ func (h *TransactionHandler) Store(c *fiber.Ctx) error {
 	if input.Amount == "" {
 		fieldErrors["amount"] = append(fieldErrors["amount"], "amount is required")
 	}
-	if input.SourceID == 0 {
+	if input.SourceID == uuid.Nil {
 		fieldErrors["source_id"] = append(fieldErrors["source_id"], "source_id is required")
 	}
-	if input.DestinationID == 0 {
+	if input.DestinationID == uuid.Nil {
 		fieldErrors["destination_id"] = append(fieldErrors["destination_id"], "destination_id is required")
 	}
 	if input.Date.IsZero() {
@@ -209,31 +209,31 @@ func (h *TransactionHandler) Update(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
 		Description string     `json:"description"`
 		Date        *time.Time `json:"date"`
 		Notes       *string    `json:"notes"`
-		CategoryIDs []int64    `json:"category_ids"`
-		TagIDs      []int64    `json:"tag_ids"`
+		CategoryIDs []uuid.UUID `json:"category_ids"`
+		TagIDs      []uuid.UUID `json:"tag_ids"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.txRepo.UpdateJournal(c.Context(), int64(id), *groupID, req.Description, req.Date, req.Notes); err != nil {
-		return apperrors.NotFoundResource("transaction", int64(id))
+	if err := h.txRepo.UpdateJournal(c.Context(), id, *groupID, req.Description, req.Date, req.Notes); err != nil {
+		return apperrors.NotFoundResource("transaction", id)
 	}
 
 	if req.CategoryIDs != nil {
-		h.txRepo.SetJournalCategories(c.Context(), int64(id), req.CategoryIDs)
+		h.txRepo.SetJournalCategories(c.Context(), id, req.CategoryIDs)
 	}
 	if req.TagIDs != nil {
-		h.txRepo.SetJournalTags(c.Context(), int64(id), req.TagIDs)
+		h.txRepo.SetJournalTags(c.Context(), id, req.TagIDs)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -252,13 +252,13 @@ func (h *TransactionHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.txService.DeleteTransaction(c.Context(), int64(id), user.ID, *groupID); err != nil {
-		return apperrors.NotFoundResource("transaction", int64(id))
+	if err := h.txService.DeleteTransaction(c.Context(), id, user.ID, *groupID); err != nil {
+		return apperrors.NotFoundResource("transaction", id)
 	}
 
 	return c.Status(204).Send(nil)

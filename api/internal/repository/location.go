@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewLocationRepository(db *pgxpool.Pool) *LocationRepository {
 	return &LocationRepository{db: db}
 }
 
-func (r *LocationRepository) Set(ctx context.Context, locatableType string, locatableID int64, latitude, longitude *float64, zoomLevel int) (*domain.Location, error) {
+func (r *LocationRepository) Set(ctx context.Context, locatableType string, locatableID uuid.UUID, latitude, longitude *float64, zoomLevel int) (*domain.Location, error) {
 	now := time.Now().UTC()
 	var loc domain.Location
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *LocationRepository) Set(ctx context.Context, locatableType string, loca
 	return &loc, nil
 }
 
-func (r *LocationRepository) GetByEntity(ctx context.Context, locatableType string, locatableID int64) (*domain.Location, error) {
+func (r *LocationRepository) GetByEntity(ctx context.Context, locatableType string, locatableID uuid.UUID) (*domain.Location, error) {
 	var loc domain.Location
 	err := r.db.QueryRow(ctx,
 		`SELECT id, locatable_type, locatable_id, latitude, longitude, zoom_level, created_at, updated_at
@@ -46,7 +47,7 @@ func (r *LocationRepository) GetByEntity(ctx context.Context, locatableType stri
 	return &loc, nil
 }
 
-func (r *LocationRepository) Delete(ctx context.Context, id int64) error {
+func (r *LocationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM locations WHERE id = $1`, id)
 	return err
 }

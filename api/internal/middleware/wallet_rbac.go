@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -23,13 +24,13 @@ func WalletRBAC(memberRepo *repository.WalletMemberRepository, requiredRole stri
 			return apperrors.New(401, "unauthorized")
 		}
 
-		walletID, err := c.ParamsInt("wallet_id")
+		walletID, err := uuid.Parse(c.Params("wallet_id"))
 		if err != nil {
 			return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id"}})
 		}
 
 		// Check if user is the wallet owner
-		isOwner, err := memberRepo.IsWalletOwner(c.Context(), int64(walletID), user.ID)
+		isOwner, err := memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
 		if err != nil {
 			return apperrors.NewWithDetail(500, "failed to check wallet ownership", err.Error())
 		}
@@ -38,7 +39,7 @@ func WalletRBAC(memberRepo *repository.WalletMemberRepository, requiredRole stri
 		}
 
 		// Check membership
-		role, err := memberRepo.GetWalletRole(c.Context(), int64(walletID), user.ID)
+		role, err := memberRepo.GetWalletRole(c.Context(), walletID, user.ID)
 		if err != nil {
 			return apperrors.NewWithDetail(500, "failed to check wallet membership", err.Error())
 		}

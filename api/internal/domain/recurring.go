@@ -1,15 +1,16 @@
 package domain
 
 import (
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"time"
 )
 
 // Recurrence represents a recurring transaction schedule (maps to recurrences table).
 type Recurrence struct {
-	ID                 int64     `json:"id" db:"id"`
-	UserID             int64     `json:"user_id" db:"user_id"`
-	UserGroupID        int64     `json:"user_group_id" db:"user_group_id"`
+	ID                 uuid.UUID `json:"id" db:"id"`
+	UserID             uuid.UUID `json:"user_id" db:"user_id"`
+	UserGroupID        uuid.UUID `json:"user_group_id" db:"user_group_id"`
 	Title              string    `json:"title" db:"title"`
 	Description        *string   `json:"description,omitempty" db:"description"`
 	FirstDate          time.Time `json:"first_date" db:"first_date"`
@@ -31,17 +32,17 @@ type Recurrence struct {
 
 // RecurringTransaction represents a transaction template within a recurrence.
 type RecurringTransaction struct {
-	ID             int64           `json:"id" db:"id"`
-	RecurrenceID   int64           `json:"recurrence_id" db:"recurrence_id"`
+	ID             uuid.UUID       `json:"id" db:"id"`
+	RecurrenceID   uuid.UUID       `json:"recurrence_id" db:"recurrence_id"`
 	Type           string          `json:"type" db:"type"`
 	Description    string          `json:"description" db:"description"`
 	Amount         decimal.Decimal `json:"amount" db:"amount"`
-	CurrencyID     int64           `json:"currency_id" db:"transaction_currency_id"`
-	SourceID       int64           `json:"source_id" db:"source_id"`
-	DestinationID  int64           `json:"destination_id" db:"destination_id"`
-	BudgetID       *int64          `json:"budget_id,omitempty" db:"budget_id"`
-	CategoryID     *int64          `json:"category_id,omitempty" db:"category_id"`
-	PiggyBankID    *int64          `json:"piggy_bank_id,omitempty" db:"piggy_bank_id"`
+	CurrencyID     uuid.UUID       `json:"currency_id" db:"transaction_currency_id"`
+	SourceID       uuid.UUID       `json:"source_id" db:"source_id"`
+	DestinationID  uuid.UUID       `json:"destination_id" db:"destination_id"`
+	BudgetID       *uuid.UUID      `json:"budget_id,omitempty" db:"budget_id"`
+	CategoryID     *uuid.UUID      `json:"category_id,omitempty" db:"category_id"`
+	PiggyBankID    *uuid.UUID      `json:"piggy_bank_id,omitempty" db:"piggy_bank_id"`
 	Order          int             `json:"order" db:"order"`
 	CreatedAt      time.Time       `json:"created_at" db:"created_at"`
 	UpdatedAt      time.Time       `json:"updated_at" db:"updated_at"`
@@ -51,16 +52,16 @@ type RecurringTransaction struct {
 }
 
 type RecurringRepetition struct {
-	ID           int64     `json:"id" db:"id"`
-	RecurrenceID int64     `json:"recurrence_id" db:"recurrence_id"`
+	ID           uuid.UUID `json:"id" db:"id"`
+	RecurrenceID uuid.UUID `json:"recurrence_id" db:"recurrence_id"`
 	RelevantDate time.Time `json:"relevant_date" db:"relevant_date"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type RecurrenceMeta struct {
-	ID           int64     `json:"id" db:"id"`
-	RecurrenceID int64     `json:"recurrence_id" db:"recurrence_id"`
+	ID           uuid.UUID `json:"id" db:"id"`
+	RecurrenceID uuid.UUID `json:"recurrence_id" db:"recurrence_id"`
 	Name         string    `json:"name" db:"name"`
 	Value        string    `json:"value" db:"value"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
@@ -68,8 +69,8 @@ type RecurrenceMeta struct {
 }
 
 type RecurringTransactionMeta struct {
-	ID                     int64     `json:"id" db:"id"`
-	RecurringTransactionID int64     `json:"recurring_transaction_id" db:"recurring_transaction_id"`
+	ID                     uuid.UUID `json:"id" db:"id"`
+	RecurringTransactionID uuid.UUID `json:"recurring_transaction_id" db:"recurring_transaction_id"`
 	Name                   string    `json:"name" db:"name"`
 	Value                  string    `json:"value" db:"value"`
 	CreatedAt              time.Time `json:"created_at" db:"created_at"`

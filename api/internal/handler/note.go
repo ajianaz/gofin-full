@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -20,14 +21,21 @@ func (h *NoteHandler) Index(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
 	noteableType := c.Query("noteable_type")
-	noteableID := c.QueryInt("noteable_id")
-	if noteableType == "" || noteableID == 0 {
+	noteableIDStr := c.Query("noteable_id")
+	if noteableType == "" || noteableIDStr == "" {
 		return apperrors.NewValidationError(map[string][]string{
 			"query": {"noteable_type and noteable_id query params are required"},
 		})
 	}
 
-	notes, err := h.repo.ListByEntity(c.Context(), noteableType, int64(noteableID))
+	noteableID, err := uuid.Parse(noteableIDStr)
+	if err != nil {
+		return apperrors.NewValidationError(map[string][]string{
+			"noteable_id": {"invalid noteable_id format"},
+		})
+	}
+
+	notes, err := h.repo.ListByEntity(c.Context(), noteableType, noteableID)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to list notes", err.Error())
 	}
@@ -51,9 +59,9 @@ func (h *NoteHandler) Store(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
 	var req struct {
-		NoteableType string `json:"noteable_type"`
-		NoteableID   int64  `json:"noteable_id"`
-		Note         string `json:"note"`
+		NoteableType string    `json:"noteable_type"`
+		NoteableID   uuid.UUID `json:"noteable_id"`
+		Note         string    `json:"note"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
@@ -81,9 +89,9 @@ func (h *NoteHandler) Store(c *fiber.Ctx) error {
 func (h *NoteHandler) Update(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -93,8 +101,8 @@ func (h *NoteHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), int64(id), req.Note); err != nil {
-		return apperrors.NotFoundResource("note", int64(id))
+	if err := h.repo.Update(c.Context(), id, req.Note); err != nil {
+		return apperrors.NotFoundResource("note", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -106,13 +114,13 @@ func (h *NoteHandler) Update(c *fiber.Ctx) error {
 func (h *NoteHandler) Delete(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id)); err != nil {
-		return apperrors.NotFoundResource("note", int64(id))
+	if err := h.repo.Delete(c.Context(), id); err != nil {
+		return apperrors.NotFoundResource("note", id)
 	}
 
 	return c.Status(204).Send(nil)

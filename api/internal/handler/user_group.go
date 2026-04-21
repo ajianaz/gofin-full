@@ -1,9 +1,8 @@
 package handler
 
 import (
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -56,7 +55,7 @@ func (h *UserGroupHandler) Show(c *fiber.Ctx) error {
 		return apperrors.ErrUnauthorized
 	}
 
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.ErrBadRequest
 	}
@@ -127,7 +126,7 @@ func (h *UserGroupHandler) Update(c *fiber.Ctx) error {
 		return apperrors.ErrUnauthorized
 	}
 
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.ErrBadRequest
 	}
@@ -169,7 +168,7 @@ func (h *UserGroupHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.ErrUnauthorized
 	}
 
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.ErrBadRequest
 	}
@@ -195,9 +194,9 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		UserGroupID int64 `json:"user_group_id"`
+		UserGroupID uuid.UUID `json:"user_group_id"`
 	}
-	if err := c.BodyParser(&req); err != nil || req.UserGroupID == 0 {
+	if err := c.BodyParser(&req); err != nil || req.UserGroupID == uuid.Nil {
 		return apperrors.NewValidationError(map[string][]string{
 			"user_group_id": {"A valid group ID is required."},
 		})

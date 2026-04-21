@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
@@ -21,6 +23,7 @@ import (
 	"github.com/ajianaz/gofin-full/api/internal/router"
 	"github.com/ajianaz/gofin-full/api/internal/service"
 	"github.com/ajianaz/gofin-full/api/internal/sse"
+	"github.com/ajianaz/gofin-full/api/pkg/pgxuuid"
 )
 
 func main() {
@@ -245,6 +248,14 @@ func connectDB(cfg *config.Config) (*pgxpool.Pool, error) {
 	poolCfg.MaxConns = int32(cfg.DBMaxOpenConns)
 	poolCfg.MinConns = int32(cfg.DBMaxIdleConns)
 	poolCfg.MaxConnLifetime = time.Duration(cfg.DBConnMaxLifetime) * time.Second
+	poolCfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		conn.TypeMap().RegisterType(&pgtype.Type{
+			Name:  "uuid",
+			OID:   pgtype.UUIDOID,
+			Codec: pgxuuid.Codec{},
+		})
+		return nil
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

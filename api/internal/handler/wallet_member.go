@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -19,12 +20,12 @@ func NewWalletMemberHandler(memberRepo *repository.WalletMemberRepository) *Wall
 func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
-	walletID, err := c.ParamsInt("wallet_id")
+	walletID, err := uuid.Parse(c.Params("wallet_id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id"}})
+		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id format"}})
 	}
 
-	members, err := h.memberRepo.ListByWallet(c.Context(), int64(walletID))
+	members, err := h.memberRepo.ListByWallet(c.Context(), walletID)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to list wallet members", err.Error())
 	}
@@ -47,25 +48,25 @@ func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
 func (h *WalletMemberHandler) Store(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 
-	walletID, err := c.ParamsInt("wallet_id")
+	walletID, err := uuid.Parse(c.Params("wallet_id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id"}})
+		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id format"}})
 	}
 
 	// Only owner can add members
-	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), int64(walletID), user.ID)
+	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
 	if err != nil || !isOwner {
 		return apperrors.New(403, "only wallet owner can add members")
 	}
 
 	var req struct {
-		UserID int64  `json:"user_id"`
-		Role   string `json:"role"`
+		UserID uuid.UUID `json:"user_id"`
+		Role   string    `json:"role"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
-	if req.UserID == 0 {
+	if req.UserID == uuid.Nil {
 		return apperrors.NewValidationError(map[string][]string{"user_id": {"user_id is required"}})
 	}
 	if req.Role == "" {
@@ -75,7 +76,7 @@ func (h *WalletMemberHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"role": {"role must be editor or viewer"}})
 	}
 
-	m, err := h.memberRepo.AddMember(c.Context(), int64(walletID), req.UserID, req.Role)
+	m, err := h.memberRepo.AddMember(c.Context(), walletID, req.UserID, req.Role)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to add wallet member", err.Error())
 	}
@@ -94,17 +95,17 @@ func (h *WalletMemberHandler) Store(c *fiber.Ctx) error {
 func (h *WalletMemberHandler) Update(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 
-	walletID, err := c.ParamsInt("wallet_id")
+	walletID, err := uuid.Parse(c.Params("wallet_id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id"}})
+		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id format"}})
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), int64(walletID), user.ID)
+	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
 	if err != nil || !isOwner {
 		return apperrors.New(403, "only wallet owner can update members")
 	}
@@ -119,8 +120,8 @@ func (h *WalletMemberHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"role": {"role must be editor or viewer"}})
 	}
 
-	if err := h.memberRepo.UpdateRole(c.Context(), int64(id), int64(walletID), req.Role); err != nil {
-		return apperrors.NotFoundResource("wallet_member", int64(id))
+	if err := h.memberRepo.UpdateRole(c.Context(), id, walletID, req.Role); err != nil {
+		return apperrors.NotFoundResource("wallet_member", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -132,22 +133,22 @@ func (h *WalletMemberHandler) Update(c *fiber.Ctx) error {
 func (h *WalletMemberHandler) Delete(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 
-	walletID, err := c.ParamsInt("wallet_id")
+	walletID, err := uuid.Parse(c.Params("wallet_id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id"}})
+		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id format"}})
 	}
 
-	userID, err := c.ParamsInt("user_id")
+	userID, err := uuid.Parse(c.Params("user_id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"user_id": {"invalid user_id"}})
+		return apperrors.NewValidationError(map[string][]string{"user_id": {"invalid user_id format"}})
 	}
 
-	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), int64(walletID), user.ID)
+	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
 	if err != nil || !isOwner {
 		return apperrors.New(403, "only wallet owner can remove members")
 	}
 
-	if err := h.memberRepo.RemoveMember(c.Context(), int64(walletID), int64(userID)); err != nil {
+	if err := h.memberRepo.RemoveMember(c.Context(), walletID, userID); err != nil {
 		return apperrors.NewWithDetail(500, "failed to remove wallet member", err.Error())
 	}
 

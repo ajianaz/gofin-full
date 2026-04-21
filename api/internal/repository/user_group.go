@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -23,7 +24,7 @@ func NewUserGroupRepository(db *pgxpool.Pool) *UserGroupRepository {
 // Create creates a new user group.
 func (r *UserGroupRepository) Create(ctx context.Context, title string) (*domain.UserGroup, error) {
 	now := time.Now().UTC()
-	var id int64
+	var id uuid.UUID
 	err := r.db.QueryRow(ctx,
 		`INSERT INTO user_groups (title, created_at, updated_at) VALUES ($1, $2, $3) RETURNING id`,
 		title, now, now,
@@ -41,7 +42,7 @@ func (r *UserGroupRepository) Create(ctx context.Context, title string) (*domain
 }
 
 // FindByID finds a group by ID (soft-delete aware).
-func (r *UserGroupRepository) FindByID(ctx context.Context, id int64) (*domain.UserGroup, error) {
+func (r *UserGroupRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.UserGroup, error) {
 	var g domain.UserGroup
 	var deletedAt *time.Time
 
@@ -60,7 +61,7 @@ func (r *UserGroupRepository) FindByID(ctx context.Context, id int64) (*domain.U
 }
 
 // List returns all groups a user is a member of.
-func (r *UserGroupRepository) List(ctx context.Context, userID int64) ([]domain.UserGroup, error) {
+func (r *UserGroupRepository) List(ctx context.Context, userID uuid.UUID) ([]domain.UserGroup, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT ug.id, ug.title, ug.created_at, ug.updated_at
 		 FROM user_groups ug
@@ -87,7 +88,7 @@ func (r *UserGroupRepository) List(ctx context.Context, userID int64) ([]domain.
 }
 
 // Update updates a group's title.
-func (r *UserGroupRepository) Update(ctx context.Context, id int64, title string) error {
+func (r *UserGroupRepository) Update(ctx context.Context, id uuid.UUID, title string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE user_groups SET title = $1, updated_at = $2 WHERE id = $3 AND deleted_at IS NULL`,
 		title, time.Now().UTC(), id,
@@ -96,7 +97,7 @@ func (r *UserGroupRepository) Update(ctx context.Context, id int64, title string
 }
 
 // Delete soft-deletes a group.
-func (r *UserGroupRepository) Delete(ctx context.Context, id int64) error {
+func (r *UserGroupRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE user_groups SET deleted_at = $1 WHERE id = $2 AND deleted_at IS NULL`,
 		time.Now().UTC(), id,
@@ -105,7 +106,7 @@ func (r *UserGroupRepository) Delete(ctx context.Context, id int64) error {
 }
 
 // IsMember checks if a user is a member of a group.
-func (r *UserGroupRepository) IsMember(ctx context.Context, userID, groupID int64) (bool, error) {
+func (r *UserGroupRepository) IsMember(ctx context.Context, userID, groupID uuid.UUID) (bool, error) {
 	var count int
 	err := r.db.QueryRow(ctx,
 		`SELECT COUNT(*) FROM group_memberships WHERE user_id = $1 AND user_group_id = $2`,
@@ -115,10 +116,10 @@ func (r *UserGroupRepository) IsMember(ctx context.Context, userID, groupID int6
 }
 
 // AddMember adds a user to a group with the owner role.
-func (r *UserGroupRepository) AddMember(ctx context.Context, userID, groupID int64) error {
+func (r *UserGroupRepository) AddMember(ctx context.Context, userID, groupID uuid.UUID) error {
 	now := time.Now().UTC()
 	// Resolve the owner role ID
-	var ownerRoleID int64
+	var ownerRoleID uuid.UUID
 	err := r.db.QueryRow(ctx, `SELECT id FROM user_roles WHERE title = 'owner' LIMIT 1`).Scan(&ownerRoleID)
 	if err != nil {
 		return fmt.Errorf("owner role not found: %w", err)

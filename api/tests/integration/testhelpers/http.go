@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -70,7 +71,7 @@ func ParseResponseBytes(t *testing.T, resp *http.Response) []byte {
 }
 
 // GenerateTestToken creates a valid JWT access token for the given user and group.
-func GenerateTestToken(jwtMgr *auth.JWTManager, userID int64, email string, groupID *int64) string {
+func GenerateTestToken(jwtMgr *auth.JWTManager, userID uuid.UUID, email string, groupID *uuid.UUID) string {
 	identity := &auth.UserIdentity{
 		ID:    userID,
 		Email: email,

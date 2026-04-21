@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewCategoryRepository(db *pgxpool.Pool) *CategoryRepository {
 	return &CategoryRepository{db: db}
 }
 
-func (r *CategoryRepository) Create(ctx context.Context, userID, groupID int64, name string) (*domain.Category, error) {
+func (r *CategoryRepository) Create(ctx context.Context, userID, groupID uuid.UUID, name string) (*domain.Category, error) {
 	now := time.Now().UTC()
 	var c domain.Category
 	err := r.db.QueryRow(ctx,
@@ -32,7 +33,7 @@ func (r *CategoryRepository) Create(ctx context.Context, userID, groupID int64, 
 	return &c, nil
 }
 
-func (r *CategoryRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.Category, error) {
+func (r *CategoryRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.Category, error) {
 	var c domain.Category
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -48,7 +49,7 @@ func (r *CategoryRepository) FindByID(ctx context.Context, id, groupID int64) (*
 	return &c, nil
 }
 
-func (r *CategoryRepository) List(ctx context.Context, groupID int64) ([]domain.Category, error) {
+func (r *CategoryRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.Category, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, name, created_at, updated_at
 		 FROM categories WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY name`, groupID)
@@ -68,7 +69,7 @@ func (r *CategoryRepository) List(ctx context.Context, groupID int64) ([]domain.
 	return categories, rows.Err()
 }
 
-func (r *CategoryRepository) Update(ctx context.Context, id, groupID int64, name string) error {
+func (r *CategoryRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE categories SET name = $1, updated_at = $2
 		 WHERE id = $3 AND user_group_id = $4 AND deleted_at IS NULL`,
@@ -76,7 +77,7 @@ func (r *CategoryRepository) Update(ctx context.Context, id, groupID int64, name
 	return err
 }
 
-func (r *CategoryRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *CategoryRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE categories SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID)

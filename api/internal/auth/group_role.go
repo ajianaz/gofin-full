@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // RoleLookup is implemented by repositories that can resolve a user's group role.
 type RoleLookup interface {
-	GetUserRoleInGroup(ctx context.Context, userID, groupID int64) (GroupRole, error)
-	HasGlobalRole(ctx context.Context, userID int64, roleTitle string) (bool, error)
+	GetUserRoleInGroup(ctx context.Context, userID, groupID uuid.UUID) (GroupRole, error)
+	HasGlobalRole(ctx context.Context, userID uuid.UUID, roleTitle string) (bool, error)
 }
 
 // GroupRoleMiddleware looks up the authenticated user's role in their active group
@@ -23,7 +24,7 @@ func GroupRoleMiddleware(roleLookup RoleLookup) fiber.Handler {
 		}
 
 		groupID := GetActiveGroupID(c)
-		if groupID == nil || *groupID == 0 {
+		if groupID == nil || *groupID == uuid.Nil {
 			return c.Next()
 		}
 

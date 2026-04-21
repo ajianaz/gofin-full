@@ -11,7 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/pgtype"
+
+	"github.com/ajianaz/gofin-full/api/pkg/pgxuuid"
 )
 
 func main() {
@@ -25,7 +29,19 @@ func main() {
 	}
 
 	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, *dsn)
+	poolCfg, err := pgxpool.ParseConfig(*dsn)
+	if err != nil {
+		log.Fatalf("failed to parse database config: %v", err)
+	}
+	poolCfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		conn.TypeMap().RegisterType(&pgtype.Type{
+			Name:  "uuid",
+			OID:   pgtype.UUIDOID,
+			Codec: pgxuuid.Codec{},
+		})
+		return nil
+	}
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
@@ -22,7 +23,7 @@ func NewTransactionRepository(db *pgxpool.Pool) *TransactionRepository {
 }
 
 // CreateGroup inserts a new transaction group and returns it with ID.
-func (r *TransactionRepository) CreateGroup(ctx context.Context, userID, groupID int64, title string) (*domain.TransactionGroup, error) {
+func (r *TransactionRepository) CreateGroup(ctx context.Context, userID, groupID uuid.UUID, title string) (*domain.TransactionGroup, error) {
 	now := time.Now().UTC()
 	var g domain.TransactionGroup
 	err := r.db.QueryRow(ctx,
@@ -39,7 +40,7 @@ func (r *TransactionRepository) CreateGroup(ctx context.Context, userID, groupID
 // CreateJournal inserts a new transaction journal.
 func (r *TransactionRepository) CreateJournal(ctx context.Context, j *domain.TransactionJournal) (*domain.TransactionJournal, error) {
 	now := time.Now().UTC()
-	var id int64
+	var id uuid.UUID
 	err := r.db.QueryRow(ctx,
 		`INSERT INTO transaction_journals
 		 (transaction_group_id, user_id, user_group_id, transaction_type_id,
@@ -71,7 +72,7 @@ func (r *TransactionRepository) CreateJournal(ctx context.Context, j *domain.Tra
 // CreateTransaction inserts a transaction record (debit/credit line).
 func (r *TransactionRepository) CreateTransaction(ctx context.Context, t *domain.Transaction) (*domain.Transaction, error) {
 	now := time.Now().UTC()
-	var id int64
+	var id uuid.UUID
 	err := r.db.QueryRow(ctx,
 		`INSERT INTO transactions
 		 (transaction_journal_id, account_id, amount, native_amount,
@@ -93,7 +94,7 @@ func (r *TransactionRepository) CreateTransaction(ctx context.Context, t *domain
 }
 
 // UpdateWalletBalance adjusts a wallet's virtual_balance by delta.
-func (r *TransactionRepository) UpdateWalletBalance(ctx context.Context, walletID int64, delta decimal.Decimal) error {
+func (r *TransactionRepository) UpdateWalletBalance(ctx context.Context, walletID uuid.UUID, delta decimal.Decimal) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE wallets SET virtual_balance = virtual_balance + $1, updated_at = $2
 		 WHERE id = $3 AND deleted_at IS NULL`,
@@ -105,7 +106,7 @@ func (r *TransactionRepository) UpdateWalletBalance(ctx context.Context, walletI
 }
 
 // FindGroupByID fetches a transaction group with all its journals and transactions.
-func (r *TransactionRepository) FindGroupByID(ctx context.Context, id, groupID int64) (*domain.TransactionGroup, error) {
+func (r *TransactionRepository) FindGroupByID(ctx context.Context, id, groupID uuid.UUID) (*domain.TransactionGroup, error) {
 	var g domain.TransactionGroup
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -128,7 +129,7 @@ func (r *TransactionRepository) FindGroupByID(ctx context.Context, id, groupID i
 }
 
 // findJournalsByGroupID loads all journals for a group with their transactions.
-func (r *TransactionRepository) findJournalsByGroupID(ctx context.Context, groupID int64) ([]domain.TransactionJournal, error) {
+func (r *TransactionRepository) findJournalsByGroupID(ctx context.Context, groupID uuid.UUID) ([]domain.TransactionJournal, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT j.id, j.transaction_group_id, j.user_id, j.user_group_id,
 		  j.transaction_type_id, COALESCE(tt.type, 'invalid'),
@@ -184,7 +185,7 @@ func (r *TransactionRepository) findJournalsByGroupID(ctx context.Context, group
 	return journals, rows.Err()
 }
 
-func (r *TransactionRepository) findTransactionsByJournalID(ctx context.Context, journalID int64) ([]domain.Transaction, error) {
+func (r *TransactionRepository) findTransactionsByJournalID(ctx context.Context, journalID uuid.UUID) ([]domain.Transaction, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, transaction_journal_id, account_id, amount, native_amount,
 		  foreign_amount, native_foreign_amount, foreign_currency_id, reconciled,
@@ -216,7 +217,7 @@ type TransactionFilter struct {
 	DateFrom *time.Time
 	DateTo   *time.Time
 	Type     string // transaction type filter
-	WalletID *int64 // filter by source or destination wallet
+	WalletID *uuid.UUID // filter by source or destination wallet
 	Page     int
 	PerPage  int
 }
@@ -231,7 +232,7 @@ func (f *TransactionFilter) defaults() {
 }
 
 // ListGroups returns filtered transaction groups with total count.
-func (r *TransactionRepository) ListGroups(ctx context.Context, groupID int64, f TransactionFilter) ([]domain.TransactionGroup, int64, error) {
+func (r *TransactionRepository) ListGroups(ctx context.Context, groupID uuid.UUID, f TransactionFilter) ([]domain.TransactionGroup, int64, error) {
 	f.defaults()
 	offset := (f.Page - 1) * f.PerPage
 
@@ -301,7 +302,7 @@ func (r *TransactionRepository) ListGroups(ctx context.Context, groupID int64, f
 }
 
 // UpdateJournal updates mutable fields on a journal.
-func (r *TransactionRepository) UpdateJournal(ctx context.Context, id, groupID int64, description string, date *time.Time, notes *string) error {
+func (r *TransactionRepository) UpdateJournal(ctx context.Context, id, groupID uuid.UUID, description string, date *time.Time, notes *string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE transaction_journals SET
 		  description = COALESCE(NULLIF($1, ''), description),
@@ -314,7 +315,7 @@ func (r *TransactionRepository) UpdateJournal(ctx context.Context, id, groupID i
 }
 
 // DeleteGroup soft-deletes a transaction group and all its journals.
-func (r *TransactionRepository) DeleteGroup(ctx context.Context, id, groupID int64) error {
+func (r *TransactionRepository) DeleteGroup(ctx context.Context, id, groupID uuid.UUID) error {
 	now := time.Now().UTC()
 	// Soft-delete journals first
 	_, err := r.db.Exec(ctx,
@@ -336,18 +337,18 @@ func (r *TransactionRepository) DeleteGroup(ctx context.Context, id, groupID int
 }
 
 // GetTransactionTypeID resolves a transaction type string to its DB ID.
-func (r *TransactionRepository) GetTransactionTypeID(ctx context.Context, typeName string) (int64, error) {
-	var id int64
+func (r *TransactionRepository) GetTransactionTypeID(ctx context.Context, typeName string) (uuid.UUID, error) {
+	var id uuid.UUID
 	err := r.db.QueryRow(ctx,
 		`SELECT id FROM transaction_types WHERE type = $1`, typeName).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("unknown transaction type '%s'", typeName)
+		return uuid.Nil, fmt.Errorf("unknown transaction type '%s'", typeName)
 	}
 	return id, nil
 }
 
 // SetJournalCategories replaces category links for a journal.
-func (r *TransactionRepository) SetJournalCategories(ctx context.Context, journalID int64, categoryIDs []int64) error {
+func (r *TransactionRepository) SetJournalCategories(ctx context.Context, journalID uuid.UUID, categoryIDs []uuid.UUID) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return err
@@ -370,7 +371,7 @@ func (r *TransactionRepository) SetJournalCategories(ctx context.Context, journa
 }
 
 // SetJournalTags replaces tag links for a journal.
-func (r *TransactionRepository) SetJournalTags(ctx context.Context, journalID int64, tagIDs []int64) error {
+func (r *TransactionRepository) SetJournalTags(ctx context.Context, journalID uuid.UUID, tagIDs []uuid.UUID) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return err

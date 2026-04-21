@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewObjectGroupRepository(db *pgxpool.Pool) *ObjectGroupRepository {
 	return &ObjectGroupRepository{db: db}
 }
 
-func (r *ObjectGroupRepository) Create(ctx context.Context, userID, groupID int64, title string, order int) (*domain.ObjectGroup, error) {
+func (r *ObjectGroupRepository) Create(ctx context.Context, userID, groupID uuid.UUID, title string, order int) (*domain.ObjectGroup, error) {
 	now := time.Now().UTC()
 	var og domain.ObjectGroup
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *ObjectGroupRepository) Create(ctx context.Context, userID, groupID int6
 	return &og, nil
 }
 
-func (r *ObjectGroupRepository) List(ctx context.Context, groupID int64) ([]domain.ObjectGroup, error) {
+func (r *ObjectGroupRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.ObjectGroup, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, title, "order", created_at, updated_at
 		 FROM object_groups WHERE user_group_id = $1 ORDER BY "order", title`, groupID)
@@ -53,7 +54,7 @@ func (r *ObjectGroupRepository) List(ctx context.Context, groupID int64) ([]doma
 	return groups, rows.Err()
 }
 
-func (r *ObjectGroupRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.ObjectGroup, error) {
+func (r *ObjectGroupRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.ObjectGroup, error) {
 	var og domain.ObjectGroup
 	err := r.db.QueryRow(ctx,
 		`SELECT id, user_id, user_group_id, title, "order", created_at, updated_at
@@ -65,7 +66,7 @@ func (r *ObjectGroupRepository) FindByID(ctx context.Context, id, groupID int64)
 	return &og, nil
 }
 
-func (r *ObjectGroupRepository) Update(ctx context.Context, id, groupID int64, title string, order *int) error {
+func (r *ObjectGroupRepository) Update(ctx context.Context, id, groupID uuid.UUID, title string, order *int) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE object_groups SET title = COALESCE(NULLIF($1, ''), title), "order" = COALESCE($2, "order"), updated_at = $3
 		 WHERE id = $4 AND user_group_id = $5`,
@@ -73,7 +74,7 @@ func (r *ObjectGroupRepository) Update(ctx context.Context, id, groupID int64, t
 	return err
 }
 
-func (r *ObjectGroupRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *ObjectGroupRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`DELETE FROM object_groups WHERE id = $1 AND user_group_id = $2`, id, groupID)
 	return err

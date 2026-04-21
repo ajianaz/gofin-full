@@ -1,12 +1,16 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Attachment struct {
-	ID         int64     `json:"id" db:"id"`
-	UserID     int64     `json:"user_id" db:"user_id"`
+	ID         uuid.UUID `json:"id" db:"id"`
+	UserID     uuid.UUID `json:"user_id" db:"user_id"`
 	AttachableType string `json:"attachable_type" db:"attachable_type"`
-	AttachableID   int64  `json:"attachable_id" db:"attachable_id"`
+	AttachableID   uuid.UUID  `json:"attachable_id" db:"attachable_id"`
 	Filename   string    `json:"filename" db:"filename"`
 	MimeType   string    `json:"mime_type" db:"mime_type"`
 	Size       int64     `json:"size" db:"size"`

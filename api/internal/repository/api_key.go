@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -25,7 +26,7 @@ func NewAPIKeyRepository(db *pgxpool.Pool) *APIKeyRepository {
 
 // Create generates a new API key, stores its hash, and returns the model + raw key.
 // The raw key is only returned once — it cannot be retrieved later.
-func (r *APIKeyRepository) Create(ctx context.Context, userID int64, name string) (*domain.APIKey, string, error) {
+func (r *APIKeyRepository) Create(ctx context.Context, userID uuid.UUID, name string) (*domain.APIKey, string, error) {
 	// Generate raw key: gofin_<32 random bytes hex>
 	rawBytes := make([]byte, 32)
 	if _, err := rand.Read(rawBytes); err != nil {
@@ -57,20 +58,20 @@ func (r *APIKeyRepository) Create(ctx context.Context, userID int64, name string
 
 // FindByHash looks up an API key by its SHA-256 hash.
 // Returns the userID and keyID, or an error if not found or soft-deleted.
-func (r *APIKeyRepository) FindByHash(ctx context.Context, keyHash string) (int64, int64, error) {
-	var userID, keyID int64
+func (r *APIKeyRepository) FindByHash(ctx context.Context, keyHash string) (uuid.UUID, uuid.UUID, error) {
+	var userID, keyID uuid.UUID
 	err := r.db.QueryRow(ctx,
 		`SELECT user_id, id FROM api_keys WHERE key_hash = $1 AND deleted_at IS NULL`,
 		keyHash,
 	).Scan(&userID, &keyID)
 	if err != nil {
-		return 0, 0, fmt.Errorf("api key not found")
+		return uuid.Nil, uuid.Nil, fmt.Errorf("api key not found")
 	}
 	return userID, keyID, nil
 }
 
 // ListByUser returns all non-deleted API keys for a user.
-func (r *APIKeyRepository) ListByUser(ctx context.Context, userID int64) ([]domain.APIKey, error) {
+func (r *APIKeyRepository) ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.APIKey, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, name, key_prefix, last_used_at, created_at, updated_at
 		 FROM api_keys WHERE user_id = $1 AND deleted_at IS NULL
@@ -94,7 +95,7 @@ func (r *APIKeyRepository) ListByUser(ctx context.Context, userID int64) ([]doma
 }
 
 // Delete soft-deletes an API key.
-func (r *APIKeyRepository) Delete(ctx context.Context, id, userID int64) error {
+func (r *APIKeyRepository) Delete(ctx context.Context, id, userID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE api_keys SET deleted_at = $1, updated_at = $2
 		 WHERE id = $3 AND user_id = $4 AND deleted_at IS NULL`,
@@ -107,7 +108,7 @@ func (r *APIKeyRepository) Delete(ctx context.Context, id, userID int64) error {
 }
 
 // UpdateLastUsed updates the last_used_at timestamp.
-func (r *APIKeyRepository) UpdateLastUsed(ctx context.Context, keyID int64) error {
+func (r *APIKeyRepository) UpdateLastUsed(ctx context.Context, keyID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE api_keys SET last_used_at = $1 WHERE id = $2 AND deleted_at IS NULL`,
 		time.Now().UTC(), keyID,

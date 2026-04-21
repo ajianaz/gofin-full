@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"time"
 )
@@ -62,9 +63,9 @@ const (
 
 // Wallet (financial wallet) represents a financial account.
 type Wallet struct {
-	ID                   int64              `json:"id" db:"id"`
-	UserID               int64              `json:"user_id" db:"user_id"`
-	UserGroupID          int64              `json:"user_group_id" db:"user_group_id"`
+	ID                   uuid.UUID          `json:"id" db:"id"`
+	UserID               uuid.UUID          `json:"user_id" db:"user_id"`
+	UserGroupID          uuid.UUID          `json:"user_group_id" db:"user_group_id"`
 	AccountType          string             `json:"wallet_type" db:"account_type"`
 	Name                 string             `json:"name" db:"name"`
 	Active               bool               `json:"active" db:"active"`

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -19,10 +20,10 @@ func NewPiggyBankHandler(repo *repository.PiggyBankRepository) *PiggyBankHandler
 }
 
 // requireGroupID extracts the active group ID or returns an error.
-func requireGroupID(c *fiber.Ctx) (int64, error) {
+func requireGroupID(c *fiber.Ctx) (uuid.UUID, error) {
 	gid := auth.GetActiveGroupID(c)
-	if gid == nil || *gid == 0 {
-		return 0, apperrors.NewWithDetail(400, "Bad Request", "No active group selected.")
+	if gid == nil || *gid == uuid.Nil {
+		return uuid.Nil, apperrors.NewWithDetail(400, "Bad Request", "No active group selected.")
 	}
 	return *gid, nil
 }
@@ -33,12 +34,12 @@ func (h *PiggyBankHandler) Index(c *fiber.Ctx) error {
 		return err
 	}
 
-	accountID, err := c.ParamsInt("wallet_id")
+	accountID, err := uuid.Parse(c.Params("wallet_id"))
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet_id"}})
 	}
 
-	pbs, err := h.repo.List(c.Context(), int64(accountID), groupID)
+	pbs, err := h.repo.List(c.Context(), accountID, groupID)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to list piggy banks", err.Error())
 	}
@@ -65,14 +66,14 @@ func (h *PiggyBankHandler) Show(c *fiber.Ctx) error {
 		return err
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	pb, err := h.repo.FindByID(c.Context(), int64(id), groupID)
+	pb, err := h.repo.FindByID(c.Context(), id, groupID)
 	if err != nil {
-		return apperrors.NotFoundResource("piggy_bank", int64(id))
+		return apperrors.NotFoundResource("piggy_bank", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -96,7 +97,7 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		WalletID    int64   `json:"wallet_id"`
+		WalletID    uuid.UUID `json:"wallet_id"`
 		Name         string  `json:"name"`
 		TargetAmount string  `json:"target_amount"`
 		Order        int     `json:"order"`
@@ -107,7 +108,7 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 	}
 
 	fieldErrors := make(map[string][]string)
-	if req.WalletID == 0 {
+	if req.WalletID == uuid.Nil {
 		fieldErrors["wallet_id"] = append(fieldErrors["wallet_id"], "wallet_id is required")
 	}
 	if req.Name == "" {
@@ -147,9 +148,9 @@ func (h *PiggyBankHandler) Update(c *fiber.Ctx) error {
 		return err
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -167,8 +168,8 @@ func (h *PiggyBankHandler) Update(c *fiber.Ctx) error {
 		targetAmount = &amt
 	}
 
-	if err := h.repo.Update(c.Context(), int64(id), groupID, req.Name, targetAmount, nil, nil, req.Notes); err != nil {
-		return apperrors.NotFoundResource("piggy_bank", int64(id))
+	if err := h.repo.Update(c.Context(), id, groupID, req.Name, targetAmount, nil, nil, req.Notes); err != nil {
+		return apperrors.NotFoundResource("piggy_bank", id)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -183,13 +184,13 @@ func (h *PiggyBankHandler) Delete(c *fiber.Ctx) error {
 		return err
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id), groupID); err != nil {
-		return apperrors.NotFoundResource("piggy_bank", int64(id))
+	if err := h.repo.Delete(c.Context(), id, groupID); err != nil {
+		return apperrors.NotFoundResource("piggy_bank", id)
 	}
 
 	return c.Status(204).Send(nil)
@@ -202,9 +203,9 @@ func (h *PiggyBankHandler) AddMoney(c *fiber.Ctx) error {
 		return err
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -221,7 +222,7 @@ func (h *PiggyBankHandler) AddMoney(c *fiber.Ctx) error {
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"amount": {"invalid amount"}})
 	}
-	evt, err := h.repo.AddMoney(c.Context(), int64(id), groupID, amount)
+	evt, err := h.repo.AddMoney(c.Context(), id, groupID, amount)
 	if err != nil {
 		return apperrors.NewWithDetail(422, "failed to add money", err.Error())
 	}
@@ -239,9 +240,9 @@ func (h *PiggyBankHandler) RemoveMoney(c *fiber.Ctx) error {
 		return err
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -258,7 +259,7 @@ func (h *PiggyBankHandler) RemoveMoney(c *fiber.Ctx) error {
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"amount": {"invalid amount"}})
 	}
-	evt, err := h.repo.RemoveMoney(c.Context(), int64(id), groupID, amount)
+	evt, err := h.repo.RemoveMoney(c.Context(), id, groupID, amount)
 	if err != nil {
 		return apperrors.NewWithDetail(422, "failed to remove money", err.Error())
 	}

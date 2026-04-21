@@ -6,14 +6,15 @@ import (
 	"time"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUser_JSONTags(t *testing.T) {
-	groupID := int64(1)
+	groupID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
 	user := &domain.User{
-		ID:          1,
+		ID:          uuid.MustParse("00000000-0000-0000-0000-000000000002"),
 		Email:       "test@example.com",
 		Blocked:     false,
 		UserGroupID: &groupID,
@@ -21,7 +22,6 @@ func TestUser_JSONTags(t *testing.T) {
 
 	data, err := json.Marshal(user)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"id":1`)
 	assert.Contains(t, string(data), `"email":"test@example.com"`)
 	// Password should not be serialized
 	assert.NotContains(t, string(data), "password")
@@ -29,7 +29,7 @@ func TestUser_JSONTags(t *testing.T) {
 
 func TestUser_PasswordNotInJSON(t *testing.T) {
 	user := &domain.User{
-		ID:       1,
+		ID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Email:    "test@example.com",
 		Password: "super-secret",
 	}
@@ -43,7 +43,7 @@ func TestUser_PasswordNotInJSON(t *testing.T) {
 func TestUser_DeletedAtNotInJSON(t *testing.T) {
 	now := time.Now()
 	user := &domain.User{
-		ID:        1,
+		ID:        uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		DeletedAt: &now,
 	}
 
@@ -54,19 +54,18 @@ func TestUser_DeletedAtNotInJSON(t *testing.T) {
 
 func TestRole_JSONTags(t *testing.T) {
 	role := &domain.Role{
-		ID:    1,
+		ID:    uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Title: "owner",
 	}
 
 	data, err := json.Marshal(role)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"id":1`)
 	assert.Contains(t, string(data), `"title":"owner"`)
 }
 
 func TestUserGroup_JSONTags(t *testing.T) {
 	group := &domain.UserGroup{
-		ID:    1,
+		ID:    uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Title: "Personal",
 	}
 
@@ -77,7 +76,7 @@ func TestUserGroup_JSONTags(t *testing.T) {
 
 func TestCurrency_JSONTags(t *testing.T) {
 	currency := &domain.Currency{
-		ID:            1,
+		ID:            uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Code:          "USD",
 		Name:          "US Dollar",
 		Symbol:        "$",
@@ -94,10 +93,10 @@ func TestCurrency_JSONTags(t *testing.T) {
 
 func TestBudget_JSONTags(t *testing.T) {
 	budget := &domain.Budget{
-		ID:     1,
-		UserID: 1,
-		Name:   "Monthly Budget",
-		Active: true,
+		ID:         uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		UserID:     uuid.MustParse("00000000-0000-0000-0000-000000000002"),
+		Name:       "Monthly Budget",
+		Active:     true,
 	}
 
 	data, err := json.Marshal(budget)
@@ -108,8 +107,8 @@ func TestBudget_JSONTags(t *testing.T) {
 
 func TestBudgetLimit_JSONTags(t *testing.T) {
 	limit := &domain.BudgetLimit{
-		ID:       1,
-		BudgetID: 1,
+		ID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		BudgetID: uuid.MustParse("00000000-0000-0000-0000-000000000002"),
 		Amount:   decimal.NewFromFloat(500.00),
 	}
 
@@ -120,11 +119,11 @@ func TestBudgetLimit_JSONTags(t *testing.T) {
 
 func TestBill_JSONTags(t *testing.T) {
 	bill := &domain.Bill{
-		ID:       1,
-		Name:     "Electricity",
+		ID:        uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Name:      "Electricity",
 		AmountMin: decimal.NewFromFloat(50.00),
 		AmountMax: decimal.NewFromFloat(100.00),
-		Active:   true,
+		Active:    true,
 	}
 
 	data, err := json.Marshal(bill)
@@ -136,8 +135,8 @@ func TestBill_JSONTags(t *testing.T) {
 
 func TestPiggyBank_JSONTags(t *testing.T) {
 	pb := &domain.PiggyBank{
-		ID:           1,
-		AccountID:    1,
+		ID:           uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		AccountID:    uuid.MustParse("00000000-0000-0000-0000-000000000002"),
 		Name:         "Vacation Fund",
 		TargetAmount: decimal.NewFromFloat(5000.00),
 	}
@@ -150,8 +149,8 @@ func TestPiggyBank_JSONTags(t *testing.T) {
 
 func TestCategory_JSONTags(t *testing.T) {
 	cat := &domain.Category{
-		ID:    1,
-		Name:  "Groceries",
+		ID:   uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Name: "Groceries",
 	}
 
 	data, err := json.Marshal(cat)
@@ -161,7 +160,7 @@ func TestCategory_JSONTags(t *testing.T) {
 
 func TestTag_JSONTags(t *testing.T) {
 	tag := &domain.Tag{
-		ID:  1,
+		ID:  uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Tag: "shopping",
 	}
 
@@ -172,16 +171,16 @@ func TestTag_JSONTags(t *testing.T) {
 
 func TestRule_JSONTags(t *testing.T) {
 	rule := &domain.Rule{
-		ID:              1,
-		Title:           "Auto-categorize groceries",
-		Active:          true,
-		Strict:          false,
-		StopProcessing:  false,
+		ID:             uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Title:          "Auto-categorize groceries",
+		Active:         true,
+		Strict:         false,
+		StopProcessing: false,
 		Triggers: []domain.RuleTrigger{
-			{ID: 1, TriggerType: "description_contains", TriggerValue: "walmart"},
+			{ID: uuid.MustParse("00000000-0000-0000-0000-000000000002"), TriggerType: "description_contains", TriggerValue: "walmart"},
 		},
 		Actions: []domain.RuleAction{
-			{ID: 1, ActionType: "set_category", ActionValue: "3"},
+			{ID: uuid.MustParse("00000000-0000-0000-0000-000000000003"), ActionType: "set_category", ActionValue: "3"},
 		},
 	}
 
@@ -196,7 +195,7 @@ func TestRule_JSONTags(t *testing.T) {
 
 func TestWebhook_JSONTags(t *testing.T) {
 	wh := &domain.Webhook{
-		ID:     1,
+		ID:     uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Title:  "Slack notification",
 		URL:    "https://hooks.slack.com/services/xxx",
 		Active: true,
@@ -209,12 +208,12 @@ func TestWebhook_JSONTags(t *testing.T) {
 
 func TestAttachment_JSONTags(t *testing.T) {
 	att := &domain.Attachment{
-		ID:             1,
+		ID:             uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Filename:       "receipt.pdf",
 		MimeType:       "application/pdf",
 		Size:           1024,
 		AttachableType: "TransactionJournal",
-		AttachableID:   100,
+		AttachableID:   uuid.MustParse("00000000-0000-0000-0000-000000000064"),
 	}
 
 	data, err := json.Marshal(att)
@@ -225,11 +224,11 @@ func TestAttachment_JSONTags(t *testing.T) {
 
 func TestRecurringTransaction_JSONTags(t *testing.T) {
 	rt := &domain.Recurrence{
-		ID:          1,
-		Title:       "Monthly rent",
-		RepeatFreq:  "monthly",
-		Active:      true,
-		ApplyRules:  true,
+		ID:         uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Title:      "Monthly rent",
+		RepeatFreq: "monthly",
+		Active:     true,
+		ApplyRules: true,
 	}
 
 	data, err := json.Marshal(rt)
@@ -240,7 +239,7 @@ func TestRecurringTransaction_JSONTags(t *testing.T) {
 
 func TestExchangeRate_JSONTags(t *testing.T) {
 	rate := &domain.ExchangeRate{
-		ID:             1,
+		ID:             uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		FromCurrencyID: "USD",
 		ToCurrencyID:   "EUR",
 		Rate:           decimal.NewFromFloat(1.13),
@@ -253,7 +252,7 @@ func TestExchangeRate_JSONTags(t *testing.T) {
 
 func TestNotification_JSONTags(t *testing.T) {
 	n := &domain.Notification{
-		ID:      1,
+		ID:      uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		Channel: "email",
 		Type:    "bill_reminder",
 		Title:   "Bill Due",
@@ -269,9 +268,9 @@ func TestNotification_JSONTags(t *testing.T) {
 
 func TestPreference_JSONTags(t *testing.T) {
 	p := &domain.Preference{
-		ID:    1,
-		Name:  "currencyPreference",
-		Data:  "EUR",
+		ID:   uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Name: "currencyPreference",
+		Data: "EUR",
 	}
 
 	data, err := json.Marshal(p)

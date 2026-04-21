@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
 
@@ -15,8 +16,8 @@ type Event struct {
 
 // Client represents a single SSE connection.
 type Client struct {
-	ID     int64
-	UserID int64
+	ID     uuid.UUID
+	UserID uuid.UUID
 	Ch     chan Event
 	Done   chan struct{}
 }
@@ -26,7 +27,7 @@ type Hub struct {
 	mu       sync.RWMutex
 	clients  map[*Client]struct{}
 	log      zerolog.Logger
-	onRemove func(userID int64)
+	onRemove func(userID uuid.UUID)
 }
 
 // NewHub creates a new SSE hub.
@@ -38,7 +39,7 @@ func NewHub(log zerolog.Logger) *Hub {
 }
 
 // SetOnRemove sets a callback when a client disconnects.
-func (h *Hub) SetOnRemove(fn func(userID int64)) {
+func (h *Hub) SetOnRemove(fn func(userID uuid.UUID)) {
 	h.onRemove = fn
 }
 
@@ -47,7 +48,7 @@ func (h *Hub) Subscribe(client *Client) {
 	h.mu.Lock()
 	h.clients[client] = struct{}{}
 	h.mu.Unlock()
-	h.log.Debug().Int64("user_id", client.UserID).Msg("SSE client subscribed")
+	h.log.Debug().Str("user_id", client.UserID.String()).Msg("SSE client subscribed")
 }
 
 // Unsubscribe removes a client.
@@ -63,11 +64,11 @@ func (h *Hub) Unsubscribe(client *Client) {
 		h.onRemove(client.UserID)
 	}
 
-	h.log.Debug().Int64("user_id", client.UserID).Int("remaining", count).Msg("SSE client unsubscribed")
+	h.log.Debug().Str("user_id", client.UserID.String()).Int("remaining", count).Msg("SSE client unsubscribed")
 }
 
 // SendToUser sends an event to all connections of a specific user.
-func (h *Hub) SendToUser(userID int64, event Event) {
+func (h *Hub) SendToUser(userID uuid.UUID, event Event) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -105,7 +106,7 @@ func (h *Hub) ClientCount() int {
 }
 
 // UserConnectionCount returns the number of connections for a specific user.
-func (h *Hub) UserConnectionCount(userID int64) int {
+func (h *Hub) UserConnectionCount(userID uuid.UUID) int {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	count := 0

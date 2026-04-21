@@ -1,6 +1,6 @@
 -- Currencies (reference data, not group-scoped)
 CREATE TABLE IF NOT EXISTS currencies (
-    id              BIGSERIAL PRIMARY KEY,
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code            VARCHAR(3) NOT NULL UNIQUE,
     name            VARCHAR(255) NOT NULL,
     symbol          VARCHAR(10) NOT NULL DEFAULT '',
@@ -15,7 +15,7 @@ CREATE INDEX idx_currencies_code ON currencies(code) WHERE deleted_at IS NULL;
 
 -- Account types (reference data)
 CREATE TABLE IF NOT EXISTS account_types (
-    id         BIGSERIAL PRIMARY KEY,
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     type       VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS account_types (
 
 -- Bills
 CREATE TABLE IF NOT EXISTS bills (
-    id              BIGSERIAL PRIMARY KEY,
-    user_id         BIGINT NOT NULL REFERENCES users(id),
-    user_group_id   BIGINT NOT NULL REFERENCES user_groups(id),
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL REFERENCES users(id),
+    user_group_id   UUID NOT NULL REFERENCES user_groups(id),
     name            VARCHAR(255) NOT NULL,
     amount_min      DECIMAL(32,16) NOT NULL DEFAULT 0,
     amount_max      DECIMAL(32,16) NOT NULL DEFAULT 0,
@@ -46,9 +46,9 @@ CREATE INDEX idx_bills_user_group ON bills(user_group_id) WHERE deleted_at IS NU
 
 -- Exchange rates
 CREATE TABLE IF NOT EXISTS exchange_rates (
-    id               BIGSERIAL PRIMARY KEY,
-    user_id          BIGINT NOT NULL REFERENCES users(id),
-    user_group_id     BIGINT NOT NULL REFERENCES user_groups(id),
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id          UUID NOT NULL REFERENCES users(id),
+    user_group_id     UUID NOT NULL REFERENCES user_groups(id),
     from_currency_id VARCHAR(3) NOT NULL,
     to_currency_id   VARCHAR(3) NOT NULL,
     rate             DECIMAL(32,16) NOT NULL DEFAULT 0,
@@ -63,9 +63,9 @@ CREATE INDEX idx_exchange_rates_date ON exchange_rates(user_group_id, date) WHER
 
 -- Webhooks
 CREATE TABLE IF NOT EXISTS webhooks (
-    id              BIGSERIAL PRIMARY KEY,
-    user_id         BIGINT NOT NULL REFERENCES users(id),
-    user_group_id   BIGINT NOT NULL REFERENCES user_groups(id),
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL REFERENCES users(id),
+    user_group_id   UUID NOT NULL REFERENCES user_groups(id),
     title           VARCHAR(255) NOT NULL,
     url             VARCHAR(255) NOT NULL,
     active          BOOLEAN NOT NULL DEFAULT TRUE,
@@ -78,8 +78,8 @@ CREATE INDEX idx_webhooks_user_group ON webhooks(user_group_id) WHERE deleted_at
 
 -- Webhook triggers
 CREATE TABLE IF NOT EXISTS webhook_triggers (
-    id          BIGSERIAL PRIMARY KEY,
-    webhook_id  BIGINT NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    webhook_id  UUID NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
     trigger     VARCHAR(255) NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -89,8 +89,8 @@ CREATE INDEX idx_webhook_triggers_webhook ON webhook_triggers(webhook_id);
 
 -- Webhook messages (outgoing)
 CREATE TABLE IF NOT EXISTS webhook_messages (
-    id              BIGSERIAL PRIMARY KEY,
-    webhook_id      BIGINT NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    webhook_id      UUID NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
     message         TEXT NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -100,8 +100,8 @@ CREATE INDEX idx_webhook_messages_webhook ON webhook_messages(webhook_id);
 
 -- Webhook deliveries (delivery attempts)
 CREATE TABLE IF NOT EXISTS webhook_deliveries (
-    id              BIGSERIAL PRIMARY KEY,
-    webhook_message_id BIGINT NOT NULL REFERENCES webhook_messages(id) ON DELETE CASCADE,
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    webhook_message_id UUID NOT NULL REFERENCES webhook_messages(id) ON DELETE CASCADE,
     response_code   INT,
     response_body    TEXT,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -110,10 +110,10 @@ CREATE TABLE IF NOT EXISTS webhook_deliveries (
 
 -- Attachments (polymorphic)
 CREATE TABLE IF NOT EXISTS attachments (
-    id              BIGSERIAL PRIMARY KEY,
-    user_id         BIGINT NOT NULL REFERENCES users(id),
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL REFERENCES users(id),
     attachable_type VARCHAR(255) NOT NULL,
-    attachable_id   BIGINT NOT NULL,
+    attachable_id   UUID NOT NULL,
     filename        VARCHAR(255) NOT NULL,
     mime_type       VARCHAR(255) NOT NULL DEFAULT '',
     size            BIGINT NOT NULL DEFAULT 0,
@@ -128,8 +128,8 @@ CREATE INDEX idx_attachments_entity ON attachments(attachable_type, attachable_i
 
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
-    id          BIGSERIAL PRIMARY KEY,
-    user_id     BIGINT NOT NULL REFERENCES users(id),
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL REFERENCES users(id),
     channel     VARCHAR(255) NOT NULL DEFAULT 'email',
     type        VARCHAR(255) NOT NULL,
     title       VARCHAR(255) NOT NULL,
@@ -144,8 +144,8 @@ CREATE INDEX idx_notifications_read ON notifications(user_id) WHERE read = FALSE
 
 -- User preferences
 CREATE TABLE IF NOT EXISTS preferences (
-    id          BIGSERIAL PRIMARY KEY,
-    user_id     BIGINT NOT NULL REFERENCES users(id),
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID NOT NULL REFERENCES users(id),
     name        VARCHAR(255) NOT NULL,
     data        TEXT NOT NULL DEFAULT '{}',
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS preferences (
 
 -- System configurations (key-value, not user-scoped)
 CREATE TABLE IF NOT EXISTS configurations (
-    id          BIGSERIAL PRIMARY KEY,
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name        VARCHAR(255) NOT NULL UNIQUE,
     value       TEXT NOT NULL DEFAULT '',
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -164,9 +164,9 @@ CREATE TABLE IF NOT EXISTS configurations (
 
 -- Object groups (user-scoped collections)
 CREATE TABLE IF NOT EXISTS object_groups (
-    id              BIGSERIAL PRIMARY KEY,
-    user_id         BIGINT NOT NULL REFERENCES users(id),
-    user_group_id   BIGINT NOT NULL REFERENCES user_groups(id),
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL REFERENCES users(id),
+    user_group_id   UUID NOT NULL REFERENCES user_groups(id),
     title           VARCHAR(255) NOT NULL,
     "order"         INT NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -177,9 +177,9 @@ CREATE INDEX idx_object_groups_user_group ON object_groups(user_group_id);
 
 -- Notes (polymorphic)
 CREATE TABLE IF NOT EXISTS notes (
-    id              BIGSERIAL PRIMARY KEY,
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     noteable_type   VARCHAR(255) NOT NULL,
-    noteable_id     BIGINT NOT NULL,
+    noteable_id     UUID NOT NULL,
     note            TEXT NOT NULL DEFAULT '',
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -189,9 +189,9 @@ CREATE INDEX idx_notes_entity ON notes(noteable_type, noteable_id);
 
 -- Locations (polymorphic)
 CREATE TABLE IF NOT EXISTS locations (
-    id              BIGSERIAL PRIMARY KEY,
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     locatable_type VARCHAR(255) NOT NULL,
-    locatable_id   BIGINT NOT NULL,
+    locatable_id   UUID NOT NULL,
     latitude        DOUBLE PRECISION,
     longitude       DOUBLE PRECISION,
     zoom_level      INT NOT NULL DEFAULT 10,

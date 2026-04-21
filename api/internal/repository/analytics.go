@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 )
@@ -19,14 +20,14 @@ func NewAnalyticsRepository(db *pgxpool.Pool) *AnalyticsRepository {
 
 // CategorySpending represents spending totals grouped by category.
 type CategorySpending struct {
-	CategoryID   int64   `json:"category_id"`
+	CategoryID   uuid.UUID `json:"category_id"`
 	CategoryName string  `json:"category_name"`
 	Total        string  `json:"total"`
 	Count        int     `json:"count"`
 }
 
 // SpendingByCategory returns spending totals grouped by category for a period.
-func (r *AnalyticsRepository) SpendingByCategory(ctx context.Context, groupID int64, start, end time.Time) ([]CategorySpending, error) {
+func (r *AnalyticsRepository) SpendingByCategory(ctx context.Context, groupID uuid.UUID, start, end time.Time) ([]CategorySpending, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT COALESCE(c.id, 0), COALESCE(c.name, 'Uncategorized'),
 		        COUNT(DISTINCT tj.id), COALESCE(SUM(ABS(t.amount)), 0)
@@ -64,7 +65,7 @@ type PeriodSpending struct {
 }
 
 // SpendingByPeriod returns spending/income grouped by month.
-func (r *AnalyticsRepository) SpendingByPeriod(ctx context.Context, groupID int64, start, end time.Time) ([]PeriodSpending, error) {
+func (r *AnalyticsRepository) SpendingByPeriod(ctx context.Context, groupID uuid.UUID, start, end time.Time) ([]PeriodSpending, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT TO_CHAR(tj.date, 'YYYY-MM') as period,
 		        COALESCE(SUM(CASE WHEN tt.type = 'deposit' THEN ABS(t.amount) ELSE 0 END), 0),
@@ -104,7 +105,7 @@ type NetWorthSummary struct {
 }
 
 // GetNetWorth returns a financial summary for a group over a period.
-func (r *AnalyticsRepository) GetNetWorth(ctx context.Context, groupID int64, start, end time.Time) (*NetWorthSummary, error) {
+func (r *AnalyticsRepository) GetNetWorth(ctx context.Context, groupID uuid.UUID, start, end time.Time) (*NetWorthSummary, error) {
 	var income, expense decimal.Decimal
 	var count int
 	err := r.db.QueryRow(ctx,

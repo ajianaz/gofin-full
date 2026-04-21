@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/config"
@@ -10,11 +11,11 @@ import (
 
 // UserIdentity represents an authenticated user, extracted from any auth provider.
 type UserIdentity struct {
-	ID          int64
+	ID          uuid.UUID
 	Email       string
 	Blocked     bool
 	DemoUser    bool
-	UserGroupID *int64
+	UserGroupID *uuid.UUID
 }
 
 // AuthProvider is the strategy interface for authentication.

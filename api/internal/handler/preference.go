@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -47,7 +48,7 @@ func (h *PreferenceHandler) Show(c *fiber.Ctx) error {
 
 	p, err := h.repo.Get(c.Context(), user.ID, name)
 	if err != nil {
-		return apperrors.NotFoundResource("preference", 0)
+		return apperrors.NotFoundResource("preference", uuid.Nil)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -97,7 +98,7 @@ func (h *PreferenceHandler) Delete(c *fiber.Ctx) error {
 	}
 
 	if err := h.repo.Delete(c.Context(), user.ID, name); err != nil {
-		return apperrors.NotFoundResource("preference", 0)
+		return apperrors.NotFoundResource("preference", uuid.Nil)
 	}
 
 	return c.Status(204).Send(nil)

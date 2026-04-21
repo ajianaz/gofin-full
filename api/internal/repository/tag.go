@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewTagRepository(db *pgxpool.Pool) *TagRepository {
 	return &TagRepository{db: db}
 }
 
-func (r *TagRepository) Create(ctx context.Context, userID, groupID int64, tag string, date *time.Time) (*domain.Tag, error) {
+func (r *TagRepository) Create(ctx context.Context, userID, groupID uuid.UUID, tag string, date *time.Time) (*domain.Tag, error) {
 	now := time.Now().UTC()
 	var t domain.Tag
 	err := r.db.QueryRow(ctx,
@@ -32,7 +33,7 @@ func (r *TagRepository) Create(ctx context.Context, userID, groupID int64, tag s
 	return &t, nil
 }
 
-func (r *TagRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.Tag, error) {
+func (r *TagRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.Tag, error) {
 	var t domain.Tag
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -48,7 +49,7 @@ func (r *TagRepository) FindByID(ctx context.Context, id, groupID int64) (*domai
 	return &t, nil
 }
 
-func (r *TagRepository) List(ctx context.Context, groupID int64) ([]domain.Tag, error) {
+func (r *TagRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.Tag, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, tag, date, created_at, updated_at
 		 FROM tags WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY tag`, groupID)
@@ -68,7 +69,7 @@ func (r *TagRepository) List(ctx context.Context, groupID int64) ([]domain.Tag, 
 	return tags, rows.Err()
 }
 
-func (r *TagRepository) Update(ctx context.Context, id, groupID int64, tag string, date *time.Time) error {
+func (r *TagRepository) Update(ctx context.Context, id, groupID uuid.UUID, tag string, date *time.Time) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE tags SET tag = $1, date = $2, updated_at = $3
 		 WHERE id = $4 AND user_group_id = $5 AND deleted_at IS NULL`,
@@ -76,7 +77,7 @@ func (r *TagRepository) Update(ctx context.Context, id, groupID int64, tag strin
 	return err
 }
 
-func (r *TagRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *TagRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE tags SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID)
@@ -84,7 +85,7 @@ func (r *TagRepository) Delete(ctx context.Context, id, groupID int64) error {
 }
 
 // FindOrCreate returns an existing tag or creates one.
-func (r *TagRepository) FindOrCreate(ctx context.Context, userID, groupID int64, tag string) (*domain.Tag, error) {
+func (r *TagRepository) FindOrCreate(ctx context.Context, userID, groupID uuid.UUID, tag string) (*domain.Tag, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, tag, date, created_at, updated_at
 		 FROM tags WHERE user_id = $1 AND user_group_id = $2 AND tag = $3 AND deleted_at IS NULL LIMIT 1`,

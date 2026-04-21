@@ -1,6 +1,7 @@
 package middleware_test
 
 import (
+	"github.com/google/uuid"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -211,7 +212,7 @@ func TestAcceptHeaders_NoContentTypeForGET(t *testing.T) {
 func TestErrorHandler_AppError(t *testing.T) {
 	app := setupTestApp()
 	app.Get("/", func(c *fiber.Ctx) error {
-		return apperrors.NotFoundResource("wallet", 42)
+		return apperrors.NotFoundResource("wallet", uuid.Nil)
 	})
 
 	req := httptest.NewRequest("GET", "/", nil)
