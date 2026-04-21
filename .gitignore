@@ -11,6 +11,10 @@ Thumbs.db
 
 # Go
 bin/
+/server
+/migrate
+api/migrate
+api/server
 *.exe
 *.test
 !Dockerfile.*.test

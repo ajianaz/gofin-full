@@ -16,6 +16,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /gofin ./cmd/server
 # Build migrate binary
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /migrate ./cmd/migrate
 
+# Build seed binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /seed ./cmd/seed
+
 # Runtime stage
 FROM alpine:3.21
 
@@ -25,6 +28,7 @@ WORKDIR /app
 
 COPY --from=builder /gofin /app/gofin
 COPY --from=builder /migrate /app/migrate
+COPY --from=builder /seed /app/seed
 COPY --from=builder /app/migrations/postgres /app/migrations/postgres
 COPY --from=builder /app/entrypoint.sh /app/entrypoint.sh
 COPY --from=builder /app/.env.example /app/.env.example

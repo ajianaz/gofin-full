@@ -8,10 +8,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/pkg/pgxuuid"
 )
 
 func main() {
@@ -29,7 +32,20 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, *dsn)
+	poolCfg, err := pgxpool.ParseConfig(*dsn)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FAIL parse config: %v\n", err)
+		os.Exit(1)
+	}
+	poolCfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		conn.TypeMap().RegisterType(&pgtype.Type{
+			Name:  "uuid",
+			OID:   pgtype.UUIDOID,
+			Codec: pgxuuid.Codec{},
+		})
+		return nil
+	}
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "FAIL connect: %v\n", err)
 		os.Exit(1)
@@ -77,7 +93,7 @@ func main() {
 	}
 
 	fmt.Println("=== Admin user created ===")
-	fmt.Printf("  ID:       %d\n", user.ID)
+	fmt.Printf("  ID:       %s\n", user.ID)
 	fmt.Printf("  Email:    %s\n", user.Email)
 	fmt.Printf("  Password: %s\n", *password)
 	fmt.Println()
