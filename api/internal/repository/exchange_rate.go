@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
@@ -19,7 +20,7 @@ func NewExchangeRateRepository(db *pgxpool.Pool) *ExchangeRateRepository {
 	return &ExchangeRateRepository{db: db}
 }
 
-func (r *ExchangeRateRepository) Create(ctx context.Context, userID, groupID int64, from, to string, rate decimal.Decimal, date time.Time) (*domain.ExchangeRate, error) {
+func (r *ExchangeRateRepository) Create(ctx context.Context, userID, groupID uuid.UUID, from, to string, rate decimal.Decimal, date time.Time) (*domain.ExchangeRate, error) {
 	now := time.Now().UTC()
 	var er domain.ExchangeRate
 	err := r.db.QueryRow(ctx,
@@ -34,7 +35,7 @@ func (r *ExchangeRateRepository) Create(ctx context.Context, userID, groupID int
 	return &er, nil
 }
 
-func (r *ExchangeRateRepository) List(ctx context.Context, groupID int64) ([]domain.ExchangeRate, error) {
+func (r *ExchangeRateRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.ExchangeRate, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, from_currency_id, to_currency_id, rate, date, created_at, updated_at
 		 FROM exchange_rates WHERE user_group_id = $1 ORDER BY date DESC`, groupID)
@@ -54,7 +55,7 @@ func (r *ExchangeRateRepository) List(ctx context.Context, groupID int64) ([]dom
 	return rates, rows.Err()
 }
 
-func (r *ExchangeRateRepository) FindRate(ctx context.Context, groupID int64, from, to string, date time.Time) (decimal.Decimal, error) {
+func (r *ExchangeRateRepository) FindRate(ctx context.Context, groupID uuid.UUID, from, to string, date time.Time) (decimal.Decimal, error) {
 	var rate decimal.Decimal
 	err := r.db.QueryRow(ctx,
 		`SELECT COALESCE(rate, 0) FROM exchange_rates
@@ -68,7 +69,7 @@ func (r *ExchangeRateRepository) FindRate(ctx context.Context, groupID int64, fr
 	return rate, nil
 }
 
-func (r *ExchangeRateRepository) Delete(ctx context.Context, id int64) error {
+func (r *ExchangeRateRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM exchange_rates WHERE id = $1`, id)
 	return err
 }

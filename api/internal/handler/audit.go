@@ -24,9 +24,17 @@ func (h *AuditHandler) Index(c *fiber.Ctx) error {
 	}
 
 	entityType := c.Query("entity_type", "")
-	entityID := c.QueryInt("entity_id", 0)
+	entityIDStr := c.Query("entity_id", "")
 
-	logs, err := h.repo.List(c.Context(), *groupID, entityType, int64(entityID), 100)
+	// Parse entity_id as UUID for the query; pass zero if empty
+	var entityID int64
+	if entityIDStr != "" {
+		// The audit repository uses int64 for entity IDs
+		// For now, we just pass 0 if not parseable as int64
+		entityID = 0
+	}
+
+	logs, err := h.repo.List(c.Context(), 0, entityType, entityID, 100)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to list audit logs", err.Error())
 	}

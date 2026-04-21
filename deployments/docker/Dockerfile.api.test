@@ -1,0 +1,33 @@
+# Dockerfile for running full test suite inside a container.
+# Builds the app and runs both unit + integration tests.
+#
+# IMPORTANT: This file is used via docker-compose.test.yml which sets
+#   dockerfile: Dockerfile.api.test
+#   dockerfileinc: .dockerignore.test
+# to override the default .dockerignore (which excludes tests/).
+
+FROM golang:1.25-alpine AS builder
+
+RUN apk add --no-cache git ca-certificates tzdata
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Build server and migrate binaries (needed for integration setup)
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /gofin ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /migrate ./cmd/migrate
+
+# Runtime stage — copy everything needed for tests
+FROM golang:1.25-alpine
+
+RUN apk add --no-cache git ca-certificates tzdata wget postgresql-client
+
+WORKDIR /app
+
+COPY --from=builder /app/ /app/
+
+EXPOSE 8080

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,7 +19,7 @@ func NewRefreshTokenRepository(db *pgxpool.Pool) *RefreshTokenRepository {
 }
 
 // Store persists a hashed refresh token.
-func (r *RefreshTokenRepository) Store(ctx context.Context, userID int64, tokenHash string, expiresAt time.Time) error {
+func (r *RefreshTokenRepository) Store(ctx context.Context, userID uuid.UUID, tokenHash string, expiresAt time.Time) error {
 	_, err := r.db.Exec(ctx,
 		`INSERT INTO refresh_tokens (user_id, token_hash, expires_at, created_at) VALUES ($1, $2, $3, $4)`,
 		userID, tokenHash, expiresAt, time.Now().UTC(),
@@ -30,13 +31,13 @@ func (r *RefreshTokenRepository) Store(ctx context.Context, userID int64, tokenH
 }
 
 // GetByHash returns the token row matching the hash.
-func (r *RefreshTokenRepository) GetByHash(ctx context.Context, tokenHash string) (userID int64, expiresAt time.Time, err error) {
+func (r *RefreshTokenRepository) GetByHash(ctx context.Context, tokenHash string) (userID uuid.UUID, expiresAt time.Time, err error) {
 	err = r.db.QueryRow(ctx,
 		`SELECT user_id, expires_at FROM refresh_tokens WHERE token_hash = $1`,
 		tokenHash,
 	).Scan(&userID, &expiresAt)
 	if err != nil {
-		return 0, time.Time{}, fmt.Errorf("refresh token not found: %w", err)
+		return uuid.Nil, time.Time{}, fmt.Errorf("refresh token not found: %w", err)
 	}
 	return userID, expiresAt, nil
 }
@@ -48,7 +49,7 @@ func (r *RefreshTokenRepository) RevokeByHash(ctx context.Context, tokenHash str
 }
 
 // RevokeByUserID deletes all refresh tokens for a user.
-func (r *RefreshTokenRepository) RevokeByUserID(ctx context.Context, userID int64) error {
+func (r *RefreshTokenRepository) RevokeByUserID(ctx context.Context, userID uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM refresh_tokens WHERE user_id = $1`, userID)
 	return err
 }
@@ -60,7 +61,7 @@ func (r *RefreshTokenRepository) RevokeExpired(ctx context.Context) error {
 }
 
 // CountByUserID returns the number of active refresh tokens for a user.
-func (r *RefreshTokenRepository) CountByUserID(ctx context.Context, userID int64) (int, error) {
+func (r *RefreshTokenRepository) CountByUserID(ctx context.Context, userID uuid.UUID) (int, error) {
 	var count int
 	err := r.db.QueryRow(ctx,
 		`SELECT COUNT(*) FROM refresh_tokens WHERE user_id = $1 AND expires_at > NOW()`,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
@@ -19,7 +20,7 @@ func NewBillRepository(db *pgxpool.Pool) *BillRepository {
 	return &BillRepository{db: db}
 }
 
-func (r *BillRepository) Create(ctx context.Context, userID, groupID int64, name string, amountMin, amountMax decimal.Decimal, date time.Time, repeatFreq, currencyID string, order int) (*domain.Bill, error) {
+func (r *BillRepository) Create(ctx context.Context, userID, groupID uuid.UUID, name string, amountMin, amountMax decimal.Decimal, date time.Time, repeatFreq, currencyID string, order int) (*domain.Bill, error) {
 	now := time.Now().UTC()
 	var b domain.Bill
 	err := r.db.QueryRow(ctx,
@@ -35,7 +36,7 @@ func (r *BillRepository) Create(ctx context.Context, userID, groupID int64, name
 	return &b, nil
 }
 
-func (r *BillRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.Bill, error) {
+func (r *BillRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.Bill, error) {
 	var b domain.Bill
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -52,7 +53,7 @@ func (r *BillRepository) FindByID(ctx context.Context, id, groupID int64) (*doma
 	return &b, nil
 }
 
-func (r *BillRepository) List(ctx context.Context, groupID int64) ([]domain.Bill, error) {
+func (r *BillRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.Bill, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, name, amount_min, amount_max, date, end_date, repeat_freq, skip, active, notes, currency_id, created_at, updated_at
 		 FROM bills WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", name`, groupID)
@@ -73,7 +74,7 @@ func (r *BillRepository) List(ctx context.Context, groupID int64) ([]domain.Bill
 	return bills, rows.Err()
 }
 
-func (r *BillRepository) Update(ctx context.Context, id, groupID int64, name string, active *bool, notes *string) error {
+func (r *BillRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, active *bool, notes *string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE bills SET name = COALESCE(NULLIF($1, ''), name), active = COALESCE($2, active), notes = $3, updated_at = $4
 		 WHERE id = $5 AND user_group_id = $6 AND deleted_at IS NULL`,
@@ -81,7 +82,7 @@ func (r *BillRepository) Update(ctx context.Context, id, groupID int64, name str
 	return err
 }
 
-func (r *BillRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *BillRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE bills SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID)

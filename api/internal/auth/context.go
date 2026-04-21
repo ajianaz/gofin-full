@@ -2,6 +2,7 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // contextKey is an unexported type for Fiber context keys.
@@ -50,17 +51,17 @@ func GetClaims(c *fiber.Ctx) *Claims {
 }
 
 // SetActiveGroupID stores the active group ID in the Fiber context.
-func SetActiveGroupID(c *fiber.Ctx, groupID int64) {
+func SetActiveGroupID(c *fiber.Ctx, groupID uuid.UUID) {
 	c.Locals(string(groupIDKey), groupID)
 }
 
 // GetActiveGroupID retrieves the active group ID from the Fiber context.
-func GetActiveGroupID(c *fiber.Ctx) *int64 {
+func GetActiveGroupID(c *fiber.Ctx) *uuid.UUID {
 	val := c.Locals(string(groupIDKey))
 	if val == nil {
 		return nil
 	}
-	id, ok := val.(int64)
+	id, ok := val.(uuid.UUID)
 	if !ok {
 		return nil
 	}

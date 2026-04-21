@@ -1,0 +1,17 @@
+FROM oven/bun:1-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
+
+COPY . .
+
+# Install Playwright browsers
+RUN bunx playwright install --with-deps chromium
+
+# Install test dependencies
+RUN bun add -d @playwright/test
+
+# Test command (expects running dev stack with API + DB)
+CMD ["bunx", "playwright", "test"]

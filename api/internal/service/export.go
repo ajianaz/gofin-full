@@ -7,6 +7,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -36,7 +37,7 @@ type CSVRow struct {
 }
 
 // ExportTransactionsCSV exports transactions as CSV compatible with Firefly III import format.
-func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID int64, w io.Writer) error {
+func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.UUID, w io.Writer) error {
 	groups, _, err := s.txRepo.ListGroups(ctx, groupID, repository.TransactionFilter{})
 	if err != nil {
 		return fmt.Errorf("failed to list transactions: %w", err)
@@ -82,7 +83,7 @@ func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID int64
 }
 
 // ExportTransactionsOFX exports transactions in OFX (Open Financial Exchange) format.
-func (s *ExportService) ExportTransactionsOFX(ctx context.Context, groupID int64, w io.Writer) error {
+func (s *ExportService) ExportTransactionsOFX(ctx context.Context, groupID uuid.UUID, w io.Writer) error {
 	groups, _, err := s.txRepo.ListGroups(ctx, groupID, repository.TransactionFilter{})
 	if err != nil {
 		return fmt.Errorf("failed to list transactions: %w", err)
@@ -120,7 +121,7 @@ type ReconciliationResult struct {
 }
 
 // Reconcile matches imported transactions against existing records by date, amount, and description.
-func (s *ExportService) Reconcile(ctx context.Context, groupID int64, imports []CSVRow) (*ReconciliationResult, error) {
+func (s *ExportService) Reconcile(ctx context.Context, groupID uuid.UUID, imports []CSVRow) (*ReconciliationResult, error) {
 	existing, _, err := s.txRepo.ListGroups(ctx, groupID, repository.TransactionFilter{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list existing transactions: %w", err)

@@ -1,5 +1,7 @@
 package request
 
+import "github.com/google/uuid"
+
 // LoginRequest for email + password authentication.
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email"`
@@ -53,7 +55,7 @@ type UpdateUserGroupRequest struct {
 
 // SwitchGroupRequest for group switching.
 type SwitchGroupRequest struct {
-	UserGroupID int64 `json:"user_group_id" validate:"required"`
+	UserGroupID uuid.UUID `json:"user_group_id" validate:"required"`
 }
 
 // CreateWalletRequest for wallet creation.

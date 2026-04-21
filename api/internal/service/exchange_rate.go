@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -19,7 +20,7 @@ func NewExchangeRateService(repo *repository.ExchangeRateRepository) *ExchangeRa
 }
 
 // GetRate implements the rate lookup chain: DB → reverse → cross-rate via EUR.
-func (s *ExchangeRateService) GetRate(ctx context.Context, groupID int64, from, to string, date time.Time) (decimal.Decimal, error) {
+func (s *ExchangeRateService) GetRate(ctx context.Context, groupID uuid.UUID, from, to string, date time.Time) (decimal.Decimal, error) {
 	if from == to {
 		return decimal.NewFromInt(1), nil
 	}
@@ -53,7 +54,7 @@ func (s *ExchangeRateService) GetRate(ctx context.Context, groupID int64, from, 
 }
 
 // Convert converts an amount from one currency to another.
-func (s *ExchangeRateService) Convert(ctx context.Context, groupID int64, amount decimal.Decimal, from, to string, date time.Time) (decimal.Decimal, error) {
+func (s *ExchangeRateService) Convert(ctx context.Context, groupID uuid.UUID, amount decimal.Decimal, from, to string, date time.Time) (decimal.Decimal, error) {
 	if from == to {
 		return amount, nil
 	}

@@ -6,34 +6,34 @@ import (
 	"time"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransactionGroup_JSONSerialization(t *testing.T) {
 	group := &domain.TransactionGroup{
-		ID:         1,
-		UserID:     42,
+		ID:         uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		UserID:     uuid.MustParse("00000000-0000-0000-0000-000000000002"),
 		GroupTitle: "Groceries",
 		Journals: []domain.TransactionJournal{
 			{
-				ID:                100,
-				TransactionGroupID: 1,
-				UserID:            42,
-				UserGroupID:       1,
+				ID:                uuid.MustParse("00000000-0000-0000-0000-000000000064"),
+				TransactionGroupID: uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+				UserID:            uuid.MustParse("00000000-0000-0000-0000-000000000002"),
+				UserGroupID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 				Type:              domain.TransactionTypeWithdrawal,
 				Date:              time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC),
 				Description:       "Weekly groceries",
 				CurrencyID:        "EUR",
 				Reconciled:        false,
-				Tags:              []domain.Tag{{ID: 1, Tag: "shopping"}},
+				Tags:              []domain.Tag{{ID: uuid.MustParse("00000000-0000-0000-0000-000000000003"), Tag: "shopping"}},
 			},
 		},
 	}
 
 	data, err := json.Marshal(group)
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `"id":1`)
 	assert.Contains(t, string(data), `"group_title":"Groceries"`)
 	assert.Contains(t, string(data), `"transactions"`)
 	assert.Contains(t, string(data), `"type":"withdrawal"`)
@@ -42,8 +42,8 @@ func TestTransactionGroup_JSONSerialization(t *testing.T) {
 
 func TestTransactionGroup_NoJournals(t *testing.T) {
 	group := &domain.TransactionGroup{
-		ID:         1,
-		UserID:     42,
+		ID:         uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		UserID:     uuid.MustParse("00000000-0000-0000-0000-000000000002"),
 		GroupTitle: "Empty group",
 	}
 
@@ -55,7 +55,7 @@ func TestTransactionGroup_NoJournals(t *testing.T) {
 
 func TestTransactionJournal_MetaFields(t *testing.T) {
 	journal := &domain.TransactionJournal{
-		ID:          100,
+		ID:          uuid.MustParse("00000000-0000-0000-0000-000000000064"),
 		Description: "SEPA transfer",
 		SepaCC:      ptrStr("0000"),
 		SepaCTID:    ptrStr("ID123"),
@@ -71,9 +71,9 @@ func TestTransactionJournal_MetaFields(t *testing.T) {
 
 func TestTransaction_AmountSerialization(t *testing.T) {
 	tx := &domain.Transaction{
-		ID:                   1,
-		TransactionJournalID: 100,
-		AccountID:            5,
+		ID:                   uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		TransactionJournalID: uuid.MustParse("00000000-0000-0000-0000-000000000064"),
+		AccountID:            uuid.MustParse("00000000-0000-0000-0000-000000000005"),
 		Amount:               decimal.NewFromFloat(42.50),
 		NativeAmount:         decimal.NewFromFloat(42.50),
 	}

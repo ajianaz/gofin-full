@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 )
 
@@ -29,14 +30,14 @@ func (m *Middleware) Stream() fiber.Handler {
 		c.Set("X-Accel-Buffering", "no")
 
 		// Get user from auth context
-		userID, err := c.ParamsInt("user_id")
+		userID, err := uuid.Parse(c.Params("user_id"))
 		if err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "invalid user id"})
+			return c.Status(400).JSON(fiber.Map{"error": "invalid user id format"})
 		}
 
 		client := &Client{
-			ID:     time.Now().UnixNano(),
-			UserID: int64(userID),
+			ID:     uuid.New(),
+			UserID: userID,
 			Ch:     make(chan Event, 16),
 			Done:   make(chan struct{}),
 		}

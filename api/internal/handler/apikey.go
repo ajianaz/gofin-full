@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -105,14 +106,14 @@ func (h *APIKeyHandler) Delete(c *fiber.Ctx) error {
 		return fiber.ErrUnauthorized
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(422).JSON(fiber.Map{
 			"message": "Invalid key ID.",
 		})
 	}
 
-	if err := h.keyRepo.Delete(c.Context(), int64(id), user.ID); err != nil {
+	if err := h.keyRepo.Delete(c.Context(), id, user.ID); err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": "Failed to delete API key.",
 		})

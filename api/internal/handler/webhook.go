@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -50,14 +51,14 @@ func (h *WebhookHandler) Show(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	w, err := h.repo.FindByID(c.Context(), int64(id), *groupID)
+	w, err := h.repo.FindByID(c.Context(), id, *groupID)
 	if err != nil {
-		return apperrors.NotFoundResource("webhook", int64(id))
+		return apperrors.NotFoundResource("webhook", id)
 	}
 
 	triggers, _ := h.repo.ListTriggers(c.Context(), w.ID)
@@ -124,9 +125,9 @@ func (h *WebhookHandler) Update(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
 	var req struct {
@@ -139,12 +140,12 @@ func (h *WebhookHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), int64(id), *groupID, req.Title, req.URL, req.Active); err != nil {
-		return apperrors.NotFoundResource("webhook", int64(id))
+	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.URL, req.Active); err != nil {
+		return apperrors.NotFoundResource("webhook", id)
 	}
 
 	if req.Triggers != nil {
-		_ = h.repo.SetTriggers(c.Context(), int64(id), req.Triggers)
+		_ = h.repo.SetTriggers(c.Context(), id, req.Triggers)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -160,13 +161,13 @@ func (h *WebhookHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), int64(id), *groupID); err != nil {
-		return apperrors.NotFoundResource("webhook", int64(id))
+	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("webhook", id)
 	}
 
 	return c.Status(204).Send(nil)
@@ -175,12 +176,12 @@ func (h *WebhookHandler) Delete(c *fiber.Ctx) error {
 func (h *WebhookHandler) Messages(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
-	id, err := c.ParamsInt("id")
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id"}})
+		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	messages, err := h.repo.ListMessages(c.Context(), int64(id))
+	messages, err := h.repo.ListMessages(c.Context(), id)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to list webhook messages", err.Error())
 	}

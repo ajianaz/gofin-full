@@ -1,6 +1,7 @@
 package errors_test
 
 import (
+	"github.com/google/uuid"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -63,11 +64,11 @@ func TestPredefinedErrors(t *testing.T) {
 }
 
 func TestNotFoundResource(t *testing.T) {
-	err := apperrors.NotFoundResource("wallet", 42)
+	err := apperrors.NotFoundResource("wallet", uuid.Nil)
 	assert.Equal(t, http.StatusNotFound, err.StatusCode)
 	assert.Equal(t, "Resource not found", err.Title)
 	assert.Contains(t, err.Detail, "wallet")
-	assert.Contains(t, err.Detail, "42")
+	assert.Contains(t, err.Detail, "00000000-0000-0000-0000-000000000000")
 	assert.Equal(t, "NotFoundHttpException", err.Exception)
 }
 

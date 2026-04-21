@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -24,39 +25,39 @@ func NewTransactionService(txRepo *repository.TransactionRepository, walletRepo 
 
 // CreateTransactionInput is the API input for creating a transaction.
 type CreateTransactionInput struct {
-	Type          string     `json:"type"`
-	Description   string     `json:"description"`
-	Date          time.Time  `json:"date"`
-	Amount        string     `json:"amount"` // decimal string, positive
-	SourceID      int64      `json:"source_id"`
-	DestinationID int64      `json:"destination_id"`
-	CurrencyID    string     `json:"currency_id"`
-	CategoryIDs   []int64    `json:"category_ids,omitempty"`
-	TagIDs        []int64    `json:"tag_ids,omitempty"`
-	Notes         *string    `json:"notes,omitempty"`
-	BudgetID      *int64     `json:"budget_id,omitempty"`
-	PiggyBankID   *int64     `json:"piggy_bank_id,omitempty"`
+	Type          string      `json:"type"`
+	Description   string      `json:"description"`
+	Date          time.Time   `json:"date"`
+	Amount        string      `json:"amount"` // decimal string, positive
+	SourceID      uuid.UUID   `json:"source_id"`
+	DestinationID uuid.UUID   `json:"destination_id"`
+	CurrencyID    string      `json:"currency_id"`
+	CategoryIDs   []uuid.UUID `json:"category_ids,omitempty"`
+	TagIDs        []uuid.UUID `json:"tag_ids,omitempty"`
+	Notes         *string     `json:"notes,omitempty"`
+	BudgetID      *uuid.UUID  `json:"budget_id,omitempty"`
+	PiggyBankID   *uuid.UUID  `json:"piggy_bank_id,omitempty"`
 }
 
 // SplitJournalInput represents one journal in a split transaction.
 type SplitJournalInput struct {
-	Description   string  `json:"description"`
-	Amount        string  `json:"amount"` // decimal string, positive
-	SourceID      int64   `json:"source_id"`
-	DestinationID int64   `json:"destination_id"`
-	CategoryIDs   []int64 `json:"category_ids,omitempty"`
-	TagIDs        []int64 `json:"tag_ids,omitempty"`
+	Description   string      `json:"description"`
+	Amount        string      `json:"amount"` // decimal string, positive
+	SourceID      uuid.UUID   `json:"source_id"`
+	DestinationID uuid.UUID   `json:"destination_id"`
+	CategoryIDs   []uuid.UUID `json:"category_ids,omitempty"`
+	TagIDs        []uuid.UUID `json:"tag_ids,omitempty"`
 }
 
 // CreateResult is the output of a transaction creation.
 type CreateResult struct {
-	GroupID   int64 `json:"group_id"`
-	JournalID int64 `json:"journal_id"`
+	GroupID   uuid.UUID `json:"group_id"`
+	JournalID uuid.UUID `json:"journal_id"`
 }
 
 // CreateTransaction creates a triple-layer transaction atomically.
 // It enforces double-entry: source gets debited, destination gets credited.
-func (s *TransactionService) CreateTransaction(ctx context.Context, userID, groupID int64, input CreateTransactionInput) (*CreateResult, error) {
+func (s *TransactionService) CreateTransaction(ctx context.Context, userID, groupID uuid.UUID, input CreateTransactionInput) (*CreateResult, error) {
 	amount, err := decimal.NewFromString(input.Amount)
 	if err != nil {
 		return nil, fmt.Errorf("invalid amount: %w", err)
@@ -159,7 +160,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, userID, grou
 // CreateSplitTransaction creates a single group with multiple journals.
 // All journals share the same type but have different amounts/descriptions.
 func (s *TransactionService) CreateSplitTransaction(
-	ctx context.Context, userID, groupID int64,
+	ctx context.Context, userID, groupID uuid.UUID,
 	txType string, date time.Time, groupTitle string,
 	journals []SplitJournalInput,
 ) (*CreateResult, error) {
@@ -191,7 +192,7 @@ func (s *TransactionService) CreateSplitTransaction(
 		return nil, err
 	}
 
-	var firstJournalID int64
+	var firstJournalID uuid.UUID
 
 	for i, jInput := range journals {
 		amount, _ := decimal.NewFromString(jInput.Amount)
@@ -278,7 +279,7 @@ func (s *TransactionService) calculateAmounts(txType string, amount decimal.Deci
 }
 
 // DeleteTransaction soft-deletes a transaction group and reverses wallet balances.
-func (s *TransactionService) DeleteTransaction(ctx context.Context, groupID, userID, groupIDScope int64) error {
+func (s *TransactionService) DeleteTransaction(ctx context.Context, groupID, userID, groupIDScope uuid.UUID) error {
 	// Load the full transaction to reverse balances
 	group, err := s.txRepo.FindGroupByID(ctx, groupID, groupIDScope)
 	if err != nil {

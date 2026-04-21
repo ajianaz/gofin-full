@@ -1,9 +1,13 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Currency struct {
-	ID             int64     `json:"id" db:"id"`
+	ID             uuid.UUID `json:"id" db:"id"`
 	Code           string    `json:"code" db:"code"`
 	Name           string    `json:"name" db:"name"`
 	Symbol         string    `json:"symbol" db:"symbol"`
@@ -15,7 +19,7 @@ type Currency struct {
 }
 
 type AccountType struct {
-	ID        int64     `json:"id" db:"id"`
+	ID        uuid.UUID `json:"id" db:"id"`
 	Type      string    `json:"type" db:"type"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`

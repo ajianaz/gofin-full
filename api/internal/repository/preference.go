@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewPreferenceRepository(db *pgxpool.Pool) *PreferenceRepository {
 	return &PreferenceRepository{db: db}
 }
 
-func (r *PreferenceRepository) Set(ctx context.Context, userID int64, name, data string) (*domain.Preference, error) {
+func (r *PreferenceRepository) Set(ctx context.Context, userID uuid.UUID, name, data string) (*domain.Preference, error) {
 	now := time.Now().UTC()
 	var p domain.Preference
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *PreferenceRepository) Set(ctx context.Context, userID int64, name, data
 	return &p, nil
 }
 
-func (r *PreferenceRepository) Get(ctx context.Context, userID int64, name string) (*domain.Preference, error) {
+func (r *PreferenceRepository) Get(ctx context.Context, userID uuid.UUID, name string) (*domain.Preference, error) {
 	var p domain.Preference
 	err := r.db.QueryRow(ctx,
 		`SELECT id, user_id, name, data, created_at, updated_at FROM preferences WHERE user_id = $1 AND name = $2`,
@@ -45,7 +46,7 @@ func (r *PreferenceRepository) Get(ctx context.Context, userID int64, name strin
 	return &p, nil
 }
 
-func (r *PreferenceRepository) List(ctx context.Context, userID int64) ([]domain.Preference, error) {
+func (r *PreferenceRepository) List(ctx context.Context, userID uuid.UUID) ([]domain.Preference, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, name, data, created_at, updated_at FROM preferences WHERE user_id = $1 ORDER BY name`, userID)
 	if err != nil {
@@ -64,7 +65,7 @@ func (r *PreferenceRepository) List(ctx context.Context, userID int64) ([]domain
 	return prefs, rows.Err()
 }
 
-func (r *PreferenceRepository) Delete(ctx context.Context, userID int64, name string) error {
+func (r *PreferenceRepository) Delete(ctx context.Context, userID uuid.UUID, name string) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM preferences WHERE user_id = $1 AND name = $2`, userID, name)
 	return err
 }

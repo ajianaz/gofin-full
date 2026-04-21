@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
@@ -19,11 +20,11 @@ func NewPiggyBankRepository(db *pgxpool.Pool) *PiggyBankRepository {
 	return &PiggyBankRepository{db: db}
 }
 
-func (r *PiggyBankRepository) Create(ctx context.Context, pb *domain.PiggyBank, groupID int64) (*domain.PiggyBank, error) {
+func (r *PiggyBankRepository) Create(ctx context.Context, pb *domain.PiggyBank, groupID uuid.UUID) (*domain.PiggyBank, error) {
 	now := time.Now().UTC()
 
 	// Verify the wallet belongs to the group
-	var walletGroupID int64
+	var walletGroupID uuid.UUID
 	err := r.db.QueryRow(ctx,
 		`SELECT user_group_id FROM wallets WHERE id = $1 AND deleted_at IS NULL`, pb.AccountID,
 	).Scan(&walletGroupID)
@@ -34,7 +35,7 @@ func (r *PiggyBankRepository) Create(ctx context.Context, pb *domain.PiggyBank, 
 		return nil, fmt.Errorf("wallet does not belong to this group")
 	}
 
-	var id int64
+	var id uuid.UUID
 	err = r.db.QueryRow(ctx,
 		`INSERT INTO piggy_banks (account_id, name, target_amount, start_date, target_date, "order", notes, created_at, updated_at)
 		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
@@ -50,7 +51,7 @@ func (r *PiggyBankRepository) Create(ctx context.Context, pb *domain.PiggyBank, 
 	return pb, nil
 }
 
-func (r *PiggyBankRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.PiggyBank, error) {
+func (r *PiggyBankRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.PiggyBank, error) {
 	var pb domain.PiggyBank
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -79,7 +80,7 @@ func (r *PiggyBankRepository) FindByID(ctx context.Context, id, groupID int64) (
 	return &pb, nil
 }
 
-func (r *PiggyBankRepository) List(ctx context.Context, walletID, groupID int64) ([]domain.PiggyBank, error) {
+func (r *PiggyBankRepository) List(ctx context.Context, walletID, groupID uuid.UUID) ([]domain.PiggyBank, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT pb.id, pb.account_id, pb.name, pb.target_amount, pb.start_date, pb.target_date, pb."order", pb.notes, pb.created_at, pb.updated_at
 		 FROM piggy_banks pb
@@ -102,7 +103,7 @@ func (r *PiggyBankRepository) List(ctx context.Context, walletID, groupID int64)
 	return piggyBanks, rows.Err()
 }
 
-func (r *PiggyBankRepository) Update(ctx context.Context, id, groupID int64, name string, targetAmount *decimal.Decimal, startDate, targetDate *time.Time, notes *string) error {
+func (r *PiggyBankRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, targetAmount *decimal.Decimal, startDate, targetDate *time.Time, notes *string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE piggy_banks SET
 		  name = COALESCE(NULLIF($1, ''), name),
@@ -117,7 +118,7 @@ func (r *PiggyBankRepository) Update(ctx context.Context, id, groupID int64, nam
 	return err
 }
 
-func (r *PiggyBankRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *PiggyBankRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE piggy_banks SET deleted_at = $1 WHERE id = $2 AND deleted_at IS NULL
 		 AND EXISTS (SELECT 1 FROM wallets w WHERE w.id = piggy_banks.account_id AND w.user_group_id = $3)`,
@@ -126,11 +127,11 @@ func (r *PiggyBankRepository) Delete(ctx context.Context, id, groupID int64) err
 }
 
 // AddMoney creates a piggy bank event and updates the associated wallet balance.
-func (r *PiggyBankRepository) AddMoney(ctx context.Context, piggyBankID, groupID int64, amount decimal.Decimal) (*domain.PiggyBankEvent, error) {
+func (r *PiggyBankRepository) AddMoney(ctx context.Context, piggyBankID, groupID uuid.UUID, amount decimal.Decimal) (*domain.PiggyBankEvent, error) {
 	now := time.Now().UTC()
 
 	// Verify piggy bank belongs to group
-	var accountID int64
+	var accountID uuid.UUID
 	err := r.db.QueryRow(ctx,
 		`SELECT pb.account_id FROM piggy_banks pb
 		 JOIN wallets w ON w.id = pb.account_id
@@ -162,11 +163,11 @@ func (r *PiggyBankRepository) AddMoney(ctx context.Context, piggyBankID, groupID
 }
 
 // RemoveMoney creates a negative piggy bank event and returns money to the wallet.
-func (r *PiggyBankRepository) RemoveMoney(ctx context.Context, piggyBankID, groupID int64, amount decimal.Decimal) (*domain.PiggyBankEvent, error) {
+func (r *PiggyBankRepository) RemoveMoney(ctx context.Context, piggyBankID, groupID uuid.UUID, amount decimal.Decimal) (*domain.PiggyBankEvent, error) {
 	return r.AddMoney(ctx, piggyBankID, groupID, amount.Neg())
 }
 
-func (r *PiggyBankRepository) getCurrentAmount(ctx context.Context, piggyBankID int64) (decimal.Decimal, error) {
+func (r *PiggyBankRepository) getCurrentAmount(ctx context.Context, piggyBankID uuid.UUID) (decimal.Decimal, error) {
 	var total decimal.Decimal
 	err := r.db.QueryRow(ctx,
 		`SELECT COALESCE(SUM(amount), 0) FROM piggy_bank_events WHERE piggy_bank_id = $1`, piggyBankID).Scan(&total)

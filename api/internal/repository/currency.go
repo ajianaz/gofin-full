@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -54,7 +55,7 @@ func (r *CurrencyRepository) FindByCode(ctx context.Context, code string) (*doma
 	return &c, nil
 }
 
-func (r *CurrencyRepository) FindByID(ctx context.Context, id int64) (*domain.Currency, error) {
+func (r *CurrencyRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Currency, error) {
 	var c domain.Currency
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,

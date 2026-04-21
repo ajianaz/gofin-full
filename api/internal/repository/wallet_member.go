@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewWalletMemberRepository(db *pgxpool.Pool) *WalletMemberRepository {
 	return &WalletMemberRepository{db: db}
 }
 
-func (r *WalletMemberRepository) AddMember(ctx context.Context, walletID, userID int64, role string) (*domain.WalletMember, error) {
+func (r *WalletMemberRepository) AddMember(ctx context.Context, walletID, userID uuid.UUID, role string) (*domain.WalletMember, error) {
 	now := time.Now().UTC()
 	var m domain.WalletMember
 	err := r.db.QueryRow(ctx,
@@ -34,7 +35,7 @@ func (r *WalletMemberRepository) AddMember(ctx context.Context, walletID, userID
 	return &m, nil
 }
 
-func (r *WalletMemberRepository) ListByWallet(ctx context.Context, walletID int64) ([]domain.WalletMember, error) {
+func (r *WalletMemberRepository) ListByWallet(ctx context.Context, walletID uuid.UUID) ([]domain.WalletMember, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, wallet_id, user_id, role, created_at, updated_at
 		 FROM wallet_members WHERE wallet_id = $1 ORDER BY created_at`, walletID)
@@ -54,7 +55,7 @@ func (r *WalletMemberRepository) ListByWallet(ctx context.Context, walletID int6
 	return members, rows.Err()
 }
 
-func (r *WalletMemberRepository) FindByWalletAndUser(ctx context.Context, walletID, userID int64) (*domain.WalletMember, error) {
+func (r *WalletMemberRepository) FindByWalletAndUser(ctx context.Context, walletID, userID uuid.UUID) (*domain.WalletMember, error) {
 	var m domain.WalletMember
 	err := r.db.QueryRow(ctx,
 		`SELECT id, wallet_id, user_id, role, created_at, updated_at
@@ -67,14 +68,14 @@ func (r *WalletMemberRepository) FindByWalletAndUser(ctx context.Context, wallet
 	return &m, nil
 }
 
-func (r *WalletMemberRepository) UpdateRole(ctx context.Context, id, walletID int64, role string) error {
+func (r *WalletMemberRepository) UpdateRole(ctx context.Context, id, walletID uuid.UUID, role string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE wallet_members SET role = $1, updated_at = $2 WHERE id = $3 AND wallet_id = $4`,
 		role, time.Now().UTC(), id, walletID)
 	return err
 }
 
-func (r *WalletMemberRepository) RemoveMember(ctx context.Context, walletID, userID int64) error {
+func (r *WalletMemberRepository) RemoveMember(ctx context.Context, walletID, userID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`DELETE FROM wallet_members WHERE wallet_id = $1 AND user_id = $2`,
 		walletID, userID)
@@ -82,7 +83,7 @@ func (r *WalletMemberRepository) RemoveMember(ctx context.Context, walletID, use
 }
 
 // GetWalletRole returns the user's role for a wallet. Returns empty string if not a member.
-func (r *WalletMemberRepository) GetWalletRole(ctx context.Context, walletID, userID int64) (string, error) {
+func (r *WalletMemberRepository) GetWalletRole(ctx context.Context, walletID, userID uuid.UUID) (string, error) {
 	var role string
 	err := r.db.QueryRow(ctx,
 		`SELECT role FROM wallet_members WHERE wallet_id = $1 AND user_id = $2`,
@@ -95,7 +96,7 @@ func (r *WalletMemberRepository) GetWalletRole(ctx context.Context, walletID, us
 }
 
 // IsWalletOwner checks if the user is the wallet owner (wallet.user_id matches).
-func (r *WalletMemberRepository) IsWalletOwner(ctx context.Context, walletID, userID int64) (bool, error) {
+func (r *WalletMemberRepository) IsWalletOwner(ctx context.Context, walletID, userID uuid.UUID) (bool, error) {
 	var exists bool
 	err := r.db.QueryRow(ctx,
 		`SELECT EXISTS(SELECT 1 FROM wallets WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL)`,

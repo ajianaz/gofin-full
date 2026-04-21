@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewRuleRepository(db *pgxpool.Pool) *RuleRepository {
 	return &RuleRepository{db: db}
 }
 
-func (r *RuleRepository) Create(ctx context.Context, userID, groupID int64, title string, priority int, ruleGroupID *int64) (*domain.Rule, error) {
+func (r *RuleRepository) Create(ctx context.Context, userID, groupID uuid.UUID, title string, priority int, ruleGroupID *uuid.UUID) (*domain.Rule, error) {
 	now := time.Now().UTC()
 	var rule domain.Rule
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *RuleRepository) Create(ctx context.Context, userID, groupID int64, titl
 	return &rule, nil
 }
 
-func (r *RuleRepository) FindByID(ctx context.Context, id, groupID int64) (*domain.Rule, error) {
+func (r *RuleRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.Rule, error) {
 	var rule domain.Rule
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
@@ -54,7 +55,7 @@ func (r *RuleRepository) FindByID(ctx context.Context, id, groupID int64) (*doma
 	return &rule, nil
 }
 
-func (r *RuleRepository) List(ctx context.Context, groupID int64) ([]domain.Rule, error) {
+func (r *RuleRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.Rule, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, rule_group_id, title, priority, active, strict, stop_processing, created_at, updated_at
 		 FROM rules WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY priority, title`, groupID)
@@ -74,7 +75,7 @@ func (r *RuleRepository) List(ctx context.Context, groupID int64) ([]domain.Rule
 	return rules, rows.Err()
 }
 
-func (r *RuleRepository) Update(ctx context.Context, id, groupID int64, title string, active *bool, strict *bool, stopProcessing *bool) error {
+func (r *RuleRepository) Update(ctx context.Context, id, groupID uuid.UUID, title string, active *bool, strict *bool, stopProcessing *bool) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE rules SET
 		  title = COALESCE(NULLIF($1, ''), title),
@@ -87,14 +88,14 @@ func (r *RuleRepository) Update(ctx context.Context, id, groupID int64, title st
 	return err
 }
 
-func (r *RuleRepository) Delete(ctx context.Context, id, groupID int64) error {
+func (r *RuleRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE rules SET deleted_at = $1 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		time.Now().UTC(), id, groupID)
 	return err
 }
 
-func (r *RuleRepository) SetTriggers(ctx context.Context, ruleID int64, triggers []domain.RuleTrigger) error {
+func (r *RuleRepository) SetTriggers(ctx context.Context, ruleID uuid.UUID, triggers []domain.RuleTrigger) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return err
@@ -117,7 +118,7 @@ func (r *RuleRepository) SetTriggers(ctx context.Context, ruleID int64, triggers
 	return tx.Commit(ctx)
 }
 
-func (r *RuleRepository) SetActions(ctx context.Context, ruleID int64, actions []domain.RuleAction) error {
+func (r *RuleRepository) SetActions(ctx context.Context, ruleID uuid.UUID, actions []domain.RuleAction) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return err
@@ -140,7 +141,7 @@ func (r *RuleRepository) SetActions(ctx context.Context, ruleID int64, actions [
 	return tx.Commit(ctx)
 }
 
-func (r *RuleRepository) findTriggers(ctx context.Context, ruleID int64) ([]domain.RuleTrigger, error) {
+func (r *RuleRepository) findTriggers(ctx context.Context, ruleID uuid.UUID) ([]domain.RuleTrigger, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, rule_id, trigger_type, trigger_value, stop_processing, created_at, updated_at
 		 FROM rule_triggers WHERE rule_id = $1`, ruleID)
@@ -160,7 +161,7 @@ func (r *RuleRepository) findTriggers(ctx context.Context, ruleID int64) ([]doma
 	return triggers, rows.Err()
 }
 
-func (r *RuleRepository) findActions(ctx context.Context, ruleID int64) ([]domain.RuleAction, error) {
+func (r *RuleRepository) findActions(ctx context.Context, ruleID uuid.UUID) ([]domain.RuleAction, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, rule_id, action_type, action_value, "order", stop_processing, created_at, updated_at
 		 FROM rule_actions WHERE rule_id = $1 ORDER BY "order"`, ruleID)

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
@@ -14,8 +15,8 @@ import (
 // KeyLookup is implemented by the API key repository.
 // This interface breaks the import cycle between auth and repository.
 type KeyLookup interface {
-	FindByHash(ctx context.Context, keyHash string) (userID int64, keyID int64, err error)
-	UpdateLastUsed(ctx context.Context, keyID int64) error
+	FindByHash(ctx context.Context, keyHash string) (userID uuid.UUID, keyID uuid.UUID, err error)
+	UpdateLastUsed(ctx context.Context, keyID uuid.UUID) error
 }
 
 // APIKeyMiddleware checks for API key authentication.

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -48,7 +49,7 @@ func (h *CurrencyHandler) Show(c *fiber.Ctx) error {
 
 	cur, err := h.repo.FindByCode(c.Context(), code)
 	if err != nil {
-		return apperrors.NotFoundResource("currency", 0)
+		return apperrors.NotFoundResource("currency", uuid.Nil)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

@@ -128,11 +128,11 @@ func TestAPIKeyDelete(t *testing.T) {
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
 	result := testhelpers.ParseResponse(t, resp)
 	data := result["data"].(map[string]interface{})
-	keyID := int64(data["id"].(float64))
+	keyID := data["id"].(string)
 	rawKey := data["key"].(string)
 
 	t.Run("delete_api_key_returns_200", func(t *testing.T) {
-		path := fmt.Sprintf("/api/v1/api-keys/%d", keyID)
+		path := fmt.Sprintf("/api/v1/api-keys/%s", keyID)
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "DELETE", path, "", token)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -226,7 +226,7 @@ func TestReadOnlyRoleBoundary(t *testing.T) {
 
 	t.Run("read_only_cannot_create_piggy_banks", func(t *testing.T) {
 		walletID := testApp.Seed.WalletID
-		path := fmt.Sprintf("/api/v1/wallets/%d/piggy_banks", walletID)
+		path := fmt.Sprintf("/api/v1/wallets/%s/piggy_banks", walletID)
 		body := `{"name":"test piggy"}`
 		resp := testhelpers.MakeAuthenticatedRequest(t, app, "POST", path, body, roToken)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)

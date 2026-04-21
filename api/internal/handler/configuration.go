@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -47,7 +48,7 @@ func (h *ConfigurationHandler) Show(c *fiber.Ctx) error {
 
 	cfg, err := h.repo.Get(c.Context(), name)
 	if err != nil {
-		return apperrors.NotFoundResource("configuration", 0)
+		return apperrors.NotFoundResource("configuration", uuid.Nil)
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

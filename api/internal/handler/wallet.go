@@ -1,9 +1,8 @@
 package handler
 
 import (
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -62,7 +61,7 @@ func (h *WalletHandler) Show(c *fiber.Ctx) error {
 		return apperrors.NewWithDetail(400, "Bad Request", "No active group.")
 	}
 
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.ErrBadRequest
 	}
@@ -108,7 +107,7 @@ func (h *WalletHandler) Store(c *fiber.Ctx) error {
 	}
 	if !isValidWalletType(domain.WalletType(req.WalletType)) {
 		return apperrors.NewValidationError(map[string][]string{
-			 "wallet_type": {"Invalid wallet type."},
+				 "wallet_type": {"Invalid wallet type."},
 		})
 	}
 
@@ -151,7 +150,7 @@ func (h *WalletHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewWithDetail(400, "Bad Request", "No active group.")
 	}
 
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.ErrBadRequest
 	}
@@ -192,7 +191,7 @@ func (h *WalletHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewWithDetail(400, "Bad Request", "No active group.")
 	}
 
-	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.ErrBadRequest
 	}
@@ -210,7 +209,7 @@ func walletToMap(w *domain.Wallet) fiber.Map {
 		"id":         w.ID,
 		"attributes": fiber.Map{
 			"name":              w.Name,
-			 "wallet_type":      w.AccountType,
+				 "wallet_type":      w.AccountType,
 			"active":            w.Active,
 			"virtual_balance":   w.VirtualBalance.StringFixed(2),
 			"include_net_worth": w.IncludeNetWorth,

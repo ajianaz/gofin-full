@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -18,7 +19,7 @@ func NewNoteRepository(db *pgxpool.Pool) *NoteRepository {
 	return &NoteRepository{db: db}
 }
 
-func (r *NoteRepository) Create(ctx context.Context, noteableType string, noteableID int64, note string) (*domain.Note, error) {
+func (r *NoteRepository) Create(ctx context.Context, noteableType string, noteableID uuid.UUID, note string) (*domain.Note, error) {
 	now := time.Now().UTC()
 	var n domain.Note
 	err := r.db.QueryRow(ctx,
@@ -33,7 +34,7 @@ func (r *NoteRepository) Create(ctx context.Context, noteableType string, noteab
 	return &n, nil
 }
 
-func (r *NoteRepository) ListByEntity(ctx context.Context, noteableType string, noteableID int64) ([]domain.Note, error) {
+func (r *NoteRepository) ListByEntity(ctx context.Context, noteableType string, noteableID uuid.UUID) ([]domain.Note, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, noteable_type, noteable_id, note, created_at, updated_at
 		 FROM notes WHERE noteable_type = $1 AND noteable_id = $2 ORDER BY created_at DESC`,
@@ -54,14 +55,14 @@ func (r *NoteRepository) ListByEntity(ctx context.Context, noteableType string, 
 	return notes, rows.Err()
 }
 
-func (r *NoteRepository) Update(ctx context.Context, id int64, note string) error {
+func (r *NoteRepository) Update(ctx context.Context, id uuid.UUID, note string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE notes SET note = $1, updated_at = $2 WHERE id = $3`,
 		note, time.Now().UTC(), id)
 	return err
 }
 
-func (r *NoteRepository) Delete(ctx context.Context, id int64) error {
+func (r *NoteRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM notes WHERE id = $1`, id)
 	return err
 }
