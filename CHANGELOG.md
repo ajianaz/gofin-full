@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+- **Full CRUD via Web UI** — Create, Read, Update, Delete for all 9 resources (wallets, transactions, categories, budgets, bills, tags, piggy banks, recurring transactions, rule groups)
+- `update()` and `delete()` methods in all service files
+- Delete buttons with confirm dialogs on all list pages
+- 21 E2E tests covering full CRUD lifecycle (register → 9 creates → list pages → 9 deletes)
+
+### Fixed
+- Date fields serialized as ISO 8601 (RFC3339) for Go `time.Time` compatibility (tags, transactions, recurring)
+- Numeric fields (`amount_min`, `target_amount`) stringified for Go string-typed JSON fields (bills, piggy banks)
+- Playwright dialog handler collision across serial tests (switched to `page.once`)
+
 ## [0.1.0] - 2026-04-22
 
 ### Added
