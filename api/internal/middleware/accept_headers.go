@@ -22,7 +22,7 @@ var validContentTypes = []string{
 	"application/octet-stream",
 }
 
-// AcceptHeaders validates Accept and Content-Type headers per Firefly III spec.
+// AcceptHeaders validates Accept and Content-Type headers.
 func AcceptHeaders() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Validate Accept header

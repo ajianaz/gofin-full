@@ -1,42 +1,95 @@
-# sv
+# Gofin Web
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+SvelteKit 5 frontend for [Gofin](../README.md) — a self-hosted personal finance tracker.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **40+ pages** covering the full personal finance domain
+- **i18n** — Indonesian (default) + English
+- **Dark mode** with system preference detection
+- **Responsive** — mobile-first layout
+- **Accessible** — keyboard navigation, ARIA labels
 
-```sh
-# create a new project
-npx sv create my-app
+## Tech Stack
+
+| Technology | Purpose |
+|-----------|---------|
+| SvelteKit 5 | Framework (file-based routing, SSR) |
+| Svelte 5 | UI with runes ($state, $derived, $effect) |
+| Tailwind CSS 4 | Utility-first styling |
+| shadcn-svelte | UI component library |
+| Lucide Svelte | Icon library |
+| TanStack Table | Headless table for data grids |
+| Playwright | E2E testing |
+
+## Development
+
+```bash
+# Install dependencies
+bun install
+
+# Start dev server (proxies /api to localhost:8080)
+bun run dev
+
+# Type check
+bun run check
 ```
 
-To recreate this project with the same configuration:
+Open http://localhost:5173. The API must be running on port 8080 (use `make docker-dev` from the monorepo root).
 
-```sh
-# recreate this project
-npx sv@0.15.1 create --template minimal --types ts --no-install gofin-web
+## Project Structure
+
+```
+web/
+├── src/
+│   ├── routes/
+│   │   ├── (auth)/         # login, register, forgot-password, reset-password
+│   │   └── (app)/          # dashboard, wallets, transactions, budgets, settings, etc.
+│   ├── lib/
+│   │   ├── components/     # UI components (shadcn-svelte based)
+│   │   ├── services/       # API client functions
+│   │   ├── stores/         # Svelte 5 stores (auth, theme, i18n)
+│   │   ├── i18n/           # Translation files (id/, en/)
+│   │   └── types/          # TypeScript type definitions
+│   └── app.html            # HTML template
+├── static/                 # Static assets
+├── tests/e2e/              # Playwright E2E tests
+├── playwright.config.ts
+├── svelte.config.js
+├── tailwind.config.ts
+└── vite.config.ts
 ```
 
-## Developing
+## Route Groups
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+| Group | Path | Auth | Pages |
+|-------|------|------|-------|
+| `(auth)` | `/login`, `/register`, `/forgot-password`, `/reset-password` | Public | Authentication flows |
+| `(app)` | `/dashboard`, `/wallets`, `/transactions`, etc. | Protected | 36 authenticated pages |
 
-```sh
-npm run dev
+## i18n
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+Translations live in `src/lib/i18n/`. Default language is Indonesian (`id`), with English (`en`) support. The language store detects browser preference and falls back to Indonesian.
+
+## Build
+
+```bash
+bun run build
 ```
 
-## Building
+Output goes to `.svelte-kit/build/` using the Node adapter.
 
-To create a production version of your app:
+## E2E Tests
 
-```sh
-npm run build
+```bash
+# Run all E2E tests (requires running API)
+bunx playwright test
+
+# Run with UI
+bunx playwright test --ui
+
+# Run specific file
+bunx playwright test tests/e2e/auth.spec.ts
 ```
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Tests use the API proxy (Vite) to register test users via `/api/v1/auth/register` before navigating protected pages.

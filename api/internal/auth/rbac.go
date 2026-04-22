@@ -6,7 +6,7 @@ import (
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
-// GroupRole represents the 22 group-level permission values from Firefly III.
+// GroupRole represents the group-level permission values.
 type GroupRole string
 
 const (

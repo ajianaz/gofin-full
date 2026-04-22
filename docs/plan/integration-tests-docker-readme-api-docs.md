@@ -62,7 +62,7 @@ Branch: `feat/testing-docker-docs` from `feat/sprint-15`
 
 ## Step 6: README.md
 Create comprehensive English README with:
-- Project overview (Go rewrite of Firefly III)
+- Project overview (personal finance tracker)
 - Features, tech stack
 - Quick start with Docker (`docker compose up`)
 - Local development setup

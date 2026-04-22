@@ -13,7 +13,9 @@ Thumbs.db
 bin/
 /server
 /migrate
+/seed
 api/migrate
+api/seed
 api/server
 *.exe
 *.test

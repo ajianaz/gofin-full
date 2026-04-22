@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// TransactionType represents the 7 transaction types from Firefly III.
+// TransactionType represents the supported transaction types.
 type TransactionType string
 
 const (
