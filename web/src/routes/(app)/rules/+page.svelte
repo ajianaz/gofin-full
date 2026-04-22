@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Plus, ChevronRight } from '@lucide/svelte';
+	import { Plus, ChevronRight, Trash2 } from '@lucide/svelte';
 	import { ruleService } from '$lib/services/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { RuleGroup } from '$lib/types/domain.js';
@@ -11,6 +11,12 @@
 
 	let isLoading = $state(true);
 	let items = $state<RuleGroup[]>([]);
+
+	async function handleDelete(id: string) {
+		if (!confirm('Hapus rule group ini?')) return;
+		await ruleService.deleteGroup(id);
+		items = items.filter((g) => g.id !== id);
+	}
 
 	onMount(async () => {
 		try {
@@ -47,27 +53,32 @@
 		</CardHeader>
 		<CardContent class="p-0">
 			{#each items as group}
-				<button
-					type="button"
-					class="flex w-full items-center justify-between px-5 py-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors text-left"
-					onclick={() => goto('/rules/{group.id}')}
-				>
-					<div class="flex flex-col gap-1">
-						<p class="text-sm font-semibold text-foreground">{group.title}</p>
-						<p class="text-[13px] text-muted-foreground">
-							{t('rules.list.ruleCount', { count: group.rule_count })} · {group.active ? t('rules.list.active') : t('rules.list.inactive')}
-						</p>
-					</div>
-					<div class="flex shrink-0 items-center gap-3">
-						{#if group.active}
-							<span class="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">{t('rules.list.active')}</span>
-						{:else}
-							<span class="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">{t('rules.list.inactive')}</span>
-						{/if}
-						<span class="flex size-8 items-center justify-center rounded-md bg-muted text-sm font-semibold text-foreground">{group.order}</span>
-						<ChevronRight class="size-4 text-muted-foreground" />
-					</div>
-				</button>
+				<div class="flex items-center justify-between px-5 py-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors">
+					<button
+						type="button"
+						class="flex flex-1 items-center justify-between text-left"
+						onclick={() => goto('/rules/{group.id}')}
+					>
+						<div class="flex flex-col gap-1">
+							<p class="text-sm font-semibold text-foreground">{group.title}</p>
+							<p class="text-[13px] text-muted-foreground">
+								{t('rules.list.ruleCount', { count: group.rule_count })} · {group.active ? t('rules.list.active') : t('rules.list.inactive')}
+							</p>
+						</div>
+						<div class="flex shrink-0 items-center gap-3">
+							{#if group.active}
+								<span class="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">{t('rules.list.active')}</span>
+							{:else}
+								<span class="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">{t('rules.list.inactive')}</span>
+							{/if}
+							<span class="flex size-8 items-center justify-center rounded-md bg-muted text-sm font-semibold text-foreground">{group.order}</span>
+							<ChevronRight class="size-4 text-muted-foreground" />
+						</div>
+					</button>
+					<button type="button" class="text-muted-foreground hover:text-destructive transition-colors px-2" onclick={(e) => { e.stopPropagation(); handleDelete(group.id); }}>
+						<Trash2 class="size-4" />
+					</button>
+				</div>
 			{/each}
 		</CardContent>
 	</Card>

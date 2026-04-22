@@ -43,5 +43,13 @@ export const transactionService = {
 		}
 		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/transactions', payload);
 		return unwrapOne<Transaction>(res);
+	},
+
+	async update(id: string, data: { description?: string }): Promise<void> {
+		await api.put(`/transactions/${id}`, data);
+	},
+
+	async delete(id: string): Promise<void> {
+		await api.delete(`/transactions/${id}`);
 	}
 };

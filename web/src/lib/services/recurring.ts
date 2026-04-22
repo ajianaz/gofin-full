@@ -38,5 +38,13 @@ export const recurringService = {
 		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/recurrences', payload);
 		const r = unwrapOne<RecurringTransaction>(res);
 		return { ...r, type: 'withdrawal', amount: '0', currency_code: 'USD' };
+	},
+
+	async update(id: string, data: { title?: string; repeat_freq?: string; active?: boolean }): Promise<void> {
+		await api.put(`/recurrences/${id}`, data);
+	},
+
+	async delete(id: string): Promise<void> {
+		await api.delete(`/recurrences/${id}`);
 	}
 };

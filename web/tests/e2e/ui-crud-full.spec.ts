@@ -5,7 +5,6 @@ const TIMESTAMP = Date.now();
 const EMAIL = `e2e-${TIMESTAMP}@example.com`;
 const PASS = 'Password1234!';
 
-// Assert API response is success, log body on failure
 async function expectCreated(response: { status(): number; body(): Promise<string> }, label: string) {
 	const status = response.status();
 	if (status >= 400) {
@@ -13,6 +12,20 @@ async function expectCreated(response: { status(): number; body(): Promise<strin
 		console.error(`${label} failed (${status}):`, body.toString().slice(0, 500));
 	}
 	expect(status).toBeLessThan(400);
+}
+
+async function deleteFirstItem(page: Page, url: string, apiPath: string) {
+	await page.goto(`${BASE}${url}`);
+	await page.waitForLoadState('networkidle');
+	const firstTrash = page.locator('button:has(svg.lucide-trash-2)').first();
+	const hasItem = await firstTrash.isVisible().catch(() => false);
+	if (!hasItem) return;
+	page.once('dialog', (dialog) => dialog.accept());
+	const [response] = await Promise.all([
+		page.waitForResponse((r) => r.url().includes(apiPath) && r.request().method() === 'DELETE', { timeout: 10000 }),
+		firstTrash.click()
+	]);
+	expect(response.status()).toBeLessThan(400);
 }
 
 test.describe.serial('UI Full CRUD — Real API', () => {
@@ -71,7 +84,6 @@ test.describe.serial('UI Full CRUD — Real API', () => {
 		await page.selectOption('#type', 'withdrawal');
 		await page.fill('#description', 'Makan siang warteg');
 		await page.fill('#amount', '150000');
-		// Wait for wallet options to load from API, then select one
 		await page.waitForFunction(() => {
 			const sel = document.querySelector('#source') as HTMLSelectElement | null;
 			return sel && sel.options.length > 1 && sel.options[1].value !== '';
@@ -131,7 +143,6 @@ test.describe.serial('UI Full CRUD — Real API', () => {
 		await page.waitForLoadState('networkidle');
 		await page.fill('#name', 'Dana Darurat');
 		await page.fill('#target', '10000000');
-		// Wait for wallet dropdown to load
 		await page.waitForFunction(() => {
 			const sel = document.querySelector('#account') as HTMLSelectElement | null;
 			return sel && sel.options.length > 1 && sel.options[1].value !== '';
@@ -152,7 +163,6 @@ test.describe.serial('UI Full CRUD — Real API', () => {
 		await page.waitForLoadState('networkidle');
 		await page.fill('#title', 'Bayar Listrik');
 		await page.fill('#amount', '500000');
-		// Select source wallet
 		await page.waitForFunction(() => {
 			const sel = document.querySelector('#source') as HTMLSelectElement | null;
 			return sel && sel.options.length > 1 && sel.options[1].value !== '';
@@ -187,4 +197,14 @@ test.describe.serial('UI Full CRUD — Real API', () => {
 			expect(page.url()).toBe(`${BASE}${p}`);
 		}
 	});
+
+	test('12. Delete — wallet', () => deleteFirstItem(page, '/wallets', '/wallets/'));
+	test('13. Delete — category', () => deleteFirstItem(page, '/categories', '/categories/'));
+	test('14. Delete — tag', () => deleteFirstItem(page, '/tags', '/tags/'));
+	test('15. Delete — transaction', () => deleteFirstItem(page, '/transactions', '/transactions/'));
+	test('16. Delete — budget', () => deleteFirstItem(page, '/budgets', '/budgets/'));
+	test('17. Delete — bill', () => deleteFirstItem(page, '/bills', '/bills/'));
+	test('18. Delete — piggy bank', () => deleteFirstItem(page, '/piggy-banks', '/piggy_banks/'));
+	test('19. Delete — recurring', () => deleteFirstItem(page, '/recurring', '/recurrences/'));
+	test('20. Delete — rule group', () => deleteFirstItem(page, '/rules', '/rule-groups/'));
 });

@@ -27,5 +27,13 @@ export const billService = {
 		});
 		const b = unwrapOne<Bill>(res);
 		return { ...b, next_date: (b as any).date || '', currency_code: 'USD', currency_symbol: 'Rp' };
+	},
+
+	async update(id: string, data: { name?: string; active?: boolean }): Promise<void> {
+		await api.put(`/bills/${id}`, data);
+	},
+
+	async delete(id: string): Promise<void> {
+		await api.delete(`/bills/${id}`);
 	}
 };

@@ -19,5 +19,17 @@ export const tagService = {
 		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/tags', payload);
 		const t = unwrapOne<Tag>(res);
 		return { ...t, date: (t as any).date || new Date().toISOString().split('T')[0] };
+	},
+
+	async update(id: string, data: { tag: string; date?: string }): Promise<void> {
+		const payload: Record<string, unknown> = { tag: data.tag };
+		if (data.date) {
+			payload.date = new Date(data.date).toISOString();
+		}
+		await api.put(`/tags/${id}`, payload);
+	},
+
+	async delete(id: string): Promise<void> {
+		await api.delete(`/tags/${id}`);
 	}
 };

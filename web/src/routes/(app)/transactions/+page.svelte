@@ -4,7 +4,7 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown } from '@lucide/svelte';
+	import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from '@lucide/svelte';
 	import { transactionService, walletService, categoryService } from '$lib/services/index.js';
 	import { formatAmount, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -24,6 +24,12 @@
 
 	const PER_PAGE = 5;
 	let currentPage = $state(1);
+
+	async function handleDelete(id: string) {
+		if (!confirm('Hapus transaksi ini?')) return;
+		await transactionService.delete(id);
+		items = items.filter((t) => t.id !== id);
+	}
 
 	onMount(async () => {
 		try {
@@ -172,6 +178,7 @@
 							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colAmount')}</th>
 							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colCategory')}</th>
 							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colWallet')}</th>
+							<th class="w-[50px] p-3"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -184,6 +191,11 @@
 								</td>
 								<td class="p-3 text-muted-foreground">{tx.category_name || '-'}</td>
 								<td class="p-3 text-muted-foreground">{acctName(tx)}</td>
+								<td class="p-3">
+									<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(tx.id)}>
+										<Trash2 class="size-4" />
+									</button>
+								</td>
 							</tr>
 						{/each}
 					</tbody>

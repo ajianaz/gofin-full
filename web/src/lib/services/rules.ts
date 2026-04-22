@@ -21,5 +21,13 @@ export const ruleService = {
 	async get(id: string): Promise<Rule> {
 		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> } }>(`/rules/${id}`);
 		return unwrapOne<Rule>(res);
+	},
+
+	async updateGroup(id: string, data: { title?: string; active?: boolean }): Promise<void> {
+		await api.put(`/rule-groups/${id}`, data);
+	},
+
+	async deleteGroup(id: string): Promise<void> {
+		await api.delete(`/rule-groups/${id}`);
 	}
 };

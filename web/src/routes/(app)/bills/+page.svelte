@@ -4,7 +4,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Plus, ChevronDown } from '@lucide/svelte';
+	import { Plus, Trash2, ChevronDown } from '@lucide/svelte';
 	import { billService } from '$lib/services/index.js';
 	import type { Bill } from '$lib/types/domain.js';
 	import { formatCurrency, formatDate } from '$lib/utils/format.js';
@@ -14,6 +14,12 @@
 	let items = $state<Bill[]>([]);
 	let isLoading = $state(true);
 	let accountFilter = $state('all');
+
+	async function handleDelete(id: string) {
+		if (!confirm('Hapus tagihan ini?')) return;
+		await billService.delete(id);
+		items = items.filter((b) => b.id !== id);
+	}
 
 	onMount(async () => {
 		try {
@@ -62,28 +68,31 @@
 			{#if isLoading}
 				<p class="px-5 py-8 text-center text-sm text-muted-foreground">Memuat...</p>
 			{:else}
-			{#each filtered as bill}
-				<div class="flex items-center justify-between px-5 py-3 border-b last:border-b-0">
-					<div class="flex flex-col gap-1">
-						<p class="text-sm font-semibold text-foreground">{bill.name}</p>
-						<p class="text-[13px] text-muted-foreground">
-							{#if bill.amount_min === bill.amount_max}
-								{formatCurrency(bill.amount_min)}{t('bills.list.perMonth')}
+				{#each filtered as bill}
+					<div class="flex items-center justify-between px-5 py-3 border-b last:border-b-0">
+						<div class="flex flex-col gap-1">
+							<p class="text-sm font-semibold text-foreground">{bill.name}</p>
+							<p class="text-[13px] text-muted-foreground">
+								{#if bill.amount_min === bill.amount_max}
+									{formatCurrency(bill.amount_min)}{t('bills.list.perMonth')}
+								{:else}
+									{formatCurrency(bill.amount_min)} — {formatCurrency(bill.amount_max)}
+								{/if}
+							</p>
+						</div>
+						<div class="flex shrink-0 items-center gap-3">
+							<span class="text-[13px] text-muted-foreground">{formatDate(bill.next_date)}</span>
+							{#if bill.active}
+								<Badge variant="secondary" class="text-xs">{t('bills.list.active')}</Badge>
 							{:else}
-								{formatCurrency(bill.amount_min)} — {formatCurrency(bill.amount_max)}
+								<Badge variant="outline" class="text-xs">{t('bills.list.inactive')}</Badge>
 							{/if}
-						</p>
+							<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(bill.id)}>
+								<Trash2 class="size-4" />
+							</button>
+						</div>
 					</div>
-					<div class="flex shrink-0 items-center gap-3">
-						<span class="text-[13px] text-muted-foreground">{formatDate(bill.next_date)}</span>
-						{#if bill.active}
-							<Badge variant="secondary" class="text-xs">{t('bills.list.active')}</Badge>
-						{:else}
-							<Badge variant="outline" class="text-xs">{t('bills.list.inactive')}</Badge>
-						{/if}
-					</div>
-				</div>
-			{/each}
+				{/each}
 			{/if}
 		</CardContent>
 	</Card>

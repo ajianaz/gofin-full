@@ -30,6 +30,14 @@ export const walletService = {
 		};
 	},
 
+	async update(id: string, data: { name?: string; active?: boolean }): Promise<void> {
+		await api.put(`/wallets/${id}`, data);
+	},
+
+	async delete(id: string): Promise<void> {
+		await api.delete(`/wallets/${id}`);
+	},
+
 	async types(): Promise<WalletTypeRaw[]> {
 		const res = await api.get<{ data: WalletTypeRaw[] }>('/wallet-types');
 		return res.data;

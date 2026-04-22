@@ -4,7 +4,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Plus } from '@lucide/svelte';
+	import { Plus, Trash2 } from '@lucide/svelte';
 	import { categoryService } from '$lib/services/index.js';
 	import type { Category } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -12,6 +12,12 @@
 
 	let items = $state<Category[]>([]);
 	let isLoading = $state(true);
+
+	async function handleDelete(id: string) {
+		if (!confirm('Hapus kategori ini?')) return;
+		await categoryService.delete(id);
+		items = items.filter((c) => c.id !== id);
+	}
 
 	onMount(async () => {
 		try {
@@ -44,15 +50,16 @@
 						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colName')}</th>
 						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colType')}</th>
 						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colTransactions')}</th>
+						<th class="w-[50px] p-3"></th>
 					</tr>
 				</thead>
 				<tbody>
 					{#if isLoading}
 					<tr>
-						<td colspan="3" class="p-8 text-center text-sm text-muted-foreground">Memuat...</td>
+						<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">Memuat...</td>
 					</tr>
-				{:else}
-				{#each items as cat}
+					{:else}
+					{#each items as cat}
 						<tr class="border-b hover:bg-muted/30">
 							<td class="p-3 font-medium text-foreground">{cat.name}</td>
 							<td class="p-3">
@@ -61,6 +68,11 @@
 								</Badge>
 							</td>
 							<td class="p-3 text-muted-foreground">{cat.transaction_count}</td>
+							<td class="p-3">
+								<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(cat.id)}>
+									<Trash2 class="size-4" />
+								</button>
+							</td>
 						</tr>
 					{/each}
 					{/if}

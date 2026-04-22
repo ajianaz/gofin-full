@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Plus, ChevronDown, Landmark, Smartphone, CreditCard, Wallet } from '@lucide/svelte';
+	import { Plus, ChevronDown, Landmark, Smartphone, CreditCard, Wallet, Trash2 } from '@lucide/svelte';
 	import { walletService } from '$lib/services/index.js';
 	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -12,6 +12,12 @@
 	let items = $state<Account[]>([]);
 	let isLoading = $state(true);
 	let typeFilter = $state('all');
+
+	async function handleDelete(id: string) {
+		if (!confirm('Hapus wallet ini?')) return;
+		await walletService.delete(id);
+		items = items.filter((w) => w.id !== id);
+	}
 
 	onMount(async () => {
 		try {
@@ -85,15 +91,20 @@
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{#if isLoading}
-				<p class="col-span-full py-8 text-center text-sm text-muted-foreground">Memuat...</p>
-			{:else}
+			<p class="col-span-full py-8 text-center text-sm text-muted-foreground">Memuat...</p>
+		{:else}
 			{#each filtered as wallet}
 			{@const Icon = walletIcon(wallet)}
 			<Card class="hover:shadow-md transition-shadow">
 				<CardContent class="p-5">
-					<div class="flex items-center gap-2 mb-4">
-						<Icon class="size-[18px] text-primary" />
-						<span class="text-base font-semibold text-foreground">{wallet.name}</span>
+					<div class="flex items-center justify-between mb-4">
+						<div class="flex items-center gap-2">
+							<Icon class="size-[18px] text-primary" />
+							<span class="text-base font-semibold text-foreground">{wallet.name}</span>
+						</div>
+						<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(wallet.id)}>
+							<Trash2 class="size-4" />
+						</button>
 					</div>
 					<p class="text-xl font-bold {parseFloat(wallet.balance) < 0 ? 'text-red-600' : 'text-foreground'}">
 						{formatBalance(wallet.balance)}
@@ -102,6 +113,6 @@
 				</CardContent>
 			</Card>
 		{/each}
-			{/if}
+		{/if}
 	</div>
 </div>

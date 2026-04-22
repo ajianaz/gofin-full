@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Progress } from '$lib/components/ui/progress/index.js';
-	import { Plus } from '@lucide/svelte';
+	import { Plus, Trash2 } from '@lucide/svelte';
 	import { budgetService } from '$lib/services/index.js';
 	import type { Budget } from '$lib/types/domain.js';
 	import { formatCurrency, formatPercentage } from '$lib/utils/format.js';
@@ -14,6 +12,12 @@
 
 	let items = $state<Budget[]>([]);
 	let isLoading = $state(true);
+
+	async function handleDelete(id: string) {
+		if (!confirm('Hapus budget ini?')) return;
+		await budgetService.delete(id);
+		items = items.filter((b) => b.id !== id);
+	}
 
 	onMount(async () => {
 		try {
@@ -42,8 +46,8 @@
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{#if isLoading}
-				<p class="col-span-full py-8 text-center text-sm text-muted-foreground">Memuat...</p>
-			{:else}
+			<p class="col-span-full py-8 text-center text-sm text-muted-foreground">Memuat...</p>
+		{:else}
 			{#each items as budget}
 			{@const pct = parseFloat(budget.budget_amount) > 0
 				? (parseFloat(budget.spend_amount) / parseFloat(budget.budget_amount)) * 100
@@ -53,11 +57,10 @@
 				<CardContent class="p-5">
 					<div class="flex items-center justify-between mb-3">
 						<p class="text-base font-semibold text-foreground">{budget.name}</p>
-						{#if budget.auto_budget_type && budget.auto_budget_type !== 'none'}
-							<Badge variant="outline" class="text-xs">{t('budgets.list.auto')}</Badge>
-						{/if}
+						<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(budget.id)}>
+							<Trash2 class="size-4" />
+						</button>
 					</div>
-
 					<div class="mb-3">
 						<div class="flex justify-between text-sm mb-1">
 							<span class="text-muted-foreground">{t('budgets.list.used')}</span>
@@ -74,12 +77,11 @@
 							</span>
 						</div>
 					</div>
-
 					<Progress value={Math.min(pct, 100)} class="h-2" />
 					<p class="text-xs text-muted-foreground mt-1">{t('budgets.list.usedPercent', { pct: Math.round(pct) })}</p>
 				</CardContent>
 			</Card>
 		{/each}
-			{/if}
+		{/if}
 	</div>
 </div>

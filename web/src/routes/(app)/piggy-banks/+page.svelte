@@ -4,7 +4,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Progress } from '$lib/components/ui/progress/index.js';
-	import { Plus, ChevronDown, PiggyBank as PiggyBankIcon } from '@lucide/svelte';
+	import { Plus, ChevronDown, Trash2, PiggyBank as PiggyBankIcon } from '@lucide/svelte';
 	import { piggyBankService, walletService } from '$lib/services/index.js';
 	import { formatCurrency, formatPercentage } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -16,6 +16,12 @@
 	let wallets = $state<Account[]>([]);
 
 	let accountFilter = $state('all');
+
+	async function handleDelete(walletId: string, id: string) {
+		if (!confirm('Hapus piggy bank ini?')) return;
+		await piggyBankService.delete(walletId, id);
+		items = items.filter((pb) => pb.id !== id);
+	}
 
 	onMount(async () => {
 		try {
@@ -88,9 +94,14 @@
 						<p class="text-xs text-muted-foreground">{t('piggyBanks.list.walletPrefix')} {pb.account_name}</p>
 						<Progress value={Math.min(pct, 100)} class="mt-1 h-1.5 w-[120px]" />
 					</div>
-					<div class="ml-auto shrink-0 text-right">
-						<p class="text-sm font-semibold text-foreground">{formatCurrency(pb.current_amount)}</p>
-						<p class="text-xs text-muted-foreground">{t('piggyBanks.list.of', { pct: Math.round(pct), target: formatCurrency(pb.target_amount) })}</p>
+					<div class="ml-auto shrink-0 flex items-center gap-3">
+						<div class="text-right">
+							<p class="text-sm font-semibold text-foreground">{formatCurrency(pb.current_amount)}</p>
+							<p class="text-xs text-muted-foreground">{t('piggyBanks.list.of', { pct: Math.round(pct), target: formatCurrency(pb.target_amount) })}</p>
+						</div>
+						<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(pb.account_id, pb.id)}>
+							<Trash2 class="size-4" />
+						</button>
 					</div>
 				</div>
 			{/each}

@@ -4,7 +4,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Plus } from '@lucide/svelte';
+	import { Plus, Trash2 } from '@lucide/svelte';
 	import { recurringService } from '$lib/services/index.js';
 	import { formatCurrency, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -13,6 +13,12 @@
 
 	let isLoading = $state(true);
 	let items = $state<RecurringTransaction[]>([]);
+
+	async function handleDelete(id: string) {
+		if (!confirm('Hapus recurring ini?')) return;
+		await recurringService.delete(id);
+		items = items.filter((r) => r.id !== id);
+	}
 
 	onMount(async () => {
 		try {
@@ -69,6 +75,9 @@
 						{:else}
 							<Badge variant="outline" class="text-xs">{t('recurring.list.inactive')}</Badge>
 						{/if}
+						<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(rec.id)}>
+							<Trash2 class="size-4" />
+						</button>
 					</div>
 				</div>
 			{/each}
