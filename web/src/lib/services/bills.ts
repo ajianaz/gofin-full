@@ -20,7 +20,11 @@ export const billService = {
 		date?: string;
 		repeat_freq?: string;
 	}): Promise<Bill> {
-		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/bills', data);
+		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/bills', {
+			...data,
+			amount_min: data.amount_min ? String(data.amount_min) : undefined,
+			amount_max: data.amount_max ? String(data.amount_max) : undefined,
+		});
 		const b = unwrapOne<Bill>(res);
 		return { ...b, next_date: (b as any).date || '', currency_code: 'USD', currency_symbol: 'Rp' };
 	}

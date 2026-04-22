@@ -28,7 +28,14 @@ export const recurringService = {
 			piggy_bank_id?: string;
 		}[];
 	}): Promise<RecurringTransaction> {
-		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/recurrences', data);
+		const payload: Record<string, unknown> = { ...data };
+		if (data.first_date) {
+			payload.first_date = new Date(data.first_date).toISOString();
+		}
+		if (data.repeat_until) {
+			payload.repeat_until = new Date(data.repeat_until).toISOString();
+		}
+		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/recurrences', payload);
 		const r = unwrapOne<RecurringTransaction>(res);
 		return { ...r, type: 'withdrawal', amount: '0', currency_code: 'USD' };
 	}

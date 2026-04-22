@@ -37,7 +37,11 @@ export const transactionService = {
 		category_ids?: string[];
 		tag_ids?: string[];
 	}): Promise<Transaction> {
-		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/transactions', data);
+		const payload: Record<string, unknown> = { ...data };
+		if (data.date) {
+			payload.date = new Date(data.date).toISOString();
+		}
+		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/transactions', payload);
 		return unwrapOne<Transaction>(res);
 	}
 };

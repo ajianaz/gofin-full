@@ -12,7 +12,11 @@ export const tagService = {
 	},
 
 	async create(data: { tag: string; date?: string }): Promise<Tag> {
-		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/tags', data);
+		const payload: Record<string, string> = { tag: data.tag };
+		if (data.date) {
+			payload.date = new Date(data.date).toISOString();
+		}
+		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/tags', payload);
 		const t = unwrapOne<Tag>(res);
 		return { ...t, date: (t as any).date || new Date().toISOString().split('T')[0] };
 	}

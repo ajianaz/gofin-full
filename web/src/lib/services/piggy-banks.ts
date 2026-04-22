@@ -19,7 +19,11 @@ export const piggyBankService = {
 		name: string;
 		target_amount?: string;
 	}): Promise<PiggyBank> {
-		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>(`/wallets/${data.wallet_id}/piggy_banks`, data);
+		const payload: Record<string, unknown> = { wallet_id: data.wallet_id, name: data.name };
+		if (data.target_amount) {
+			payload.target_amount = String(data.target_amount);
+		}
+		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>(`/wallets/${data.wallet_id}/piggy_banks`, payload);
 		const p = unwrapOne<PiggyBank>(res);
 		return { ...p, account_id: data.wallet_id, account_name: '', current_amount: '0', status: 'active' };
 	}
