@@ -3,6 +3,10 @@
 
 set -e
 
+# Ensure we run from git root
+GIT_ROOT=$(git rev-parse --show-toplevel)
+cd "$GIT_ROOT"
+
 echo "Running pre-commit checks..."
 
 # Check for staged Go files
@@ -15,6 +19,7 @@ if [ -n "$STAGED_GO" ]; then
   gofmt -w $(echo "$STAGED_GO" | sed 's|^api/||') 2>/dev/null || true
   go vet ./...
   echo "  [go] OK"
+  cd "$GIT_ROOT"
 fi
 
 if [ -n "$STAGED_WEB" ]; then
@@ -22,6 +27,7 @@ if [ -n "$STAGED_WEB" ]; then
   cd web
   bun run check 2>&1 | tail -1
   echo "  [web] OK"
+  cd "$GIT_ROOT"
 fi
 
 echo "Pre-commit checks passed."
