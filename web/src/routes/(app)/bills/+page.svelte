@@ -1,18 +1,32 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Plus, ChevronDown } from '@lucide/svelte';
-	import { mockBills } from '$lib/data/mock-bills.js';
+	import { billService } from '$lib/services/index.js';
+	import type { Bill } from '$lib/types/domain.js';
 	import { formatCurrency, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
 
+	let items = $state<Bill[]>([]);
+	let isLoading = $state(true);
 	let accountFilter = $state('all');
 
+	onMount(async () => {
+		try {
+			items = await billService.list();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	});
+
 	let filtered = $derived(
-		accountFilter === 'all' ? mockBills : mockBills.filter((b) => b.active)
+		accountFilter === 'all' ? items : items.filter((b) => b.active)
 	);
 </script>
 
@@ -45,6 +59,9 @@
 	<Card>
 		<CardContent class="p-0">
 			<p class="px-5 pt-4 text-[13px] font-normal text-muted-foreground">{t('bills.list.activeList')}</p>
+			{#if isLoading}
+				<p class="px-5 py-8 text-center text-sm text-muted-foreground">Memuat...</p>
+			{:else}
 			{#each filtered as bill}
 				<div class="flex items-center justify-between px-5 py-3 border-b last:border-b-0">
 					<div class="flex flex-col gap-1">
@@ -67,6 +84,7 @@
 					</div>
 				</div>
 			{/each}
+			{/if}
 		</CardContent>
 	</Card>
 </div>

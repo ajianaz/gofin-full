@@ -1,2 +1,11 @@
 export { api } from './client.js';
 export { authService } from './auth.js';
+export { walletService } from './wallets.js';
+export { transactionService } from './transactions.js';
+export { categoryService } from './categories.js';
+export { budgetService } from './budgets.js';
+export { billService } from './bills.js';
+export { tagService } from './tags.js';
+export { piggyBankService } from './piggy-banks.js';
+export { recurringService } from './recurring.js';
+export { ruleService } from './rules.js';

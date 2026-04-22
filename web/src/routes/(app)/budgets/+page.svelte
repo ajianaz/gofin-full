@@ -1,14 +1,29 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Progress } from '$lib/components/ui/progress/index.js';
 	import { Plus } from '@lucide/svelte';
-	import { mockBudgets } from '$lib/data/mock-budgets.js';
+	import { budgetService } from '$lib/services/index.js';
+	import type { Budget } from '$lib/types/domain.js';
 	import { formatCurrency, formatPercentage } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
+
+	let items = $state<Budget[]>([]);
+	let isLoading = $state(true);
+
+	onMount(async () => {
+		try {
+			items = await budgetService.list();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	});
 </script>
 
 <div class="flex flex-col gap-4">
@@ -16,7 +31,7 @@
 		<div class="flex items-center gap-3">
 			<h2 class="text-base font-semibold text-foreground">{t('budgets.list.title')}</h2>
 			<span class="inline-flex items-center rounded-2xl bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
-				{mockBudgets.length}
+				{items.length}
 			</span>
 		</div>
 		<Button size="sm" onclick={() => goto('/budgets/create')}>
@@ -26,7 +41,10 @@
 	</div>
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#each mockBudgets as budget}
+		{#if isLoading}
+				<p class="col-span-full py-8 text-center text-sm text-muted-foreground">Memuat...</p>
+			{:else}
+			{#each items as budget}
 			{@const pct = parseFloat(budget.budget_amount) > 0
 				? (parseFloat(budget.spend_amount) / parseFloat(budget.budget_amount)) * 100
 				: 0}
@@ -62,5 +80,6 @@
 				</CardContent>
 			</Card>
 		{/each}
+			{/if}
 	</div>
 </div>

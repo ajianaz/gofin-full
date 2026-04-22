@@ -1,13 +1,28 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { PageHeader } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Plus } from '@lucide/svelte';
-	import { mockTags } from '$lib/data/mock-tags.js';
+	import { tagService } from '$lib/services/index.js';
+	import type { Tag } from '$lib/types/domain.js';
 	import { formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
+
+	let items = $state<Tag[]>([]);
+	let isLoading = $state(true);
+
+	onMount(async () => {
+		try {
+			items = await tagService.list();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	});
 </script>
 
 <PageHeader title={t('tags.list.title')} description={t('tags.list.description')}>
@@ -22,11 +37,15 @@
 </PageHeader>
 
 <div class="flex flex-wrap gap-2 mb-4">
-	{#each mockTags as tag}
-		<Badge variant="outline" class="px-3 py-1.5 text-sm">
-			#{tag.tag}
-		</Badge>
-	{/each}
+	{#if isLoading}
+		<p class="text-sm text-muted-foreground py-2">Memuat...</p>
+	{:else}
+		{#each items as tag}
+			<Badge variant="outline" class="px-3 py-1.5 text-sm">
+				#{tag.tag}
+			</Badge>
+		{/each}
+	{/if}
 </div>
 
 <Card>
@@ -41,13 +60,19 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each mockTags as tag}
+					{#if isLoading}
+						<tr>
+							<td colspan="3" class="p-8 text-center text-sm text-muted-foreground">Memuat...</td>
+						</tr>
+					{:else}
+					{#each items as tag}
 						<tr class="border-b hover:bg-muted/30">
 							<td class="p-3"><Badge variant="secondary">#{tag.tag}</Badge></td>
 							<td class="p-3 text-muted-foreground">{tag.description ?? '-'}</td>
 							<td class="p-3 text-muted-foreground">{formatDate(tag.date)}</td>
 						</tr>
 					{/each}
+						{/if}
 				</tbody>
 			</table>
 		</div>

@@ -1,26 +1,49 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Progress } from '$lib/components/ui/progress/index.js';
-	import { Plus, ChevronDown, PiggyBank } from '@lucide/svelte';
-	import { mockPiggyBanks } from '$lib/data/mock-piggy-banks.js';
+	import { Plus, ChevronDown, PiggyBank as PiggyBankIcon } from '@lucide/svelte';
+	import { piggyBankService, walletService } from '$lib/services/index.js';
 	import { formatCurrency, formatPercentage } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import type { PiggyBank, Account } from '$lib/types/domain.js';
 	const t = localeStore.t;
+
+	let isLoading = $state(true);
+	let items = $state<PiggyBank[]>([]);
+	let wallets = $state<Account[]>([]);
 
 	let accountFilter = $state('all');
 
+	onMount(async () => {
+		try {
+			const walletList = await walletService.list();
+			wallets = walletList;
+			if (walletList.length > 0) {
+				items = await piggyBankService.list(walletList[0].id);
+			}
+		} catch (e) {
+			console.error('Failed to load piggy banks:', e);
+		} finally {
+			isLoading = false;
+		}
+	});
+
 	let filtered = $derived(
 		accountFilter === 'all'
-			? mockPiggyBanks
-			: mockPiggyBanks.filter((pb) => pb.account_id === accountFilter)
+			? items
+			: items.filter((pb) => pb.account_id === accountFilter)
 	);
 
-	const accounts = [...new Set(mockPiggyBanks.map((pb) => pb.account_id))];
+	const accounts = $derived([...new Set(items.map((pb) => pb.account_id))]);
 </script>
 
 <div class="flex flex-col gap-4">
+	{#if isLoading}
+		<p class="text-sm text-muted-foreground py-8 text-center">Memuat...</p>
+	{:else}
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="flex items-center gap-3">
 			<h2 class="text-lg font-semibold text-foreground">{t('piggyBanks.list.title')}</h2>
@@ -36,7 +59,7 @@
 				>
 					<option value="all">{t('piggyBanks.list.allWallets')}</option>
 					{#each accounts as id}
-						{@const w = mockPiggyBanks.find((pb) => pb.account_id === id)}
+						{@const w = items.find((pb) => pb.account_id === id)}
 						<option value={id}>{w?.account_name ?? id}</option>
 					{/each}
 				</select>
@@ -58,7 +81,7 @@
 					: 0}
 				<div class="flex items-center gap-4 px-5 py-4 border-b last:border-b-0">
 					<div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-						<PiggyBank class="size-5 text-foreground" />
+						<PiggyBankIcon class="size-5 text-foreground" />
 					</div>
 					<div class="flex flex-col gap-1 min-w-0">
 						<p class="text-sm font-semibold text-foreground truncate">{pb.name}</p>
@@ -73,4 +96,5 @@
 			{/each}
 		</CardContent>
 	</Card>
+	{/if}
 </div>

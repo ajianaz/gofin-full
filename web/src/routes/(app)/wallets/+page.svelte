@@ -1,21 +1,35 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Plus, ChevronDown, Landmark, Smartphone, CreditCard, Wallet } from '@lucide/svelte';
-	import { mockWallets } from '$lib/data/mock-wallets.js';
+	import { walletService } from '$lib/services/index.js';
+	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
 
+	let items = $state<Account[]>([]);
+	let isLoading = $state(true);
 	let typeFilter = $state('all');
+
+	onMount(async () => {
+		try {
+			items = await walletService.list();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	});
 
 	let filtered = $derived(
 		typeFilter === 'all'
-			? mockWallets
-			: mockWallets.filter((w) => w.type === typeFilter)
+			? items
+			: items.filter((w) => w.type === typeFilter)
 	);
 
-	function walletIcon(w: (typeof mockWallets)[number]) {
+	function walletIcon(w: Account) {
 		if (w.type === 'liability') return CreditCard;
 		if (w.type === 'cash') return Wallet;
 		const name = w.name.toLowerCase();
@@ -24,7 +38,7 @@
 		return Landmark;
 	}
 
-	function walletLabel(w: (typeof mockWallets)[number]): string {
+	function walletLabel(w: Account): string {
 		if (w.type === 'liability') return t('wallets.list.creditCard');
 		if (w.type === 'cash') return t('wallets.list.cash');
 		const name = w.name.toLowerCase();
@@ -70,7 +84,10 @@
 	</div>
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#each filtered as wallet}
+		{#if isLoading}
+				<p class="col-span-full py-8 text-center text-sm text-muted-foreground">Memuat...</p>
+			{:else}
+			{#each filtered as wallet}
 			{@const Icon = walletIcon(wallet)}
 			<Card class="hover:shadow-md transition-shadow">
 				<CardContent class="p-5">
@@ -85,5 +102,6 @@
 				</CardContent>
 			</Card>
 		{/each}
+			{/if}
 	</div>
 </div>

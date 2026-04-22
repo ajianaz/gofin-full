@@ -6,14 +6,32 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import { ruleService } from '$lib/services/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
+
+	let isLoading = $state(false);
+	let errorMsg = $state('');
 
 	let title = $state('');
 	let order = $state('1');
 	let description = $state('');
 	let active = $state(true);
 	let stopProcessing = $state(false);
+
+	async function handleSubmit(e: Event) {
+		e.preventDefault();
+		isLoading = true;
+		errorMsg = '';
+		try {
+			await ruleService.createGroup({ title });
+			goto('/rules');
+		} catch (err: any) {
+			errorMsg = err.detail || err.message || 'Gagal menyimpan';
+		} finally {
+			isLoading = false;
+		}
+	}
 </script>
 
 <div class="flex flex-col gap-4">
@@ -28,7 +46,7 @@
 			</div>
 		</CardHeader>
 		<CardContent>
-			<form class="flex flex-col gap-6" onsubmit={(e) => { e.preventDefault(); goto('/rules'); }}>
+			<form class="flex flex-col gap-6" onsubmit={handleSubmit}>
 				<div class="grid gap-6 md:grid-cols-2">
 					<div class="flex flex-col gap-2">
 						<Label for="title">{t('rules.createGroup.name')}</Label>
@@ -53,8 +71,11 @@
 					<Label for="desc">{t('rules.createGroup.description')}</Label>
 					<Textarea id="desc" placeholder={t('rules.createGroup.descriptionPlaceholder')} bind:value={description} rows={3} />
 				</div>
+				{#if errorMsg}
+					<p class="text-sm text-destructive">{errorMsg}</p>
+				{/if}
 				<div class="flex gap-2 pt-2">
-					<Button type="submit" class="flex-1">{t('common.save')}</Button>
+					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? '...' : t('common.save')}</Button>
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/rules')}>{t('common.cancel')}</Button>
 				</div>
 			</form>

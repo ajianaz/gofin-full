@@ -1,15 +1,20 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown } from '@lucide/svelte';
-	import { mockTransactions } from '$lib/data/mock-transactions.js';
-	import { mockCategories } from '$lib/data/mock-categories.js';
-	import { mockWallets } from '$lib/data/mock-wallets.js';
+	import { transactionService, walletService, categoryService } from '$lib/services/index.js';
 	import { formatAmount, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import type { Transaction, Account, Category } from '$lib/types/domain.js';
 	const t = localeStore.t;
+
+	let isLoading = $state(true);
+	let items = $state<Transaction[]>([]);
+	let wallets = $state<Account[]>([]);
+	let categories = $state<Category[]>([]);
 
 	let searchQuery = $state('');
 	let typeFilter = $state('all');
@@ -20,8 +25,25 @@
 	const PER_PAGE = 5;
 	let currentPage = $state(1);
 
+	onMount(async () => {
+		try {
+			const [txRes, walletList, catList] = await Promise.all([
+				transactionService.list(),
+				walletService.list(),
+				categoryService.list()
+			]);
+			items = txRes.data;
+			wallets = walletList;
+			categories = catList;
+		} catch (e) {
+			console.error('Failed to load transactions:', e);
+		} finally {
+			isLoading = false;
+		}
+	});
+
 	let filtered = $derived(() => {
-		let result = [...mockTransactions];
+		let result = [...items];
 		if (searchQuery) {
 			const q = searchQuery.toLowerCase();
 			result = result.filter((t) => t.description.toLowerCase().includes(q));
@@ -58,13 +80,15 @@
 		currentPage = 1;
 	});
 
-	function acctName(tx: (typeof mockTransactions)[number]): string {
+	function acctName(tx: Transaction): string {
 		return tx.source_account_name || tx.destination_account_name || '-';
 	}
 </script>
 
 <div class="flex flex-col gap-4">
-	<div class="flex flex-wrap items-center justify-between gap-3">
+	{#if isLoading}
+		<p class="text-sm text-muted-foreground py-8 text-center">Memuat...</p>
+	{:else}
 		<div class="flex items-center gap-3">
 			<h2 class="text-base font-semibold text-foreground">{t('transactions.list.title')}</h2>
 			<span class="inline-flex items-center rounded-2xl bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
@@ -81,7 +105,6 @@
 				{t('transactions.list.add')}
 			</Button>
 		</div>
-	</div>
 
 	<div class="flex flex-wrap items-center gap-3">
 		<div class="relative">
@@ -102,7 +125,7 @@
 				class="cn-input h-9 w-44 appearance-none bg-background pr-8 text-sm"
 			>
 				<option value="all">{t('transactions.list.allWallets')}</option>
-				{#each mockWallets as w}
+				{#each wallets as w}
 					<option value={w.id}>{w.name}</option>
 				{/each}
 			</select>
@@ -114,7 +137,7 @@
 				class="cn-input h-9 w-44 appearance-none bg-background pr-8 text-sm"
 			>
 				<option value="all">{t('transactions.list.allCategories')}</option>
-				{#each mockCategories as cat}
+				{#each categories as cat}
 					<option value={cat.id}>{cat.name}</option>
 				{/each}
 			</select>
@@ -189,4 +212,5 @@
 			</div>
 		</CardContent>
 	</Card>
+	{/if}
 </div>

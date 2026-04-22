@@ -6,6 +6,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronDown } from '@lucide/svelte';
+	import { budgetService } from '$lib/services/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
 
@@ -14,6 +15,8 @@
 	let autoBudgetType = $state('none');
 	let period = $state('monthly');
 	let amount = $state('');
+	let isLoading = $state(false);
+	let errorMsg = $state('');
 </script>
 
 <div class="flex flex-col gap-4">
@@ -22,7 +25,19 @@
 			<CardTitle>{t('budgets.create.title')}</CardTitle>
 		</CardHeader>
 		<CardContent>
-			<form class="flex flex-col gap-4" onsubmit={(e) => { e.preventDefault(); goto('/budgets'); }}>
+			<form class="flex flex-col gap-4" onsubmit={async (e) => {
+					e.preventDefault();
+					isLoading = true;
+					errorMsg = '';
+					try {
+						await budgetService.create({ name });
+						goto('/budgets');
+					} catch (err: any) {
+						errorMsg = err.detail || err.message || 'Gagal menyimpan';
+					} finally {
+						isLoading = false;
+					}
+				}}>
 				<div class="grid gap-2">
 					<Label for="name">{t('budgets.create.name')}</Label>
 					<Input id="name" placeholder={t('budgets.create.namePlaceholder')} bind:value={name} required />
@@ -75,7 +90,10 @@
 				</div>
 
 				<div class="flex gap-2 pt-2">
-					<Button type="submit" class="flex-1">{t('common.save')}</Button>
+					{#if errorMsg}
+						<p class="text-destructive text-sm">{errorMsg}</p>
+					{/if}
+					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? 'Menyimpan...' : t('common.save')}</Button>
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/budgets')}>{t('common.cancel')}</Button>
 				</div>
 			</form>

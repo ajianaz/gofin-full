@@ -8,8 +8,11 @@
 	import { mockCurrencies } from '$lib/data/mock-currencies.js';
 	import { ChevronDown } from '@lucide/svelte';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { walletService } from '$lib/services/index.js';
 	const t = localeStore.t;
 
+	let isLoading = $state(false);
+	let errorMsg = $state('');
 	let name = $state('');
 	let type = $state('');
 	let currencyCode = $state('IDR');
@@ -25,7 +28,7 @@
 			<CardTitle>{t('wallets.create.title')}</CardTitle>
 		</CardHeader>
 		<CardContent>
-			<form class="flex flex-col gap-6" onsubmit={(e) => { e.preventDefault(); goto('/wallets'); }}>
+			<form class="flex flex-col gap-6" onsubmit={async (e) => { e.preventDefault(); isLoading = true; errorMsg = ''; try { await walletService.create({ name, wallet_type: type }); goto('/wallets'); } catch (err: any) { errorMsg = err?.detail || err?.message || 'Gagal menyimpan'; } finally { isLoading = false; } }}>
 				<div class="grid gap-6 md:grid-cols-2">
 					<div class="flex flex-col gap-4">
 						<div class="flex flex-col gap-2">
@@ -92,8 +95,12 @@
 					<Label for="netWorth">{t('wallets.create.includeNetWorth')}</Label>
 				</div>
 
+				{#if errorMsg}
+					<p class="text-destructive text-sm">{errorMsg}</p>
+				{/if}
+
 				<div class="flex gap-2">
-					<Button type="submit" class="flex-1">{t('wallets.create.submit')}</Button>
+					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? 'Saving...' : t('wallets.create.submit')}</Button>
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/wallets')}>{t('common.cancel')}</Button>
 				</div>
 			</form>
