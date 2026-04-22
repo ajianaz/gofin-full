@@ -4,9 +4,6 @@ const TEST_EMAIL = `e2e-test-${Date.now()}@example.com`;
 const TEST_PASSWORD = 'testpassword12345';
 
 test.describe('Authentication Flow', () => {
-	// ---------------------------------------------------------------------------
-	// 1. Login page has correct form fields
-	// ---------------------------------------------------------------------------
 	test('login page has correct form fields', async ({ page }) => {
 		await page.goto('/login');
 		await page.waitForLoadState('domcontentloaded');
@@ -23,9 +20,6 @@ test.describe('Authentication Flow', () => {
 		await expect(submitButton).toBeVisible();
 	});
 
-	// ---------------------------------------------------------------------------
-	// 2. Register page has correct form fields
-	// ---------------------------------------------------------------------------
 	test('register page has correct form fields', async ({ page }) => {
 		await page.goto('/register');
 		await page.waitForLoadState('domcontentloaded');
@@ -46,9 +40,6 @@ test.describe('Authentication Flow', () => {
 		await expect(submitButton).toBeVisible();
 	});
 
-	// ---------------------------------------------------------------------------
-	// 3. API registration works via proxy
-	// ---------------------------------------------------------------------------
 	test('API registration works via proxy', async ({ request }) => {
 		const response = await request.post('/api/v1/auth/register', {
 			data: {
@@ -67,21 +58,18 @@ test.describe('Authentication Flow', () => {
 		expect(body.token_type).toBe('Bearer');
 	});
 
-	// ---------------------------------------------------------------------------
-	// 4. API login works via proxy with registered credentials
-	// ---------------------------------------------------------------------------
 	test('API login works via proxy', async ({ request }) => {
+		// Register a user first, then login
 		const loginEmail = `e2e-login-${Date.now()}@example.com`;
-		const loginPassword = 'loginpassword123';
-
-		await request.post('/api/v1/auth/register', {
-			data: { email: loginEmail, password: loginPassword }
+		const regResponse = await request.post('/api/v1/auth/register', {
+			data: { email: loginEmail, password: TEST_PASSWORD }
 		});
+		expect(regResponse.status()).toBe(201);
 
 		const response = await request.post('/api/v1/auth/login', {
 			data: {
 				email: loginEmail,
-				password: loginPassword
+				password: TEST_PASSWORD
 			}
 		});
 
@@ -95,27 +83,24 @@ test.describe('Authentication Flow', () => {
 		expect(body.token_type).toBe('Bearer');
 	});
 
-	// ---------------------------------------------------------------------------
-	// 5. Dashboard accessible after setting auth token in localStorage
-	// ---------------------------------------------------------------------------
 	test('dashboard accessible with token in localStorage', async ({ page }) => {
-		const dashEmail = `e2e-dash-${Date.now()}@example.com`;
-		const dashPassword = 'dashpassword123';
-
-		const registerResponse = await page.request.post('/api/v1/auth/register', {
-			data: { email: dashEmail, password: dashPassword }
+		// Register first
+		const dashboardEmail = `e2e-dash-${Date.now()}@example.com`;
+		const loginResponse = await page.request.post('/api/v1/auth/register', {
+			data: { email: dashboardEmail, password: TEST_PASSWORD }
 		});
-		expect(registerResponse.ok()).toBeTruthy();
-		const tokens = await registerResponse.json();
+		expect(loginResponse.ok()).toBeTruthy();
+		const tokens = await loginResponse.json();
 
 		await page.goto('/dashboard');
+
 		await page.evaluate((accessToken) => {
 			localStorage.setItem('access_token', accessToken);
 		}, tokens.access_token);
+
 		await page.reload();
 		await page.waitForLoadState('domcontentloaded');
 
-		const url = page.url();
-		expect(url).toContain('/dashboard');
+		expect(page.url()).toContain('/dashboard');
 	});
 });

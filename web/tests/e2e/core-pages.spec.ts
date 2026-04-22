@@ -1,15 +1,19 @@
 import { test, expect } from '@playwright/test';
 
 // ---------------------------------------------------------------------------
-// Helper: register and authenticate via API, then navigate to a protected page
+// Helper: register + authenticate via API and navigate to a protected page
 // ---------------------------------------------------------------------------
-async function registerAndNavigate(page: import('@playwright/test').Page, path: string) {
-	const email = `e2e-core-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`;
-	const registerResponse = await page.request.post('/api/v1/auth/register', {
-		data: { email, password: 'corepassword123' }
+async function registerAndAuthenticate(page: import('@playwright/test').Page, path: string, email?: string) {
+	const testEmail = email || `e2e-core-${Date.now()}@example.com`;
+	const testPassword = 'testpassword12345';
+
+	// Register
+	const regResponse = await page.request.post('/api/v1/auth/register', {
+		data: { email: testEmail, password: testPassword }
 	});
-	expect(registerResponse.ok()).toBeTruthy();
-	const tokens = await registerResponse.json();
+	expect(regResponse.ok()).toBeTruthy();
+	const tokens = await regResponse.json();
+	expect(tokens.access_token).toBeDefined();
 
 	await page.goto(path);
 	await page.evaluate((accessToken) => {
@@ -17,6 +21,8 @@ async function registerAndNavigate(page: import('@playwright/test').Page, path: 
 	}, tokens.access_token);
 	await page.reload();
 	await page.waitForLoadState('domcontentloaded');
+
+	return { email: testEmail, tokens };
 }
 
 // ===========================================================================
@@ -24,29 +30,33 @@ async function registerAndNavigate(page: import('@playwright/test').Page, path: 
 // ===========================================================================
 test.describe('Dashboard Page', () => {
 	test('loads and shows stat cards', async ({ page }) => {
-		await registerAndNavigate(page, '/dashboard');
+		await registerAndAuthenticate(page, '/dashboard');
 		expect(page.url()).toContain('/dashboard');
 
+		// StatCard grid with 4 columns
 		const statGrid = page.locator('.grid.lg\\:grid-cols-4');
 		await expect(statGrid).toBeVisible();
 
+		// Stat cards contain SVG icons
 		const icons = statGrid.locator('svg');
 		await expect(icons.first()).toBeVisible();
 	});
 
 	test('shows recent transactions section', async ({ page }) => {
-		await registerAndNavigate(page, '/dashboard');
+		await registerAndAuthenticate(page, '/dashboard');
 		expect(page.url()).toContain('/dashboard');
 
+		// Recent transactions card visible
 		const cards = page.locator('[class*="card"], [class*="Card"]');
 		await expect(cards.first()).toBeVisible();
 
+		// "View All" link exists
 		const viewAllLink = page.locator('a[href="/transactions"].text-sm');
 		await expect(viewAllLink).toBeVisible();
 	});
 
 	test('"View All" link navigates to transactions', async ({ page }) => {
-		await registerAndNavigate(page, '/dashboard');
+		await registerAndAuthenticate(page, '/dashboard');
 		expect(page.url()).toContain('/dashboard');
 
 		await page.locator('a[href="/transactions"].text-sm').click();
@@ -56,7 +66,7 @@ test.describe('Dashboard Page', () => {
 	});
 
 	test('shows spending by category with progress bars', async ({ page }) => {
-		await registerAndNavigate(page, '/dashboard');
+		await registerAndAuthenticate(page, '/dashboard');
 		expect(page.url()).toContain('/dashboard');
 
 		const progressElements = page.locator('[role="progressbar"], [class*="progress"]');
@@ -69,7 +79,7 @@ test.describe('Dashboard Page', () => {
 // ===========================================================================
 test.describe('Wallets Page', () => {
 	test('loads and shows wallet cards', async ({ page }) => {
-		await registerAndNavigate(page, '/wallets');
+		await registerAndAuthenticate(page, '/wallets');
 		expect(page.url()).toContain('/wallets');
 
 		const headings = page.locator('h2');
@@ -86,7 +96,7 @@ test.describe('Wallets Page', () => {
 	});
 
 	test('has type filter dropdown', async ({ page }) => {
-		await registerAndNavigate(page, '/wallets');
+		await registerAndAuthenticate(page, '/wallets');
 		expect(page.url()).toContain('/wallets');
 
 		const typeFilter = page.locator('select');
@@ -97,7 +107,7 @@ test.describe('Wallets Page', () => {
 	});
 
 	test('has "Add" button for wallet creation', async ({ page }) => {
-		await registerAndNavigate(page, '/wallets');
+		await registerAndAuthenticate(page, '/wallets');
 		expect(page.url()).toContain('/wallets');
 
 		const addButton = page.locator('main button:has(svg.lucide-plus, svg:has(path[d*="M12 5"]))').first();
@@ -110,7 +120,7 @@ test.describe('Wallets Page', () => {
 // ===========================================================================
 test.describe('Transactions Page', () => {
 	test('loads and shows table', async ({ page }) => {
-		await registerAndNavigate(page, '/transactions');
+		await registerAndAuthenticate(page, '/transactions');
 		expect(page.url()).toContain('/transactions');
 
 		const headings = page.locator('h2');
@@ -126,7 +136,7 @@ test.describe('Transactions Page', () => {
 	});
 
 	test('has search input and filter dropdowns', async ({ page }) => {
-		await registerAndNavigate(page, '/transactions');
+		await registerAndAuthenticate(page, '/transactions');
 		expect(page.url()).toContain('/transactions');
 
 		const searchInput = page.locator('input[type="text"], input[placeholder]');
@@ -137,7 +147,7 @@ test.describe('Transactions Page', () => {
 	});
 
 	test('has pagination controls', async ({ page }) => {
-		await registerAndNavigate(page, '/transactions');
+		await registerAndAuthenticate(page, '/transactions');
 		expect(page.url()).toContain('/transactions');
 
 		const paginationArea = page.locator('.flex.items-center.gap-1').last();
@@ -148,7 +158,7 @@ test.describe('Transactions Page', () => {
 	});
 
 	test('has "Add" button for transaction creation', async ({ page }) => {
-		await registerAndNavigate(page, '/transactions');
+		await registerAndAuthenticate(page, '/transactions');
 		expect(page.url()).toContain('/transactions');
 
 		const addButton = page.locator('main button:has(svg.lucide-plus, svg:has(path[d*="M12 5"]))').first();
