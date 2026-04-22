@@ -1,0 +1,18 @@
+FROM postgres:17-alpine
+
+RUN apk add --no-cache gzip
+
+COPY backup.sh /backup.sh
+RUN chmod +x /backup.sh
+
+# Default: backup daily at 03:00 UTC
+ENV CRON_SCHEDULE="0 3 * * *"
+
+# Install cron and setup
+RUN apk add --no-cache dcron
+
+# Entrypoint sets up cron job then runs cron daemon
+COPY crontab-entrypoint.sh /crontab-entrypoint.sh
+RUN chmod +x /crontab-entrypoint.sh
+
+ENTRYPOINT ["/crontab-entrypoint.sh"]
