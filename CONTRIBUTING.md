@@ -72,6 +72,16 @@ bunx playwright test # E2E tests (requires running API)
 | Web type check | `make web-lint` | No |
 | E2E (Playwright) | `cd web && bunx playwright test` | Yes |
 
+## Pre-commit Hooks
+
+After cloning, install git hooks:
+
+```bash
+./scripts/setup-hooks.sh
+```
+
+This runs `gofmt`, `go vet`, and `svelte-check` on staged files before each commit.
+
 ## Pull Request Process
 
 1. Create a feature branch from `main`

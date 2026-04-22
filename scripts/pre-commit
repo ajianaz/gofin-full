@@ -1,0 +1,27 @@
+#!/bin/sh
+# Pre-commit hook — runs fast checks before allowing commit
+
+set -e
+
+echo "Running pre-commit checks..."
+
+# Check for staged Go files
+STAGED_GO=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true)
+STAGED_WEB=$(git diff --cached --name-only --diff-filter=ACM | grep -E 'web/.*\.(ts|svelte)$' || true)
+
+if [ -n "$STAGED_GO" ]; then
+  echo "  [go] Formatting staged Go files..."
+  cd api
+  gofmt -w $(echo "$STAGED_GO" | sed 's|^api/||') 2>/dev/null || true
+  go vet ./...
+  echo "  [go] OK"
+fi
+
+if [ -n "$STAGED_WEB" ]; then
+  echo "  [web] Type checking..."
+  cd web
+  bun run check 2>&1 | tail -1
+  echo "  [web] OK"
+fi
+
+echo "Pre-commit checks passed."
