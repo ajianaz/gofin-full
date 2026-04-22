@@ -48,7 +48,7 @@
 										<Button variant="ghost" size="sm">
 											<Copy class="size-4" />
 										</Button>
-										<Button variant="ghost" size="sm" class="text-destructive hover:text-destructive">
+										<Button variant="ghost" size="sm" class="text-destructive">
 											<Trash2 class="size-4" />
 										</Button>
 									</div>

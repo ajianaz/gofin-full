@@ -55,7 +55,7 @@
 			});
 			goto('/recurring');
 		} catch (err: any) {
-			errorMsg = err.detail || err.message || 'Gagal menyimpan';
+			errorMsg = err.detail || err.message || t('common.errorSave');
 		} finally {
 			isLoading = false;
 		}
@@ -161,7 +161,7 @@
 			{#if errorMsg}
 				<p class="text-sm text-destructive">{errorMsg}</p>
 			{/if}
-			<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? '...' : t('recurring.create.submit')}</Button>
+			<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? t('common.saving') : t('recurring.create.submit')}</Button>
 			<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/recurring')}>{t('common.cancel')}</Button>
 		</div>
 	</form>

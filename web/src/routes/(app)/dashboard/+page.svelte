@@ -45,7 +45,7 @@
 
 {#if isLoading}
 	<div class="flex items-center justify-center py-20">
-		<p class="text-muted-foreground">Memuat...</p>
+		<p class="text-muted-foreground">{t('common.loading')}</p>
 	</div>
 {:else}
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
@@ -71,7 +71,7 @@
 							<AmountDisplay amount={tx.amount} class="text-sm" />
 						</div>
 					{:else}
-						<p class="text-sm text-muted-foreground">Belum ada transaksi.</p>
+						<p class="text-sm text-muted-foreground">{t('common.noData')}</p>
 					{/each}
 				</div>
 				<a href="/transactions" class="mt-4 block text-sm text-primary font-medium hover:underline">{t('dashboard.viewAll')}</a>
@@ -97,7 +97,7 @@
 						{/each}
 					</div>
 				{:else}
-					<p class="text-sm text-muted-foreground">Belum ada budget.</p>
+					<p class="text-sm text-muted-foreground">{t('common.noData')}</p>
 				{/if}
 			</CardContent>
 		</Card>

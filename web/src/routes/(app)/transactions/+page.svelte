@@ -12,6 +12,7 @@
 	const t = localeStore.t;
 
 	let isLoading = $state(true);
+	let errorMsg = $state('');
 	let items = $state<Transaction[]>([]);
 	let wallets = $state<Account[]>([]);
 	let categories = $state<Category[]>([]);
@@ -26,7 +27,7 @@
 	let currentPage = $state(1);
 
 	async function handleDelete(id: string) {
-		if (!confirm('Hapus transaksi ini?')) return;
+		if (!confirm(t('common.delete') + '?')) return;
 		await transactionService.delete(id);
 		items = items.filter((t) => t.id !== id);
 	}
@@ -42,6 +43,7 @@
 			wallets = walletList;
 			categories = catList;
 		} catch (e) {
+			errorMsg = t('common.error');
 			console.error('Failed to load transactions:', e);
 		} finally {
 			isLoading = false;
@@ -93,7 +95,9 @@
 
 <div class="flex flex-col gap-4">
 	{#if isLoading}
-		<p class="text-sm text-muted-foreground py-8 text-center">Memuat...</p>
+		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+	{:else if errorMsg}
+		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
 	{:else}
 		<div class="flex items-center gap-3">
 			<h2 class="text-base font-semibold text-foreground">{t('transactions.list.title')}</h2>
@@ -192,11 +196,13 @@
 								<td class="p-3 text-muted-foreground">{tx.category_name || '-'}</td>
 								<td class="p-3 text-muted-foreground">{acctName(tx)}</td>
 								<td class="p-3">
-									<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(tx.id)}>
+									<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(tx.id)}>
 										<Trash2 class="size-4" />
 									</button>
 								</td>
 							</tr>
+						{:else}
+							<tr><td colspan="6" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td></tr>
 						{/each}
 					</tbody>
 				</table>

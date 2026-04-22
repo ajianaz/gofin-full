@@ -10,10 +10,11 @@
 	const t = localeStore.t;
 
 	let isLoading = $state(true);
+	let errorMsg = $state('');
 	let items = $state<RuleGroup[]>([]);
 
 	async function handleDelete(id: string) {
-		if (!confirm('Hapus rule group ini?')) return;
+		if (!confirm(t('common.delete') + '?')) return;
 		await ruleService.deleteGroup(id);
 		items = items.filter((g) => g.id !== id);
 	}
@@ -22,6 +23,7 @@
 		try {
 			items = await ruleService.list();
 		} catch (e) {
+			errorMsg = t('common.error');
 			console.error('Failed to load rules:', e);
 		} finally {
 			isLoading = false;
@@ -31,7 +33,9 @@
 
 <div class="flex flex-col gap-4">
 	{#if isLoading}
-		<p class="text-sm text-muted-foreground py-8 text-center">Memuat...</p>
+		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+	{:else if errorMsg}
+		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
 	{:else}
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="flex items-center gap-3">
@@ -75,10 +79,12 @@
 							<ChevronRight class="size-4 text-muted-foreground" />
 						</div>
 					</button>
-					<button type="button" class="text-muted-foreground hover:text-destructive transition-colors px-2" onclick={(e) => { e.stopPropagation(); handleDelete(group.id); }}>
+					<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors px-2" onclick={(e) => { e.stopPropagation(); handleDelete(group.id); }}>
 						<Trash2 class="size-4" />
 					</button>
 				</div>
+			{:else}
+				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
 			{/each}
 		</CardContent>
 	</Card>

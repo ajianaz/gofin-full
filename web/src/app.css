@@ -68,7 +68,7 @@
 	--sidebar-foreground: oklch(0.985 0 0);
 	--sidebar-primary: oklch(0.488 0.243 264.376);
 	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.269 0 0);
+	--sidebar-accent: oklch(0.32 0 0);
 	--sidebar-accent-foreground: oklch(0.985 0 0);
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.439 0 0);
@@ -181,21 +181,21 @@
 	color: var(--primary-foreground);
 	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 	&:hover {
-		background-color: var(--primary) / 0.9;
+		background-color: oklch(from var(--primary) calc(l - 0.06) c h);
 	}
 }
 @utility cn-button-variant-secondary {
 	background-color: var(--secondary);
 	color: var(--secondary-foreground);
 	&:hover {
-		background-color: var(--secondary) / 0.8;
+		background-color: oklch(from var(--secondary) calc(l * 0.92) c h);
 	}
 }
 @utility cn-button-variant-destructive {
 	background-color: var(--destructive);
 	color: var(--destructive-foreground);
 	&:hover {
-		background-color: var(--destructive) / 0.9;
+		background-color: oklch(from var(--destructive) calc(l - 0.06) c h);
 	}
 }
 @utility cn-button-variant-outline {
@@ -910,7 +910,7 @@
 	box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 @utility cn-menu-translucent {
-	background-color: rgb(255 255 255 / 0.95);
+	background-color: oklch(from var(--popover) l c h / 0.95);
 	backdrop-filter: blur(4px);
 }
 

@@ -13,10 +13,11 @@
 
 	let items = $state<Bill[]>([]);
 	let isLoading = $state(true);
+	let errorMsg = $state('');
 	let accountFilter = $state('all');
 
 	async function handleDelete(id: string) {
-		if (!confirm('Hapus tagihan ini?')) return;
+		if (!confirm(t('common.delete') + '?')) return;
 		await billService.delete(id);
 		items = items.filter((b) => b.id !== id);
 	}
@@ -25,6 +26,7 @@
 		try {
 			items = await billService.list();
 		} catch (e) {
+			errorMsg = t('common.error');
 			console.error(e);
 		} finally {
 			isLoading = false;
@@ -66,7 +68,9 @@
 		<CardContent class="p-0">
 			<p class="px-5 pt-4 text-[13px] font-normal text-muted-foreground">{t('bills.list.activeList')}</p>
 			{#if isLoading}
-				<p class="px-5 py-8 text-center text-sm text-muted-foreground">Memuat...</p>
+				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</p>
+			{:else if errorMsg}
+				<p class="px-5 py-8 text-center text-sm text-destructive">{errorMsg}</p>
 			{:else}
 				{#each filtered as bill}
 					<div class="flex items-center justify-between px-5 py-3 border-b last:border-b-0">
@@ -87,11 +91,13 @@
 							{:else}
 								<Badge variant="outline" class="text-xs">{t('bills.list.inactive')}</Badge>
 							{/if}
-							<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(bill.id)}>
+							<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(bill.id)}>
 								<Trash2 class="size-4" />
 							</button>
 						</div>
 					</div>
+				{:else}
+					<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
 				{/each}
 			{/if}
 		</CardContent>

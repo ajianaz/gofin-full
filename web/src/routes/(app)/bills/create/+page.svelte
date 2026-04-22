@@ -42,7 +42,7 @@
 						await billService.create({ name, amount_min: amountMin, amount_max: amountMax || undefined, repeat_freq: repeatFreq, date: startDate });
 						goto('/bills');
 					} catch (err: any) {
-						errorMsg = err.detail || err.message || 'Gagal menyimpan';
+						errorMsg = err.detail || err.message || t('common.errorSave');
 					} finally {
 						isLoading = false;
 					}
@@ -113,7 +113,7 @@
 					{#if errorMsg}
 						<p class="text-destructive text-sm">{errorMsg}</p>
 					{/if}
-					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? 'Menyimpan...' : t('bills.create.submit')}</Button>
+					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? t('common.saving') : t('bills.create.submit')}</Button>
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/bills')}>{t('common.cancel')}</Button>
 				</div>
 			</form>

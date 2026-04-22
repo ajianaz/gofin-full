@@ -12,10 +12,11 @@
 	const t = localeStore.t;
 
 	let isLoading = $state(true);
+	let errorMsg = $state('');
 	let items = $state<RecurringTransaction[]>([]);
 
 	async function handleDelete(id: string) {
-		if (!confirm('Hapus recurring ini?')) return;
+		if (!confirm(t('common.delete') + '?')) return;
 		await recurringService.delete(id);
 		items = items.filter((r) => r.id !== id);
 	}
@@ -24,6 +25,7 @@
 		try {
 			items = await recurringService.list();
 		} catch (e) {
+			errorMsg = t('common.error');
 			console.error('Failed to load recurring transactions:', e);
 		} finally {
 			isLoading = false;
@@ -41,7 +43,9 @@
 
 <div class="flex flex-col gap-4">
 	{#if isLoading}
-		<p class="text-sm text-muted-foreground py-8 text-center">Memuat...</p>
+		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+	{:else if errorMsg}
+		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
 	{:else}
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="flex items-center gap-3">
@@ -75,11 +79,13 @@
 						{:else}
 							<Badge variant="outline" class="text-xs">{t('recurring.list.inactive')}</Badge>
 						{/if}
-						<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(rec.id)}>
+						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(rec.id)}>
 							<Trash2 class="size-4" />
 						</button>
 					</div>
 				</div>
+			{:else}
+				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
 			{/each}
 		</CardContent>
 	</Card>

@@ -18,7 +18,7 @@
 <BackButton href="/tags" />
 
 <FormCard title={t('tags.create.title')} description={t('tags.create.description')}>
-	<form class="grid gap-4" onsubmit={async (e) => { e.preventDefault(); isLoading = true; errorMsg = ''; try { await tagService.create({ tag, date }); goto('/tags'); } catch (err: any) { errorMsg = err?.detail || err?.message || 'Gagal menyimpan'; } finally { isLoading = false; } }}>
+	<form class="grid gap-4" onsubmit={async (e) => { e.preventDefault(); isLoading = true; errorMsg = ''; try { await tagService.create({ tag, date }); goto('/tags'); } catch (err: any) { errorMsg = err?.detail || err?.message || t('common.errorSave'); } finally { isLoading = false; } }}>
 		<div class="grid gap-2">
 			<Label for="tag">{t('tags.create.tag')}</Label>
 			<Input id="tag" placeholder={t('tags.create.tagPlaceholder')} bind:value={tag} required />
@@ -39,7 +39,7 @@
 		{/if}
 
 		<div class="flex gap-3 pt-2">
-			<Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : t('common.save')}</Button>
+			<Button type="submit" disabled={isLoading}>{isLoading ? t('common.saving') : t('common.save')}</Button>
 			<Button type="button" variant="outline" onclick={() => goto('/tags')}>{t('common.cancel')}</Button>
 		</div>
 	</form>

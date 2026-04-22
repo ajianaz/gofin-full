@@ -12,13 +12,14 @@
 	const t = localeStore.t;
 
 	let isLoading = $state(true);
+	let errorMsg = $state('');
 	let items = $state<PiggyBank[]>([]);
 	let wallets = $state<Account[]>([]);
 
 	let accountFilter = $state('all');
 
 	async function handleDelete(walletId: string, id: string) {
-		if (!confirm('Hapus piggy bank ini?')) return;
+		if (!confirm(t('common.delete') + '?')) return;
 		await piggyBankService.delete(walletId, id);
 		items = items.filter((pb) => pb.id !== id);
 	}
@@ -31,6 +32,7 @@
 				items = await piggyBankService.list(walletList[0].id);
 			}
 		} catch (e) {
+			errorMsg = t('common.error');
 			console.error('Failed to load piggy banks:', e);
 		} finally {
 			isLoading = false;
@@ -48,7 +50,9 @@
 
 <div class="flex flex-col gap-4">
 	{#if isLoading}
-		<p class="text-sm text-muted-foreground py-8 text-center">Memuat...</p>
+		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+	{:else if errorMsg}
+		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
 	{:else}
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="flex items-center gap-3">
@@ -99,11 +103,13 @@
 							<p class="text-sm font-semibold text-foreground">{formatCurrency(pb.current_amount)}</p>
 							<p class="text-xs text-muted-foreground">{t('piggyBanks.list.of', { pct: Math.round(pct), target: formatCurrency(pb.target_amount) })}</p>
 						</div>
-						<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(pb.account_id, pb.id)}>
+						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(pb.account_id, pb.id)}>
 							<Trash2 class="size-4" />
 						</button>
 					</div>
 				</div>
+			{:else}
+				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
 			{/each}
 		</CardContent>
 	</Card>

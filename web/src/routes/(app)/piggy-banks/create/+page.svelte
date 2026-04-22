@@ -37,7 +37,7 @@
 				await piggyBankService.create({ wallet_id: accountId, name, target_amount: targetAmount });
 				goto('/piggy-banks');
 			} catch (err: any) {
-				errorMsg = err?.detail || err?.message || 'Gagal menyimpan';
+				errorMsg = err?.detail || err?.message || t('common.errorSave');
 			} finally {
 				isLoading = false;
 			}
@@ -88,7 +88,7 @@
 			{#if errorMsg}
 				<p class="text-destructive text-sm">{errorMsg}</p>
 			{/if}
-			<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? 'Menyimpan...' : t('piggyBanks.create.submit')}</Button>
+			<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? t('common.saving') : t('piggyBanks.create.submit')}</Button>
 			<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/piggy-banks')}>{t('common.cancel')}</Button>
 		</div>
 	</form>

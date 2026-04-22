@@ -53,7 +53,7 @@
 			await transactionService.create(payload);
 			goto('/transactions');
 		} catch (err: any) {
-			errorMsg = err.detail || err.message || 'Gagal menyimpan transaksi';
+			errorMsg = err.detail || err.message || t('common.errorSave');
 		} finally {
 			isLoading = false;
 		}
@@ -182,7 +182,7 @@
 					{#if errorMsg}
 						<p class="text-sm text-destructive">{errorMsg}</p>
 					{/if}
-					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? '...' : t('transactions.create.submit')}</Button>
+					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? t('common.saving') : t('transactions.create.submit')}</Button>
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/transactions')}>{t('common.cancel')}</Button>
 				</div>
 			</form>

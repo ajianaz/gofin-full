@@ -11,10 +11,11 @@
 
 	let items = $state<Account[]>([]);
 	let isLoading = $state(true);
+	let errorMsg = $state('');
 	let typeFilter = $state('all');
 
 	async function handleDelete(id: string) {
-		if (!confirm('Hapus wallet ini?')) return;
+		if (!confirm(t('common.delete') + '?')) return;
 		await walletService.delete(id);
 		items = items.filter((w) => w.id !== id);
 	}
@@ -23,6 +24,7 @@
 		try {
 			items = await walletService.list();
 		} catch (e) {
+			errorMsg = t('common.error');
 			console.error(e);
 		} finally {
 			isLoading = false;
@@ -91,7 +93,9 @@
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{#if isLoading}
-			<p class="col-span-full py-8 text-center text-sm text-muted-foreground">Memuat...</p>
+			<p class="col-span-full py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</p>
+		{:else if errorMsg}
+			<p class="col-span-full text-sm text-destructive py-8 text-center">{errorMsg}</p>
 		{:else}
 			{#each filtered as wallet}
 			{@const Icon = walletIcon(wallet)}
@@ -102,7 +106,7 @@
 							<Icon class="size-[18px] text-primary" />
 							<span class="text-base font-semibold text-foreground">{wallet.name}</span>
 						</div>
-						<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(wallet.id)}>
+						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(wallet.id)}>
 							<Trash2 class="size-4" />
 						</button>
 					</div>
@@ -112,7 +116,9 @@
 					<p class="mt-1 text-xs text-muted-foreground">{walletLabel(wallet)}</p>
 				</CardContent>
 			</Card>
-		{/each}
+			{:else}
+				<p class="col-span-full py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+			{/each}
 		{/if}
 	</div>
 </div>

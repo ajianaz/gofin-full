@@ -19,7 +19,7 @@
 <BackButton href="/categories" />
 
 <FormCard title={t('categories.create.title')} description={t('categories.create.description')}>
-	<form class="grid gap-4" onsubmit={async (e) => { e.preventDefault(); isLoading = true; errorMsg = ''; try { await categoryService.create({ name }); goto('/categories'); } catch (err: any) { errorMsg = err?.detail || err?.message || 'Gagal menyimpan'; } finally { isLoading = false; } }}>
+	<form class="grid gap-4" onsubmit={async (e) => { e.preventDefault(); isLoading = true; errorMsg = ''; try { await categoryService.create({ name }); goto('/categories'); } catch (err: any) { errorMsg = err?.detail || err?.message || t('common.errorSave'); } finally { isLoading = false; } }}>
 		<div class="grid gap-2">
 			<Label for="name">{t('categories.create.name')}</Label>
 			<Input id="name" placeholder={t('categories.create.namePlaceholder')} bind:value={name} required />
@@ -39,7 +39,7 @@
 		{/if}
 
 		<div class="flex gap-3 pt-2">
-			<Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : t('common.save')}</Button>
+			<Button type="submit" disabled={isLoading}>{isLoading ? t('common.saving') : t('common.save')}</Button>
 			<Button type="button" variant="outline" onclick={() => goto('/categories')}>{t('common.cancel')}</Button>
 		</div>
 	</form>

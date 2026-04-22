@@ -13,9 +13,10 @@
 
 	let items = $state<Tag[]>([]);
 	let isLoading = $state(true);
+	let errorMsg = $state('');
 
 	async function handleDelete(id: string) {
-		if (!confirm('Hapus tag ini?')) return;
+		if (!confirm(t('common.delete') + '?')) return;
 		await tagService.delete(id);
 		items = items.filter((t) => t.id !== id);
 	}
@@ -24,6 +25,7 @@
 		try {
 			items = await tagService.list();
 		} catch (e) {
+			errorMsg = t('common.error');
 			console.error(e);
 		} finally {
 			isLoading = false;
@@ -57,7 +59,11 @@
 				<tbody>
 					{#if isLoading}
 						<tr>
-							<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">Memuat...</td>
+							<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
+						</tr>
+					{:else if errorMsg}
+						<tr>
+							<td colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</td>
 						</tr>
 					{:else}
 					{#each items as tag}
@@ -66,11 +72,13 @@
 							<td class="p-3 text-muted-foreground">{tag.description ?? '-'}</td>
 							<td class="p-3 text-muted-foreground">{formatDate(tag.date)}</td>
 							<td class="p-3">
-								<button type="button" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(tag.id)}>
+								<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(tag.id)}>
 									<Trash2 class="size-4" />
 								</button>
 							</td>
 						</tr>
+					{:else}
+						<tr><td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td></tr>
 					{/each}
 					{/if}
 				</tbody>

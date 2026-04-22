@@ -10,12 +10,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Full CRUD via Web UI** — Create, Read, Update, Delete for all 9 resources (wallets, transactions, categories, budgets, bills, tags, piggy banks, recurring transactions, rule groups)
 - `update()` and `delete()` methods in all service files
 - Delete buttons with confirm dialogs on all list pages
+- Error states and empty states on all list pages and dashboard
+- `aria-label` on all icon-only buttons (delete, copy)
+- i18n keys: `common.loading`, `common.saving`, `common.error`, `common.errorSave`
 - 21 E2E tests covering full CRUD lifecycle (register → 9 creates → list pages → 9 deletes)
+
+### Changed
+- **Button hover feedback** — default, secondary, destructive buttons now use lightness shift instead of barely-perceptible opacity change
+- **Sidebar hover contrast** — dark mode sidebar-accent lightness increased for better visibility
+- **All hardcoded text replaced with i18n** — loading, saving, error, confirm dialogs, empty states now use `t()` keys
+- Wallet create form simplified to only API-accepted fields (removed unused balance/virtualBalance/iban/currency fields)
 
 ### Fixed
 - Date fields serialized as ISO 8601 (RFC3339) for Go `time.Time` compatibility (tags, transactions, recurring)
 - Numeric fields (`amount_min`, `target_amount`) stringified for Go string-typed JSON fields (bills, piggy banks)
+- **Dark mode dropdown menus** — `cn-menu-translucent` now uses `var(--popover)` instead of hardcoded white (fixes white-on-white invisible text)
 - Playwright dialog handler collision across serial tests (switched to `page.once`)
+- `api-keys` page ghost button had `hover:text-destructive` duplicating base class (no hover feedback)
 
 ## [0.1.0] - 2026-04-22
 

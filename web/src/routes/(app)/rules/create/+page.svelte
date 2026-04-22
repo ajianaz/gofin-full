@@ -27,7 +27,7 @@
 			await ruleService.createGroup({ title });
 			goto('/rules');
 		} catch (err: any) {
-			errorMsg = err.detail || err.message || 'Gagal menyimpan';
+			errorMsg = err.detail || err.message || t('common.errorSave');
 		} finally {
 			isLoading = false;
 		}
@@ -75,7 +75,7 @@
 					<p class="text-sm text-destructive">{errorMsg}</p>
 				{/if}
 				<div class="flex gap-2 pt-2">
-					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? '...' : t('common.save')}</Button>
+					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? t('common.saving') : t('common.save')}</Button>
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/rules')}>{t('common.cancel')}</Button>
 				</div>
 			</form>
