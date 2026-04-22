@@ -19,7 +19,7 @@ Gofin is a self-hosted personal finance tracker. It uses **wallets** as the prim
 - **i18n** -- Indonesian and English, dark mode, responsive design
 - **CSV/OFX export**, rules engine, recurring transactions, bill tracking
 - **Auth** -- JWT with refresh tokens, OAuth2 (Google, GitHub), optional Keycloak OIDC
-- **Self-hosted** -- single `make` command, auto-backup via Docker Compose
+- **Self-hosted** -- single `docker compose` command with automated daily DB backup
 
 ## Tech Stack
 

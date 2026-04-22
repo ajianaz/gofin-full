@@ -24,6 +24,8 @@ FROM alpine:3.21
 
 RUN apk add --no-cache ca-certificates tzdata wget
 
+RUN adduser -D -g "" appuser
+
 WORKDIR /app
 
 COPY --from=builder /gofin /app/gofin
@@ -34,6 +36,8 @@ COPY --from=builder /app/entrypoint.sh /app/entrypoint.sh
 COPY --from=builder /app/.env.example /app/.env.example
 
 RUN chmod +x /app/entrypoint.sh
+
+USER appuser
 
 EXPOSE 8080
 
