@@ -34,16 +34,20 @@ type ObjectGroup struct {
 }
 
 type Note struct {
-	ID             uuid.UUID `json:"id" db:"id"`
-	NoteableType   string    `json:"noteable_type" db:"noteable_type"`
-	NoteableID     uuid.UUID `json:"noteable_id" db:"noteable_id"`
-	Note           string    `json:"note" db:"note"`
-	CreatedAt      time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
+	ID             uuid.UUID  `json:"id" db:"id"`
+	UserID         uuid.UUID  `json:"user_id" db:"user_id"`
+	GroupID        *uuid.UUID `json:"user_group_id,omitempty" db:"user_group_id"`
+	NoteableType   string     `json:"noteable_type" db:"noteable_type"`
+	NoteableID     uuid.UUID  `json:"noteable_id" db:"noteable_id"`
+	Note           string     `json:"note" db:"note"`
+	CreatedAt      time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at" db:"updated_at"`
 }
 
 type Location struct {
 	ID            uuid.UUID `json:"id" db:"id"`
+	UserID        uuid.UUID `json:"user_id" db:"user_id"`
+	GroupID       *uuid.UUID `json:"user_group_id,omitempty" db:"user_group_id"`
 	LocatableType string    `json:"locatable_type" db:"locatable_type"`
 	LocatableID   uuid.UUID `json:"locatable_id" db:"locatable_id"`
 	Latitude      *float64  `json:"latitude,omitempty" db:"latitude"`

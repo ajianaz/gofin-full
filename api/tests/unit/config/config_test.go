@@ -13,8 +13,10 @@ func TestLoad_Defaults(t *testing.T) {
 	// Ensure no .env file interferes
 	_ = os.Remove(".env")
 
-	// Set test env to skip JWT secret validation
+	// Set test env
 	t.Setenv("APP_ENV", "testing")
+	// Set a valid JWT secret (required in all environments)
+	t.Setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-chars!!")
 
 	// Clear env vars that docker-compose sets, so we test true defaults
 	envVars := []string{
@@ -103,6 +105,7 @@ func TestLoad_FromEnvVars(t *testing.T) {
 	// Viper reads env vars at load time via AutomaticEnv
 	// Set env vars before calling Load
 	t.Setenv("APP_ENV", "testing")
+	t.Setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-chars!!")
 	t.Setenv("APP_DEBUG", "true")
 	t.Setenv("HTTP_PORT", "9090")
 	t.Setenv("DB_HOST", "db-host")

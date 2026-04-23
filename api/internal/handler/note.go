@@ -18,7 +18,14 @@ func NewNoteHandler(repo *repository.NoteRepository) *NoteHandler {
 }
 
 func (h *NoteHandler) Index(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
+	if user == nil {
+		return apperrors.ErrUnauthorized
+	}
+	groupID := auth.GetActiveGroupID(c)
+	if groupID == nil {
+		return apperrors.New(400, "no active group")
+	}
 
 	noteableType := c.Query("noteable_type")
 	noteableIDStr := c.Query("noteable_id")
@@ -56,7 +63,14 @@ func (h *NoteHandler) Index(c *fiber.Ctx) error {
 }
 
 func (h *NoteHandler) Store(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
+	if user == nil {
+		return apperrors.ErrUnauthorized
+	}
+	groupID := auth.GetActiveGroupID(c)
+	if groupID == nil {
+		return apperrors.New(400, "no active group")
+	}
 
 	var req struct {
 		NoteableType string    `json:"noteable_type"`
@@ -70,7 +84,7 @@ func (h *NoteHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"noteable_type": {"noteable_type is required"}})
 	}
 
-	n, err := h.repo.Create(c.Context(), req.NoteableType, req.NoteableID, req.Note)
+	n, err := h.repo.Create(c.Context(), user.ID, *groupID, req.NoteableType, req.NoteableID, req.Note)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to create note", err.Error())
 	}
@@ -87,11 +101,22 @@ func (h *NoteHandler) Store(c *fiber.Ctx) error {
 }
 
 func (h *NoteHandler) Update(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
+	if user == nil {
+		return apperrors.ErrUnauthorized
+	}
 
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
+	}
+
+	n, err := h.repo.FindByID(c.Context(), id)
+	if err != nil || n == nil {
+		return apperrors.NotFoundResource("note", id)
+	}
+	if n.UserID != user.ID {
+		return apperrors.ErrNotFound
 	}
 
 	var req struct {
@@ -112,11 +137,22 @@ func (h *NoteHandler) Update(c *fiber.Ctx) error {
 }
 
 func (h *NoteHandler) Delete(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
+	if user == nil {
+		return apperrors.ErrUnauthorized
+	}
 
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
+	}
+
+	n, err := h.repo.FindByID(c.Context(), id)
+	if err != nil || n == nil {
+		return apperrors.NotFoundResource("note", id)
+	}
+	if n.UserID != user.ID {
+		return apperrors.ErrNotFound
 	}
 
 	if err := h.repo.Delete(c.Context(), id); err != nil {

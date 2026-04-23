@@ -18,7 +18,10 @@ func NewAttachmentHandler(repo *repository.AttachmentRepository) *AttachmentHand
 }
 
 func (h *AttachmentHandler) Index(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
+	if user == nil {
+		return apperrors.ErrUnauthorized
+	}
 
 	attachableType := c.Query("attachable_type")
 	attachableIDStr := c.Query("attachable_id")
@@ -35,7 +38,7 @@ func (h *AttachmentHandler) Index(c *fiber.Ctx) error {
 		})
 	}
 
-	attachments, err := h.repo.ListByEntity(c.Context(), attachableType, attachableID)
+	attachments, err := h.repo.ListByEntityAndUser(c.Context(), attachableType, attachableID, user.ID)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to list attachments", err.Error())
 	}

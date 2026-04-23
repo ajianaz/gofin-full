@@ -62,6 +62,7 @@ type RouterConfig struct {
 	RateLimitWindowSec   int
 	DisableMetrics       bool
 	RedisClient          redis.Cmdable
+	MaxRequestBodyBytes  int64
 }
 
 // New creates a new Fiber app with all routes registered.
@@ -75,6 +76,9 @@ func New(cfg RouterConfig) *fiber.App {
 	app.Use(middleware.CORS(cfg.AppURL, cfg.AppEnv))
 	app.Use(middleware.AcceptHeaders())
 	app.Use(middleware.SecurityHeaders())
+	if cfg.MaxRequestBodyBytes > 0 {
+		app.Use(middleware.RequestSizeLimit(cfg.MaxRequestBodyBytes))
+	}
 	if !cfg.DisableMetrics {
 		app.Use(middleware.Metrics())
 	}
@@ -270,10 +274,10 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Post("/preferences", cfg.PreferenceHandler.Set)
 	protected.Delete("/preferences/:name", cfg.PreferenceHandler.Delete)
 
-	// Configurations (system-level) — read: view_memberships, write: owner
+	// Configurations (system-level) — read: view_memberships, write: admin only
 	protected.Get("/configurations", cfg.ConfigurationHandler.Index)
 	protected.Get("/configurations/:name", cfg.ConfigurationHandler.Show)
-	protected.Post("/configurations", auth.RBACMiddleware(auth.RoleOwner), cfg.ConfigurationHandler.Set)
+	protected.Post("/configurations", auth.AdminMiddleware(), cfg.ConfigurationHandler.Set)
 
 	// Object groups — read: no RBAC, write: manage_meta
 	protected.Get("/object-groups", cfg.ObjectGroupHandler.Index)

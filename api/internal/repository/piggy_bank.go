@@ -38,8 +38,8 @@ func (r *PiggyBankRepository) Create(ctx context.Context, pb *domain.PiggyBank, 
 	var id uuid.UUID
 	err = r.db.QueryRow(ctx,
 		`INSERT INTO piggy_banks (account_id, name, target_amount, start_date, target_date, "order", notes, created_at, updated_at)
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-		 RETURNING id`,
+			 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+			 RETURNING id`,
 		pb.AccountID, pb.Name, pb.TargetAmount, pb.StartDate, pb.TargetDate, pb.Order, pb.Notes, now, now,
 	).Scan(&id)
 	if err != nil {
@@ -56,9 +56,9 @@ func (r *PiggyBankRepository) FindByID(ctx context.Context, id, groupID uuid.UUI
 	var deletedAt *time.Time
 	err := r.db.QueryRow(ctx,
 		`SELECT pb.id, pb.account_id, pb.name, pb.target_amount, pb.start_date, pb.target_date, pb."order", pb.notes, pb.created_at, pb.updated_at, pb.deleted_at
-		 FROM piggy_banks pb
-		 JOIN wallets w ON w.id = pb.account_id
-		 WHERE pb.id = $1 AND w.user_group_id = $2`, id, groupID,
+			 FROM piggy_banks pb
+			 JOIN wallets w ON w.id = pb.account_id
+			 WHERE pb.id = $1 AND w.user_group_id = $2`, id, groupID,
 	).Scan(&pb.ID, &pb.AccountID, &pb.Name, &pb.TargetAmount, &pb.StartDate, &pb.TargetDate, &pb.Order, &pb.Notes, &pb.CreatedAt, &pb.UpdatedAt, &deletedAt)
 	if err != nil {
 		return nil, fmt.Errorf("piggy bank not found: %w", err)
@@ -83,10 +83,10 @@ func (r *PiggyBankRepository) FindByID(ctx context.Context, id, groupID uuid.UUI
 func (r *PiggyBankRepository) List(ctx context.Context, walletID, groupID uuid.UUID) ([]domain.PiggyBank, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT pb.id, pb.account_id, pb.name, pb.target_amount, pb.start_date, pb.target_date, pb."order", pb.notes, pb.created_at, pb.updated_at
-		 FROM piggy_banks pb
-		 JOIN wallets w ON w.id = pb.account_id
-		 WHERE pb.account_id = $1 AND w.user_group_id = $2 AND pb.deleted_at IS NULL
-		 ORDER BY pb."order", pb.name`, walletID, groupID)
+			 FROM piggy_banks pb
+			 JOIN wallets w ON w.id = pb.account_id
+			 WHERE pb.account_id = $1 AND w.user_group_id = $2 AND pb.deleted_at IS NULL
+			 ORDER BY pb."order", pb.name`, walletID, groupID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list piggy banks: %w", err)
 	}
@@ -106,14 +106,14 @@ func (r *PiggyBankRepository) List(ctx context.Context, walletID, groupID uuid.U
 func (r *PiggyBankRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, targetAmount *decimal.Decimal, startDate, targetDate *time.Time, notes *string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE piggy_banks SET
-		  name = COALESCE(NULLIF($1, ''), name),
-		  target_amount = COALESCE($2, target_amount),
-		  start_date = $3,
-		  target_date = $4,
-		  notes = $5,
-		  updated_at = $6
-		 WHERE id = $7 AND deleted_at IS NULL
-		 AND EXISTS (SELECT 1 FROM wallets w WHERE w.id = piggy_banks.account_id AND w.user_group_id = $8)`,
+			  name = COALESCE(NULLIF($1, ''), name),
+			  target_amount = COALESCE($2, target_amount),
+			  start_date = $3,
+			  target_date = $4,
+			  notes = $5,
+			  updated_at = $6
+			 WHERE id = $7 AND deleted_at IS NULL
+			 AND EXISTS (SELECT 1 FROM wallets w WHERE w.id = piggy_banks.account_id AND w.user_group_id = $8)`,
 		name, targetAmount, startDate, targetDate, notes, time.Now().UTC(), id, groupID)
 	return err
 }
@@ -121,30 +121,57 @@ func (r *PiggyBankRepository) Update(ctx context.Context, id, groupID uuid.UUID,
 func (r *PiggyBankRepository) Delete(ctx context.Context, id, groupID uuid.UUID) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE piggy_banks SET deleted_at = $1 WHERE id = $2 AND deleted_at IS NULL
-		 AND EXISTS (SELECT 1 FROM wallets w WHERE w.id = piggy_banks.account_id AND w.user_group_id = $3)`,
+			 AND EXISTS (SELECT 1 FROM wallets w WHERE w.id = piggy_banks.account_id AND w.user_group_id = $3)`,
 		time.Now().UTC(), id, groupID)
 	return err
 }
 
-// AddMoney creates a piggy bank event and updates the associated wallet balance.
+// AddMoney creates a piggy bank event and updates the associated wallet balance
+// using a DB transaction with row locking to prevent TOCTOU race conditions.
 func (r *PiggyBankRepository) AddMoney(ctx context.Context, piggyBankID, groupID uuid.UUID, amount decimal.Decimal) (*domain.PiggyBankEvent, error) {
 	now := time.Now().UTC()
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
 	// Verify piggy bank belongs to group
 	var accountID uuid.UUID
-	err := r.db.QueryRow(ctx,
+	err = tx.QueryRow(ctx,
 		`SELECT pb.account_id FROM piggy_banks pb
-		 JOIN wallets w ON w.id = pb.account_id
-		 WHERE pb.id = $1 AND w.user_group_id = $2 AND pb.deleted_at IS NULL`,
+			 JOIN wallets w ON w.id = pb.account_id
+			 WHERE pb.id = $1 AND w.user_group_id = $2 AND pb.deleted_at IS NULL`,
 		piggyBankID, groupID,
 	).Scan(&accountID)
 	if err != nil {
 		return nil, fmt.Errorf("piggy bank not found in group")
 	}
 
-	// If removing money (negative amount), check sufficient piggy bank balance
+	// Lock the wallet row to prevent concurrent balance modifications
+	var walletBalance decimal.Decimal
+	err = tx.QueryRow(ctx,
+		`SELECT virtual_balance FROM wallets WHERE id = $1 AND deleted_at IS NULL FOR UPDATE`,
+		accountID,
+	).Scan(&walletBalance)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check wallet balance: %w", err)
+	}
+
+	if amount.IsPositive() {
+		if walletBalance.LessThan(amount) {
+			return nil, fmt.Errorf("insufficient wallet balance: wallet has %s, trying to add %s to piggy bank",
+				walletBalance.StringFixed(2), amount.StringFixed(2))
+		}
+	}
+
 	if amount.IsNegative() {
-		currentAmount, err := r.getCurrentAmount(ctx, piggyBankID)
+		var currentAmount decimal.Decimal
+		err = tx.QueryRow(ctx,
+			`SELECT COALESCE(SUM(amount), 0) FROM piggy_bank_events WHERE piggy_bank_id = $1`,
+			piggyBankID,
+		).Scan(&currentAmount)
 		if err != nil {
 			return nil, fmt.Errorf("failed to check piggy bank balance: %w", err)
 		}
@@ -154,40 +181,30 @@ func (r *PiggyBankRepository) AddMoney(ctx context.Context, piggyBankID, groupID
 		}
 	}
 
-	// If adding money (positive amount), check wallet has sufficient balance
-	if amount.IsPositive() {
-		var walletBalance decimal.Decimal
-		err = r.db.QueryRow(ctx,
-			`SELECT virtual_balance FROM wallets WHERE id = $1 AND deleted_at IS NULL`,
-			accountID,
-		).Scan(&walletBalance)
-		if err != nil {
-			return nil, fmt.Errorf("failed to check wallet balance: %w", err)
-		}
-		if walletBalance.LessThan(amount) {
-			return nil, fmt.Errorf("insufficient wallet balance: wallet has %s, trying to add %s to piggy bank",
-				walletBalance.StringFixed(2), amount.StringFixed(2))
-		}
-	}
-
 	var evt domain.PiggyBankEvent
-	err = r.db.QueryRow(ctx,
+	err = tx.QueryRow(ctx,
 		`INSERT INTO piggy_bank_events (piggy_bank_id, amount, created_at, updated_at)
-		 VALUES ($1,$2,$3,$4)
-		 RETURNING id, piggy_bank_id, amount, created_at, updated_at`,
+			 VALUES ($1,$2,$3,$4)
+			 RETURNING id, piggy_bank_id, amount, created_at, updated_at`,
 		piggyBankID, amount, now, now,
 	).Scan(&evt.ID, &evt.PiggyBankID, &evt.Amount, &evt.CreatedAt, &evt.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add money to piggy bank: %w", err)
 	}
 
-	// Update the wallet balance (reduce it, money moved to piggy bank)
-	_, err = r.db.Exec(ctx,
+	_, err = tx.Exec(ctx,
 		`UPDATE wallets SET virtual_balance = virtual_balance - $1, updated_at = $2
-		 WHERE id = $3 AND deleted_at IS NULL`,
+			 WHERE id = $3 AND deleted_at IS NULL`,
 		amount, now, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update wallet balance: %w", err)
+	}
 
-	return &evt, err
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return &evt, nil
 }
 
 // RemoveMoney creates a negative piggy bank event and returns money to the wallet.

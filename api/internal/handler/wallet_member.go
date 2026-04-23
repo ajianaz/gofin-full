@@ -11,10 +11,11 @@ import (
 
 type WalletMemberHandler struct {
 	memberRepo *repository.WalletMemberRepository
+	userRepo   *repository.UserRepository
 }
 
-func NewWalletMemberHandler(memberRepo *repository.WalletMemberRepository) *WalletMemberHandler {
-	return &WalletMemberHandler{memberRepo: memberRepo}
+func NewWalletMemberHandler(memberRepo *repository.WalletMemberRepository, userRepo *repository.UserRepository) *WalletMemberHandler {
+	return &WalletMemberHandler{memberRepo: memberRepo, userRepo: userRepo}
 }
 
 func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
@@ -157,6 +158,8 @@ func (h *WalletMemberHandler) Delete(c *fiber.Ctx) error {
 	if err := h.memberRepo.RemoveMember(c.Context(), walletID, userID); err != nil {
 		return apperrors.NewWithDetail(500, "failed to remove wallet member", err.Error())
 	}
+
+	_ = h.userRepo.IncrementTokenVersion(c.Context(), userID)
 
 	return c.Status(204).Send(nil)
 }

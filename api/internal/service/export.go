@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/csv"
+	"strings"
 	"fmt"
 	"io"
 	"time"
@@ -196,8 +197,12 @@ func sanitizeCSV(s string) string {
 	if len(s) == 0 {
 		return s
 	}
-	c := s[0]
-	if c == '=' || c == '+' || c == '-' || c == '@' || c == '	' || c == '' {
+	trimmed := strings.TrimSpace(s)
+	if len(trimmed) == 0 {
+		return s
+	}
+	c := trimmed[0]
+	if c == '=' || c == '+' || c == '-' || c == '@' || c == '\t' || c == '\r' {
 		return "'" + s + "'"
 	}
 	return s

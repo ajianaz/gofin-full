@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -182,6 +184,21 @@ func (h *UserGroupHandler) Delete(c *fiber.Ctx) error {
 	if err := h.groupRepo.Delete(c.Context(), id); err != nil {
 		return apperrors.ErrInternal
 	}
+
+	// Invalidate tokens for all group members since the group no longer exists
+	go func() {
+		rows, err := h.db.Query(context.Background(), `SELECT user_id FROM group_memberships WHERE user_group_id = $1`, id)
+		if err != nil {
+			return
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var uid uuid.UUID
+			if rows.Scan(&uid) == nil {
+				_ = h.userRepo.IncrementTokenVersion(context.Background(), uid)
+			}
+		}
+	}()
 
 	return c.Status(204).Send(nil)
 }

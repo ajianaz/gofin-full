@@ -87,8 +87,8 @@ func (h *UserHandler) Show(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"data": fiber.Map{
-			"type":       "users",
-			"id":         u.ID,
+			"type": "users",
+			"id":   u.ID,
 			"attributes": fiber.Map{
 				"email":     u.Email,
 				"blocked":   u.Blocked,
@@ -120,8 +120,8 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"data": fiber.Map{
-			"type":       "users",
-			"id":         user.ID,
+			"type": "users",
+			"id":   user.ID,
 			"attributes": fiber.Map{
 				"email": req.Email,
 			},

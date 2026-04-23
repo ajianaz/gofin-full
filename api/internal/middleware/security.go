@@ -26,10 +26,20 @@ func SecurityHeaders() fiber.Handler {
 	}
 }
 
-// RequestSizeLimit limits request body size to prevent DoS.
+// RequestSizeLimit rejects requests whose Content-Length header exceeds maxBytes.
+// Note: Fiber's own body parser handles the actual body limit; this middleware
+// rejects obviously oversized requests early.
 func RequestSizeLimit(maxBytes int64) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		c.Set("MaxBodySize", "true")
-		return nil
+		if c.Method() == "GET" || c.Method() == "HEAD" || c.Method() == "DELETE" {
+			return c.Next()
+		}
+		cl := int64(c.Request().Header.ContentLength())
+		if cl > maxBytes {
+			return c.Status(413).JSON(fiber.Map{
+				"error": "Request body too large",
+			})
+		}
+		return c.Next()
 	}
 }

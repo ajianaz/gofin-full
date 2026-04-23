@@ -23,6 +23,7 @@ var blockedHosts = []string{
 }
 
 // validateWebhookURL checks that a webhook URL is not pointing to internal/private addresses.
+// It resolves DNS at validation time to prevent DNS rebinding attacks.
 func validateWebhookURL(rawURL string) error {
 	u, err := url.Parse(rawURL)
 	if err != nil {
@@ -37,12 +38,52 @@ func validateWebhookURL(rawURL string) error {
 			return fmt.Errorf("URL host is not allowed")
 		}
 	}
-	// Block private IP ranges
+	// Check if host is a raw IP
 	ip := net.ParseIP(host)
-	if ip != nil && (ip.IsPrivate() || ip.IsLoopback() || ip.IsUnspecified() || ip.IsLinkLocalUnicast()) {
+	if ip == nil {
+		// Resolve DNS to catch rebinding attacks (attacker DNS returns public IP during
+		// validation, then internal IP during actual webhook delivery)
+		ips, err := net.LookupIP(host)
+		if err != nil || len(ips) == 0 {
+			return fmt.Errorf("could not resolve hostname")
+		}
+		ip = ips[0]
+	}
+	// Block private/internal IP ranges (covers both IPv4 and IPv6)
+	if isPrivateIP(ip) {
 		return fmt.Errorf("private/internal IP addresses are not allowed")
 	}
 	return nil
+}
+
+func isPrivateIP(ip net.IP) bool {
+	privateNets := []struct {
+		network *net.IPNet
+	}{
+		{mustParseCIDR("10.0.0.0/8")},
+		{mustParseCIDR("172.16.0.0/12")},
+		{mustParseCIDR("192.168.0.0/16")},
+		{mustParseCIDR("127.0.0.0/8")},
+		{mustParseCIDR("0.0.0.0/8")},
+		{mustParseCIDR("169.254.0.0/16")},
+		{mustParseCIDR("::1/128")},
+		{mustParseCIDR("fe80::/10")},
+		{mustParseCIDR("fc00::/7")},
+	}
+	for _, pn := range privateNets {
+		if pn.network.Contains(ip) {
+			return true
+		}
+	}
+	return ip.IsLoopback() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() || ip.IsPrivate()
+}
+
+func mustParseCIDR(s string) *net.IPNet {
+	_, network, err := net.ParseCIDR(s)
+	if err != nil {
+		return &net.IPNet{}
+	}
+	return network
 }
 
 type WebhookHandler struct {
@@ -221,10 +262,19 @@ func (h *WebhookHandler) Delete(c *fiber.Ctx) error {
 
 func (h *WebhookHandler) Messages(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
+	groupID := auth.GetActiveGroupID(c)
+	if groupID == nil {
+		return apperrors.New(400, "no active group")
+	}
 
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
+	}
+
+	// Verify webhook belongs to user's active group
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("webhook", id)
 	}
 
 	messages, err := h.repo.ListMessages(c.Context(), id)

@@ -135,11 +135,8 @@ func Load() (*Config, error) {
 }
 
 func validate(cfg *Config) error {
-	if cfg.AppEnv == "development" || cfg.AppEnv == "local" || cfg.AppEnv == "testing" {
-		return nil
-	}
 	if cfg.AuthJWTSecret == "change-me-in-production-32chars!" {
-		return fmt.Errorf("AUTH_JWT_SECRET must be changed from the default value in %s environment", cfg.AppEnv)
+		return fmt.Errorf("AUTH_JWT_SECRET must be changed from the default value")
 	}
 	if len(cfg.AuthJWTSecret) < 32 {
 		return fmt.Errorf("AUTH_JWT_SECRET must be at least 32 characters, got %d", len(cfg.AuthJWTSecret))

@@ -15,10 +15,34 @@ import (
 type memRateEntry struct {
 	timestamps []int64
 	mu         sync.Mutex
+	lastAccess int64
 }
 
 // memRateLimiter is a global in-memory rate limiter used as fallback when Redis is unavailable.
 var memRateLimiter sync.Map
+
+func init() {
+	go evictStaleRateLimitEntries()
+}
+
+// evictStaleRateLimitEntries periodically removes stale in-memory rate limit entries.
+func evictStaleRateLimitEntries() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+	for range ticker.C {
+		now := time.Now().UnixMilli()
+		memRateLimiter.Range(func(key, val interface{}) bool {
+			entry := val.(*memRateEntry)
+			entry.mu.Lock()
+			stale := now-entry.lastAccess > 10*60*1000 // 10 minutes
+			entry.mu.Unlock()
+			if stale {
+				memRateLimiter.Delete(key)
+			}
+			return true
+		})
+	}
+}
 
 // memRateLimitCheck performs an in-memory sliding window rate limit check.
 // Returns true if the request should be allowed, false if rate limited.
@@ -31,6 +55,8 @@ func memRateLimitCheck(key string, limit int, window time.Duration) bool {
 
 	entry.mu.Lock()
 	defer entry.mu.Unlock()
+
+	entry.lastAccess = now
 
 	// Remove expired timestamps
 	valid := entry.timestamps[:0]

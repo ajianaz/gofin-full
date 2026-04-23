@@ -134,7 +134,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 	noteHandler := handler.NewNoteHandler(noteRepo)
 	locationHandler := handler.NewLocationHandler(locationRepo)
 	accountTypeHandler := handler.NewAccountTypeHandler(accountTypeRepo)
-	walletMemberHandler := handler.NewWalletMemberHandler(walletMemberRepo)
+	walletMemberHandler := handler.NewWalletMemberHandler(walletMemberRepo, userRepo)
 	exportHandler := handler.NewExportHandler(exportService)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo)
 	auditHandler := handler.NewAuditHandler(auditRepo)

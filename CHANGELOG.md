@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Database migration** — `000012_token_version.up.sql` adds `token_version INTEGER NOT NULL DEFAULT 0` to users table
 - **Change password endpoint** — `POST /users/me/password` validates current password, hashes new password (min 8 chars), and invalidates all existing JWT tokens via `IncrementTokenVersion`
 - **Piggy bank alias routes** — `/wallets/:wallet_id/piggy_banks/:id/add` and `/remove` as aliases for `/add-money` and `/remove-money` for frontend compatibility
+- **Database migration** — `000013_notes_locations_ownership.up.sql` adds `user_id` and `user_group_id` columns to notes and locations tables for ownership tracking
 
 ### Fixed
 - **Withdrawal balance check (H8)** — `CreateTransaction` now verifies source wallet has sufficient `virtual_balance` before processing withdrawal; returns error with current and required amounts
@@ -28,6 +29,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **JWT secret startup validation (H4)** — `config.Load()` rejects default JWT secret and secrets under 32 characters in production; development/testing/local environments are exempted
 - **Rate limiter fail-secure on Redis failure (H5)** — when Redis is unavailable, the rate limiter now falls back to an in-memory sliding window limiter instead of allowing all requests through
 - **Account lockout after failed logins (H6)** — after 5 consecutive failed login attempts, the account is temporarily locked for 15 minutes with a clear error message; counter resets on successful login; uses Redis INCR with TTL
+
+### Fixed (Security Audit)
+
+#### Critical
+- **Notes group/user ownership scoping (C1)** — notes handler and repository now require user authentication, pass `user_id` and `group_id` on create, and verify ownership before update/delete
+- **Locations group/user ownership scoping (C2)** — locations handler and repository now require user authentication, pass `user_id` and `group_id` on create, and verify ownership before delete
+- **Configurations endpoint privilege escalation (C3)** — `POST /configurations` changed from `RoleOwner` to `AdminMiddleware()` to prevent non-admin users from setting system configurations
+- **Attachments index group isolation (C4)** — attachment list now filters by `user_id`, preventing cross-user attachment visibility
+
+#### High
+- **Webhook messages IDOR (H1)** — `GET /webhooks/:id/messages` now verifies the webhook belongs to the requesting user's active group before returning messages
+- **Audit logs using actual groupID (H3)** — audit log handler now passes the real `groupID` instead of hardcoded `0`
+- **JWT invalidation on member removal (H4)** — removing a wallet member or deleting a group now calls `IncrementTokenVersion` to invalidate affected users' JWT tokens immediately
+- **SSRF DNS rebinding prevention (H5)** — webhook URL validation now resolves DNS at validation time (not just string matching), preventing attackers from using DNS rebinding to reach internal services
+- **Piggy bank TOCTOU race condition (H6)** — `AddMoney` now uses a DB transaction with `SELECT ... FOR UPDATE` row locking to prevent concurrent balance modifications
+- **Request size limit middleware (H8)** — fixed the no-op `RequestSizeLimit` middleware to actually check `Content-Length` header and return 413; wired it into the router with `MaxRequestBodyBytes` config
+
+#### Medium
+- **CSV injection sanitization (M2)** — `sanitizeCSV` now trims whitespace before checking for formula prefixes, catching `\r\n=cmd` patterns
+- **JWT secret validation in all environments (M3)** — removed the dev/local/testing bypass; JWT secret length and default value are always validated
+- **In-memory rate limiter memory leak (M4)** — added periodic eviction (every 5 minutes) to remove stale rate limit entries, preventing unbounded memory growth
+- **Export service token handling (M5)** — export service now uses consistent token retrieval pattern matching the central API client
+- **IPv6 SSRF bypass (M6)** — webhook URL validation now explicitly checks IPv6 private ranges (`::1/128`, `fe80::/10`, `fc00::/7`)
 - **CSV injection prevention (M3)** — user-controlled fields in CSV export (description, category, wallet names, notes, tags) are prefixed with a single quote when they start with formula characters (`=`, `+`, `-`, `@`, tab, carriage return)
 - **Exchange rate delete group filter (L3)** — `DELETE /exchange-rates/:id` now filters by `user_group_id`, preventing cross-group deletion
 

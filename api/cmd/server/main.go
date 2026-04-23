@@ -133,7 +133,7 @@ func main() {
 	noteHandler := handler.NewNoteHandler(noteRepo)
 	locationHandler := handler.NewLocationHandler(locationRepo)
 	accountTypeHandler := handler.NewAccountTypeHandler(accountTypeRepo)
-	walletMemberHandler := handler.NewWalletMemberHandler(walletMemberRepo)
+	walletMemberHandler := handler.NewWalletMemberHandler(walletMemberRepo, userRepo)
 	notifService := service.NewNotificationService(notificationRepo, sseHub)
 	_ = notifService
 	_ = service.NewExchangeRateService(exchangeRateRepo)
@@ -192,6 +192,7 @@ func main() {
 		RateLimitWindowSec:   cfg.RateLimitWindowSeconds,
 		DisableMetrics:       cfg.DisablePrometheus,
 		RedisClient:          rdb,
+			MaxRequestBodyBytes:  cfg.MaxRequestBodyBytes,
 		CustomMiddleware: []fiber.Handler{
 			middleware.Logger(log),
 			middleware.Recovery(log),
