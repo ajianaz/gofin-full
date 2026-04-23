@@ -28,6 +28,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - i18n keys: `common.loading`, `common.saving`, `common.error`, `common.errorSave`
 - 21 E2E tests covering full CRUD lifecycle (register → 9 creates → list pages → 9 deletes)
 
+### Removed
+- 14 unused mock data files after all pages converted to real API (mock-audit-log, mock-bills, mock-budgets, mock-categories, mock-currencies, mock-exchange-rates, mock-groups, mock-notifications, mock-piggy-banks, mock-recurring, mock-tags, mock-transactions, mock-users, mock-wallets)
+
 ### Changed
 - **Admin users page uses real API** — replaced `mockUsers` with `adminService.listUsers()`, added loading/error states
 - **Audit log page uses real API** — replaced `mockAuditLog` with `adminService.listAuditLogs()`, entity filter re-fetches from API, action filter is client-side
