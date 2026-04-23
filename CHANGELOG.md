@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Real API integration for all 4 reports pages** — reports overview, net-worth, spending-by-category, spending-by-period now use `reportService` API calls instead of mock data
+- `reportService` in `web/src/lib/services/reports.ts` (spendingByCategory, spendingByPeriod, netWorth methods)
 - **Real API integration for groups page** — replaced mock data with `groupService.list()`, added switch group functionality via `groupService.switch()`
 - `groupService` in `web/src/lib/services/groups.ts` (list, create, switch methods)
 - i18n key `groups.switch` for English and Indonesian
@@ -22,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - 21 E2E tests covering full CRUD lifecycle (register → 9 creates → list pages → 9 deletes)
 
 ### Changed
+- **Reports pages use real API** — replaced `mockTransactions`, `mockWallets`, `mockCategories`, `mockBudgets` with `reportService` and `walletService` calls, added loading/error/empty states
 - **Currencies page uses real API** — replaced `mockCurrencies` with `currencyService.list()` including loading/error states
 - **Exchange rates page uses real API** — replaced `mockExchangeRates` with `currencyService.exchangeRates()` including loading/error/empty states
 - **Button hover feedback** — default, secondary, destructive buttons now use lightness shift instead of barely-perceptible opacity change

@@ -11,3 +11,4 @@ export { recurringService } from './recurring.js';
 export { ruleService } from './rules.js';
 export { currencyService } from './currencies.js';
 export { groupService } from './groups.js';
+export { reportService } from './reports.js';
