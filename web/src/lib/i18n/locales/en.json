@@ -392,6 +392,7 @@
   "export.wallet": "Wallet",
   "export.allWallets": "All Wallets",
   "export.submit": "Export",
+  "export.exporting": "Exporting...",
   "currencies.list.title": "Currencies",
   "currencies.list.description": "Manage currencies and exchange rates",
   "currencies.list.colCode": "Code",

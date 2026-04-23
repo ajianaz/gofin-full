@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Real API integration for export page** — CSV/OFX download via `exportService`, wallet dropdown populated from API
+- `exportService` in `web/src/lib/services/export.ts` (downloadCSV, downloadOFX methods)
+- i18n key `export.exporting` for English and Indonesian
 - **Real API integration for all 4 reports pages** — reports overview, net-worth, spending-by-category, spending-by-period now use `reportService` API calls instead of mock data
 - `reportService` in `web/src/lib/services/reports.ts` (spendingByCategory, spendingByPeriod, netWorth methods)
 - **Real API integration for groups page** — replaced mock data with `groupService.list()`, added switch group functionality via `groupService.switch()`
@@ -24,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - 21 E2E tests covering full CRUD lifecycle (register → 9 creates → list pages → 9 deletes)
 
 ### Changed
+- **Export page uses real API** — replaced `mockWallets` with `walletService.list()`, form submit triggers actual file download via `exportService`
 - **Reports pages use real API** — replaced `mockTransactions`, `mockWallets`, `mockCategories`, `mockBudgets` with `reportService` and `walletService` calls, added loading/error/empty states
 - **Currencies page uses real API** — replaced `mockCurrencies` with `currencyService.list()` including loading/error states
 - **Exchange rates page uses real API** — replaced `mockExchangeRates` with `currencyService.exchangeRates()` including loading/error/empty states

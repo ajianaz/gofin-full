@@ -392,6 +392,7 @@
   "export.wallet": "Dompet",
   "export.allWallets": "Semua Dompet",
   "export.submit": "Ekspor",
+  "export.exporting": "Mengekspor...",
   "currencies.list.title": "Mata Uang",
   "currencies.list.description": "Kelola mata uang dan nilai tukar",
   "currencies.list.colCode": "Kode",

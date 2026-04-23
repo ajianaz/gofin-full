@@ -12,3 +12,4 @@ export { ruleService } from './rules.js';
 export { currencyService } from './currencies.js';
 export { groupService } from './groups.js';
 export { reportService } from './reports.js';
+export { exportService } from './export.js';
