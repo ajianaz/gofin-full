@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 - **Real API integration for currencies page** — replaced mock data with `currencyService.list()` call to `GET /api/v1/currencies`
+- **Real API integration for exchange rates page** — replaced mock data with `currencyService.exchangeRates()` call to `GET /api/v1/exchange-rates`
 - `currencyService` in `web/src/lib/services/currencies.ts`
 - **Full CRUD via Web UI** — Create, Read, Update, Delete for all 9 resources (wallets, transactions, categories, budgets, bills, tags, piggy banks, recurring transactions, rule groups)
 - `update()` and `delete()` methods in all service files
@@ -19,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 - **Currencies page uses real API** — replaced `mockCurrencies` with `currencyService.list()` including loading/error states
+- **Exchange rates page uses real API** — replaced `mockExchangeRates` with `currencyService.exchangeRates()` including loading/error/empty states
 - **Button hover feedback** — default, secondary, destructive buttons now use lightness shift instead of barely-perceptible opacity change
 - **Sidebar hover contrast** — dark mode sidebar-accent lightness increased for better visibility
 - **All hardcoded text replaced with i18n** — loading, saving, error, confirm dialogs, empty states now use `t()` keys
