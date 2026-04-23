@@ -382,6 +382,7 @@
   "groups.memberCount": "{count} anggota",
   "groups.active": "Aktif",
   "groups.inactive": "Tidak",
+  "groups.switch": "Beralih",
   "export.title": "Ekspor",
   "export.description": "Ekspor data transaksi Anda",
   "export.formTitle": "Ekspor Data",

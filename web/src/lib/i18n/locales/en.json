@@ -382,6 +382,7 @@
   "groups.memberCount": "{count} members",
   "groups.active": "Active",
   "groups.inactive": "No",
+  "groups.switch": "Switch",
   "export.title": "Export",
   "export.description": "Export your transaction data",
   "export.formTitle": "Export Data",
