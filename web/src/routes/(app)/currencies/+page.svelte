@@ -1,9 +1,26 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { PageHeader, StatusBadge } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
-	import { mockCurrencies } from '$lib/data/mock-currencies.js';
+	import { currencyService } from '$lib/services/index.js';
+	import type { Currency } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
+
+	let items = $state<Currency[]>([]);
+	let isLoading = $state(true);
+	let errorMsg = $state('');
+
+	onMount(async () => {
+		try {
+			items = await currencyService.list();
+		} catch (e) {
+			errorMsg = t('common.error');
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	});
 </script>
 
 <PageHeader title={t('currencies.title')} description={t('currencies.description')} />
@@ -22,15 +39,29 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each mockCurrencies as currency}
-						<tr class="border-b hover:bg-muted/30">
-							<td class="p-3 font-mono font-medium text-foreground">{currency.code}</td>
-							<td class="p-3 text-foreground">{currency.name}</td>
-							<td class="p-3 text-muted-foreground">{currency.symbol}</td>
-							<td class="p-3 text-muted-foreground">{currency.decimal_places}</td>
-							<td class="p-3"><StatusBadge status={currency.enabled ? 'active' : 'inactive'} /></td>
+					{#if isLoading}
+						<tr>
+							<td colspan="5" class="py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
 						</tr>
-					{/each}
+					{:else if errorMsg}
+						<tr>
+							<td colspan="5" class="py-8 text-center text-sm text-destructive">{errorMsg}</td>
+						</tr>
+					{:else}
+						{#each items as currency}
+							<tr class="border-b hover:bg-muted/30">
+								<td class="p-3 font-mono font-medium text-foreground">{currency.code}</td>
+								<td class="p-3 text-foreground">{currency.name}</td>
+								<td class="p-3 text-muted-foreground">{currency.symbol}</td>
+								<td class="p-3 text-muted-foreground">{currency.decimal_places}</td>
+								<td class="p-3"><StatusBadge status={currency.enabled ? 'active' : 'inactive'} /></td>
+							</tr>
+						{:else}
+							<tr>
+								<td colspan="5" class="py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td>
+							</tr>
+						{/each}
+					{/if}
 				</tbody>
 			</table>
 		</div>

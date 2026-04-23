@@ -9,3 +9,4 @@ export { tagService } from './tags.js';
 export { piggyBankService } from './piggy-banks.js';
 export { recurringService } from './recurring.js';
 export { ruleService } from './rules.js';
+export { currencyService } from './currencies.js';
