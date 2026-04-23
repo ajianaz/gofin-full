@@ -3,8 +3,8 @@ import type { PreferenceItem } from '$lib/types/domain.js';
 
 export const preferenceService = {
 	async list(): Promise<PreferenceItem[]> {
-		const res = await api.get<{ data: { id: string; attributes: { name: string; data: string } }[] }>('/preferences');
-		return res.data.map((p) => ({
+			const res = await api.get<{ data: { id: string; attributes: { name: string; data: string } }[] | null }>('/preferences');
+		return (res.data || []).map((p) => ({
 			id: p.id,
 			name: p.attributes.name,
 			data: p.attributes.data

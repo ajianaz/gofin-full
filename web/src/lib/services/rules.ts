@@ -4,7 +4,7 @@ import type { RuleGroup, Rule } from '$lib/types/domain.js';
 
 export const ruleService = {
 	async listGroups(): Promise<RuleGroup[]> {
-		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] }>('/rule-groups');
+			const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] | null }>('/rule-groups');
 		return unwrapMany<RuleGroup>(res).map((r) => ({
 			...r,
 			title: (r as any).title || '',
@@ -36,7 +36,7 @@ export const ruleService = {
 	},
 
 	async listRules(): Promise<Rule[]> {
-		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] }>('/rules');
+			const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] | null }>('/rules');
 		return unwrapMany<Rule>(res).map((r) => ({
 			...r,
 			title: (r as any).title || '',

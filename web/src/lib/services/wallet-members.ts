@@ -4,7 +4,7 @@ import type { WalletMember } from '$lib/types/domain.js';
 
 export const walletMemberService = {
 	async list(walletId: string): Promise<WalletMember[]> {
-		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] }>(`/wallets/${walletId}/members`);
+			const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] | null }>(`/wallets/${walletId}/members`);
 		return unwrapMany<WalletMember>(res).map((m) => ({
 			id: m.id,
 			wallet_id: (m as any).wallet_id || walletId,

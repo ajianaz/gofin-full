@@ -4,7 +4,7 @@ import type { Notification } from '$lib/types/domain.js';
 
 export const notificationService = {
 	async list(): Promise<Notification[]> {
-		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] }>('/notifications');
+			const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] | null }>('/notifications');
 		return unwrapMany<Notification>(res).map((n) => ({
 			id: n.id,
 			channel: (n as any).channel || '',
@@ -16,7 +16,7 @@ export const notificationService = {
 	},
 
 	async listUnread(): Promise<Notification[]> {
-		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] }>('/notifications/unread');
+			const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] | null }>('/notifications/unread');
 		return unwrapMany<Notification>(res).map((n) => ({
 			id: n.id,
 			channel: (n as any).channel || '',

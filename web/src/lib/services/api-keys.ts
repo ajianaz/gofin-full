@@ -3,7 +3,7 @@ import type { ApiKeyListItem, ApiKeyCreateResponse } from '$lib/types/domain.js'
 
 export const apiKeyService = {
 	async list(): Promise<ApiKeyListItem[]> {
-		const res = await api.get<{ data: ApiKeyListItem[] }>('/api-keys');
+		const res = await api.get<{ data: ApiKeyListItem[] | null }>('/api-keys');
 		return (res.data || []).map((k) => ({
 			id: k.id,
 			name: k.name,
@@ -14,8 +14,8 @@ export const apiKeyService = {
 	},
 
 	async create(name: string): Promise<ApiKeyCreateResponse> {
-		const res = await api.post<{ data: ApiKeyCreateResponse }>('/api-keys', { name });
-		return res.data;
+		const res = await api.post<{ data: ApiKeyCreateResponse | null }>('/api-keys', { name });
+		return res.data!;
 	},
 
 	async delete(id: string): Promise<void> {
