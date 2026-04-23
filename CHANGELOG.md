@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Unit tests for all 15 service layer modules** (107 tests) — currencies, groups, reports, export, admin, wallets, transactions, categories, budgets, bills, tags, piggy-banks, recurring, rules, auth
+- Tests verify JSON:API response unwrapping, field mapping (backend attribute names to frontend fields), default values for missing fields, error handling, and query string construction
 - **Vitest unit test framework** — vitest + @vitest/coverage-v8 + jsdom for frontend unit testing
 - `vitest.config.ts` with jsdom environment, path aliases ($lib, $components, $app), and globals
 - Test scripts: `test` (single run), `test:watch` (watch mode), `test:coverage` (with v8 coverage)
