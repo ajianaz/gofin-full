@@ -16,8 +16,8 @@ import (
 
 // RouterConfig holds all dependencies needed by the router.
 type RouterConfig struct {
-	AppURL  string
-	AppEnv  string
+	AppURL               string
+	AppEnv               string
 	HealthHandler        *handler.HealthHandler
 	AuthHandler          *handler.AuthHandler
 	UserHandler          *handler.UserHandler
@@ -141,6 +141,7 @@ func New(cfg RouterConfig) *fiber.App {
 	// Current user
 	protected.Get("/users/me", cfg.UserHandler.Show)
 	protected.Put("/users/me", cfg.UserHandler.Update)
+	protected.Post("/users/me/password", cfg.UserHandler.ChangePassword)
 
 	// User groups
 	protected.Get("/groups", cfg.GroupHandler.Index)
@@ -194,6 +195,9 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Delete("/wallets/:wallet_id/piggy_banks/:id", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.Delete)
 	protected.Post("/wallets/:wallet_id/piggy_banks/:id/add-money", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.AddMoney)
 	protected.Post("/wallets/:wallet_id/piggy_banks/:id/remove-money", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.RemoveMoney)
+	// Alias routes for frontend compatibility
+	protected.Post("/wallets/:wallet_id/piggy_banks/:id/add", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.AddMoney)
+	protected.Post("/wallets/:wallet_id/piggy_banks/:id/remove", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.RemoveMoney)
 
 	// Rule groups — read: no RBAC, write: manage_rules
 	protected.Get("/rule-groups", cfg.RuleGroupHandler.Index)

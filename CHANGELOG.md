@@ -9,6 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **JWT token version/invalidation mechanism (C6)** — `token_version` column on users table tracks token invalidation; JWT access and refresh tokens include `token_version` claim; `AuthMiddleware` compares claim version against DB and rejects mismatched tokens (401 "Token has been invalidated"); `IncrementTokenVersion` repository method for callers to invalidate all tokens for a user (called on logout, password change, group membership removal)
 - **Database migration** — `000012_token_version.up.sql` adds `token_version INTEGER NOT NULL DEFAULT 0` to users table
+- **Change password endpoint** — `POST /users/me/password` validates current password, hashes new password (min 8 chars), and invalidates all existing JWT tokens via `IncrementTokenVersion`
+- **Piggy bank alias routes** — `/wallets/:wallet_id/piggy_banks/:id/add` and `/remove` as aliases for `/add-money` and `/remove-money` for frontend compatibility
+
+### Fixed
+- **Withdrawal balance check (H8)** — `CreateTransaction` now verifies source wallet has sufficient `virtual_balance` before processing withdrawal; returns error with current and required amounts
+- **Split transaction balance check** — `CreateSplitTransaction` aggregates debits per source wallet and validates each has sufficient balance before processing
+- **Piggy bank withdraw balance check (H9)** — `RemoveMoney` now verifies piggy bank has sufficient current amount (from events) before allowing withdrawal
+- **Piggy bank add wallet balance check (H9b)** — `AddMoney` now verifies source wallet has sufficient `virtual_balance` before moving money to piggy bank
+- **Transaction split URL mismatch** — frontend `transactionService.split()` now sends correct payload (`type`, `date`, `journals`) to `POST /transactions/split` matching the backend API
 
 ### Fixed
 - **Group update restricted to owner role (C1)** — `PUT /groups/:id` now requires `RoleOwner` RBAC middleware, matching the delete route

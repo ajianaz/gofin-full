@@ -182,8 +182,8 @@ func TestConfig_HTTPAddr(t *testing.T) {
 
 func TestConfig_KeycloakURLs(t *testing.T) {
 	cfg := &config.Config{
-		KeycloakURL:     "http://keycloak:8080",
-		KeycloakRealm:   "myrealm",
+		KeycloakURL:      "http://keycloak:8080",
+		KeycloakRealm:    "myrealm",
 		KeycloakClientID: "myclient",
 	}
 

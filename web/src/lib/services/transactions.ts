@@ -53,7 +53,16 @@ export const transactionService = {
 		await api.delete(`/transactions/${id}`);
 	},
 
-	async split(id: string, splits: Array<{ amount: string; description?: string }>): Promise<void> {
-		await api.post(`/transactions/${id}/split`, { splits });
+	async split(data: {
+		type: string;
+		date?: string;
+		group_title?: string;
+		journals: Array<{ description?: string; amount: string; source_id: string; destination_id: string }>;
+	}): Promise<void> {
+		const payload: Record<string, unknown> = { ...data };
+		if (data.date) {
+			payload.date = new Date(data.date).toISOString();
+		}
+		await api.post('/transactions/split', payload);
 	}
 };

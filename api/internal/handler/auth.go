@@ -15,28 +15,28 @@ import (
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/config"
-	"github.com/ajianaz/gofin-full/api/internal/repository"
 	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
 // Login attempt lockout constants.
 const (
-	loginMaxAttempts      = 5
-	loginLockoutDuration  = 15 * time.Minute
-	loginAttemptWindow    = 15 * time.Minute
+	loginMaxAttempts       = 5
+	loginLockoutDuration   = 15 * time.Minute
+	loginAttemptWindow     = 15 * time.Minute
 	loginAttemptsKeyPrefix = "login_attempts:"
 )
 
 // AuthHandler handles authentication endpoints.
 type AuthHandler struct {
-	jwtMgr       *auth.JWTManager
-	provider     auth.AuthProvider
-	cfg          *config.Config
-	userRepo     *repository.UserRepository
-	oauthState   *repository.OAuthStateRepository
-	refreshRepo  *repository.RefreshTokenRepository
-	rdb          redis.Cmdable // optional Redis for login attempt tracking
+	jwtMgr      *auth.JWTManager
+	provider    auth.AuthProvider
+	cfg         *config.Config
+	userRepo    *repository.UserRepository
+	oauthState  *repository.OAuthStateRepository
+	refreshRepo *repository.RefreshTokenRepository
+	rdb         redis.Cmdable // optional Redis for login attempt tracking
 }
 
 // NewAuthHandler creates a new auth handler.

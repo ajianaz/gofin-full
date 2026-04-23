@@ -21,22 +21,22 @@ type Config struct {
 	HTTPHost string `mapstructure:"HTTP_HOST"`
 
 	// Database
-	DBHost            string        `mapstructure:"DB_HOST"`
-	DBPort            int           `mapstructure:"DB_PORT"`
-	DBDatabase        string        `mapstructure:"DB_DATABASE"`
-	DBUsername        string        `mapstructure:"DB_USERNAME"`
-	DBPassword        string        `mapstructure:"DB_PASSWORD"`
-	DBSSLMode         string        `mapstructure:"DB_SSL_MODE"`
-	DBSchema          string        `mapstructure:"DB_SCHEMA"`
-	DBMaxOpenConns    int           `mapstructure:"DB_MAX_OPEN_CONNS"`
-	DBMaxIdleConns    int           `mapstructure:"DB_MAX_IDLE_CONNS"`
-	DBConnMaxLifetime int           `mapstructure:"DB_CONN_MAX_LIFETIME"`
+	DBHost            string `mapstructure:"DB_HOST"`
+	DBPort            int    `mapstructure:"DB_PORT"`
+	DBDatabase        string `mapstructure:"DB_DATABASE"`
+	DBUsername        string `mapstructure:"DB_USERNAME"`
+	DBPassword        string `mapstructure:"DB_PASSWORD"`
+	DBSSLMode         string `mapstructure:"DB_SSL_MODE"`
+	DBSchema          string `mapstructure:"DB_SCHEMA"`
+	DBMaxOpenConns    int    `mapstructure:"DB_MAX_OPEN_CONNS"`
+	DBMaxIdleConns    int    `mapstructure:"DB_MAX_IDLE_CONNS"`
+	DBConnMaxLifetime int    `mapstructure:"DB_CONN_MAX_LIFETIME"`
 
 	// Redis
-	RedisHost    string `mapstructure:"REDIS_HOST"`
-	RedisPort    int    `mapstructure:"REDIS_PORT"`
+	RedisHost     string `mapstructure:"REDIS_HOST"`
+	RedisPort     int    `mapstructure:"REDIS_PORT"`
 	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
-	RedisDB      int    `mapstructure:"REDIS_DB"`
+	RedisDB       int    `mapstructure:"REDIS_DB"`
 	RedisCacheDB  int    `mapstructure:"REDIS_CACHE_DB"`
 
 	// Keycloak
@@ -50,12 +50,12 @@ type Config struct {
 	LogFormat string `mapstructure:"LOG_FORMAT"`
 
 	// Auth
-	AuthProvider         string `mapstructure:"AUTH_PROVIDER"`
-	AuthJWTSecret        string `mapstructure:"AUTH_JWT_SECRET"`
-	AuthJWTExpiry        int    `mapstructure:"AUTH_JWT_EXPIRY_MINUTES"`
-	AuthRefreshExpiry    int    `mapstructure:"AUTH_REFRESH_EXPIRY_DAYS"`
-	AuthAllowRegistration bool  `mapstructure:"AUTH_ALLOW_REGISTRATION"`
-	StaticCronToken      string `mapstructure:"STATIC_CRON_TOKEN"`
+	AuthProvider          string `mapstructure:"AUTH_PROVIDER"`
+	AuthJWTSecret         string `mapstructure:"AUTH_JWT_SECRET"`
+	AuthJWTExpiry         int    `mapstructure:"AUTH_JWT_EXPIRY_MINUTES"`
+	AuthRefreshExpiry     int    `mapstructure:"AUTH_REFRESH_EXPIRY_DAYS"`
+	AuthAllowRegistration bool   `mapstructure:"AUTH_ALLOW_REGISTRATION"`
+	StaticCronToken       string `mapstructure:"STATIC_CRON_TOKEN"`
 
 	// OAuth - Google
 	GoogleClientID     string `mapstructure:"GOOGLE_CLIENT_ID"`
@@ -66,12 +66,12 @@ type Config struct {
 	GitHubClientSecret string `mapstructure:"GITHUB_CLIENT_SECRET"`
 
 	// Security
-	RateLimitMax             int    `mapstructure:"RATE_LIMIT_MAX"`
-	RateLimitWindowSeconds   int    `mapstructure:"RATE_LIMIT_WINDOW_SECONDS"`
-	MaxRequestBodyBytes      int64  `mapstructure:"MAX_REQUEST_BODY_BYTES"`
-	CORSAllowedOrigins       string `mapstructure:"CORS_ALLOWED_ORIGINS"`
-	Allow2FABypass           bool   `mapstructure:"ALLOW_2FA_BYPASS"`
-	DisablePrometheus        bool   `mapstructure:"DISABLE_PROMETHEUS"`
+	RateLimitMax           int    `mapstructure:"RATE_LIMIT_MAX"`
+	RateLimitWindowSeconds int    `mapstructure:"RATE_LIMIT_WINDOW_SECONDS"`
+	MaxRequestBodyBytes    int64  `mapstructure:"MAX_REQUEST_BODY_BYTES"`
+	CORSAllowedOrigins     string `mapstructure:"CORS_ALLOWED_ORIGINS"`
+	Allow2FABypass         bool   `mapstructure:"ALLOW_2FA_BYPASS"`
+	DisablePrometheus      bool   `mapstructure:"DISABLE_PROMETHEUS"`
 
 	// Features
 	FeatureExport           bool `mapstructure:"FEATURE_EXPORT"`
@@ -81,9 +81,9 @@ type Config struct {
 	FeatureRunningBalance   bool `mapstructure:"FEATURE_RUNNING_BALANCE"`
 
 	// Business
-	BusinessMaxUploadSize      int64 `mapstructure:"MAX_UPLOAD_SIZE"`
-	BusinessAllowWebhooks      bool  `mapstructure:"ALLOW_WEBHOOKS"`
-	BusinessWebhookMaxAttempts int   `mapstructure:"WEBHOOK_MAX_ATTEMPTS"`
+	BusinessMaxUploadSize       int64 `mapstructure:"MAX_UPLOAD_SIZE"`
+	BusinessAllowWebhooks       bool  `mapstructure:"ALLOW_WEBHOOKS"`
+	BusinessWebhookMaxAttempts  int   `mapstructure:"WEBHOOK_MAX_ATTEMPTS"`
 	BusinessEnableExternalRates bool  `mapstructure:"ENABLE_EXTERNAL_RATES"`
 	BusinessEnableExchangeRates bool  `mapstructure:"ENABLE_EXCHANGE_RATES"`
 }
@@ -91,8 +91,8 @@ type Config struct {
 // Convenience accessors that group related fields.
 func (c Config) IsLocal() bool      { return c.AppEnv == "local" || c.AppEnv == "testing" }
 func (c Config) IsProduction() bool { return c.AppEnv == "production" }
-func (c Config) HTTPAddr() string    { return fmt.Sprintf("%s:%s", c.HTTPHost, c.HTTPPort) }
-func (c Config) RedisAddr() string   { return fmt.Sprintf("%s:%d", c.RedisHost, c.RedisPort) }
+func (c Config) HTTPAddr() string   { return fmt.Sprintf("%s:%s", c.HTTPHost, c.HTTPPort) }
+func (c Config) RedisAddr() string  { return fmt.Sprintf("%s:%d", c.RedisHost, c.RedisPort) }
 func (c Config) DatabaseDSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s search_path=%s",

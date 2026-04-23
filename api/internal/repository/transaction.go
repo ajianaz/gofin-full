@@ -217,7 +217,7 @@ func (r *TransactionRepository) findTransactionsByJournalID(ctx context.Context,
 type TransactionFilter struct {
 	DateFrom *time.Time
 	DateTo   *time.Time
-	Type     string // transaction type filter
+	Type     string     // transaction type filter
 	WalletID *uuid.UUID // filter by source or destination wallet
 	Page     int
 	PerPage  int
@@ -517,18 +517,18 @@ func setJournalTagsTx(ctx context.Context, tx pgx.Tx, journalID uuid.UUID, tagID
 
 // CreateFullTransactionInput holds all the data needed for a single atomic transaction creation.
 type CreateFullTransactionInput struct {
-	UserID          uuid.UUID
-	GroupID         uuid.UUID
-	GroupTitle      string
-	Journal         *domain.TransactionJournal
-	SourceTxn       *domain.Transaction
-	DestTxn         *domain.Transaction
-	SourceWalletID  uuid.UUID
-	DestWalletID    uuid.UUID
-	SourceAmount    decimal.Decimal
-	DestAmount      decimal.Decimal
-	CategoryIDs     []uuid.UUID
-	TagIDs          []uuid.UUID
+	UserID         uuid.UUID
+	GroupID        uuid.UUID
+	GroupTitle     string
+	Journal        *domain.TransactionJournal
+	SourceTxn      *domain.Transaction
+	DestTxn        *domain.Transaction
+	SourceWalletID uuid.UUID
+	DestWalletID   uuid.UUID
+	SourceAmount   decimal.Decimal
+	DestAmount     decimal.Decimal
+	CategoryIDs    []uuid.UUID
+	TagIDs         []uuid.UUID
 }
 
 // CreateFullTransactionResult holds the IDs returned from an atomic transaction creation.

@@ -17,9 +17,9 @@ import (
 // blockedHosts are hostnames that must never be used as webhook targets (SSRF prevention).
 var blockedHosts = []string{
 	"localhost", "127.0.0.1", "0.0.0.0", "::1",
-	"169.254.169.254",        // AWS metadata
+	"169.254.169.254",          // AWS metadata
 	"metadata.google.internal", // GCP metadata
-	"100.100.100.200",        // GKE metadata
+	"100.100.100.200",          // GKE metadata
 }
 
 // validateWebhookURL checks that a webhook URL is not pointing to internal/private addresses.

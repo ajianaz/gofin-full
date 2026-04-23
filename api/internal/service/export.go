@@ -192,7 +192,6 @@ func joinTagNames(tags []domain.Tag) string {
 	return result
 }
 
-
 func sanitizeCSV(s string) string {
 	if len(s) == 0 {
 		return s

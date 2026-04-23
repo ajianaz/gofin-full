@@ -142,6 +142,34 @@ func (r *PiggyBankRepository) AddMoney(ctx context.Context, piggyBankID, groupID
 		return nil, fmt.Errorf("piggy bank not found in group")
 	}
 
+	// If removing money (negative amount), check sufficient piggy bank balance
+	if amount.IsNegative() {
+		currentAmount, err := r.getCurrentAmount(ctx, piggyBankID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check piggy bank balance: %w", err)
+		}
+		if currentAmount.LessThan(amount.Abs()) {
+			return nil, fmt.Errorf("insufficient piggy bank balance: current %s, trying to withdraw %s",
+				currentAmount.StringFixed(2), amount.Abs().StringFixed(2))
+		}
+	}
+
+	// If adding money (positive amount), check wallet has sufficient balance
+	if amount.IsPositive() {
+		var walletBalance decimal.Decimal
+		err = r.db.QueryRow(ctx,
+			`SELECT virtual_balance FROM wallets WHERE id = $1 AND deleted_at IS NULL`,
+			accountID,
+		).Scan(&walletBalance)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check wallet balance: %w", err)
+		}
+		if walletBalance.LessThan(amount) {
+			return nil, fmt.Errorf("insufficient wallet balance: wallet has %s, trying to add %s to piggy bank",
+				walletBalance.StringFixed(2), amount.StringFixed(2))
+		}
+	}
+
 	var evt domain.PiggyBankEvent
 	err = r.db.QueryRow(ctx,
 		`INSERT INTO piggy_bank_events (piggy_bank_id, amount, created_at, updated_at)

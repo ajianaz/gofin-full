@@ -77,12 +77,12 @@ func (h *AttachmentHandler) Show(c *fiber.Ctx) error {
 		"type": "attachments",
 		"id":   a.ID,
 		"attributes": fiber.Map{
-			"filename":       a.Filename,
-			"mime_type":      a.MimeType,
-			"size":           a.Size,
-			"uploaded":       a.Uploaded,
+			"filename":        a.Filename,
+			"mime_type":       a.MimeType,
+			"size":            a.Size,
+			"uploaded":        a.Uploaded,
 			"attachable_type": a.AttachableType,
-			"attachable_id":  a.AttachableID,
+			"attachable_id":   a.AttachableID,
 		},
 	}})
 }

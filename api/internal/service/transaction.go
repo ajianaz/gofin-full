@@ -90,6 +90,12 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, userID, grou
 		return nil, err
 	}
 
+	// For withdrawals, check that the source wallet has sufficient balance
+	if sourceAmount.IsNegative() && sourceWallet.VirtualBalance.LessThan(sourceAmount.Abs()) {
+		return nil, fmt.Errorf("insufficient balance: wallet %s has %s, needs %s",
+			sourceWallet.ID, sourceWallet.VirtualBalance.StringFixed(2), amount.StringFixed(2))
+	}
+
 	// Build the group title
 	title := ""
 	if len(input.Description) > 0 {
@@ -161,6 +167,25 @@ func (s *TransactionService) CreateSplitTransaction(
 			return nil, fmt.Errorf("split journal amount must be positive")
 		}
 		totalAmount = totalAmount.Add(amt)
+	}
+
+	// Check balance for all source wallets in the split
+	if domain.TransactionType(txType) == domain.TransactionTypeWithdrawal {
+		debitsByWallet := make(map[uuid.UUID]decimal.Decimal)
+		for _, j := range journals {
+			amt, _ := decimal.NewFromString(j.Amount)
+			debitsByWallet[j.SourceID] = debitsByWallet[j.SourceID].Add(amt)
+		}
+		for walletID, totalDebit := range debitsByWallet {
+			wallet, err := s.walletRepo.FindByID(ctx, walletID, groupID)
+			if err != nil {
+				return nil, fmt.Errorf("source wallet %s not found: %w", walletID, err)
+			}
+			if wallet.VirtualBalance.LessThan(totalDebit) {
+				return nil, fmt.Errorf("insufficient balance: wallet %s has %s, needs %s",
+					walletID, wallet.VirtualBalance.StringFixed(2), totalDebit.StringFixed(2))
+			}
+		}
 	}
 
 	// Build split journal entries
