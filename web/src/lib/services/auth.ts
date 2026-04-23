@@ -34,5 +34,14 @@ export const authService = {
 
 	async getProvider(): Promise<{ provider: string }> {
 		return api.get<{ provider: string }>('/auth/provider');
+	},
+
+	async updateProfile(data: { name?: string; email?: string }): Promise<User> {
+		await api.put('/users/me', data);
+		return this.getMe();
+	},
+
+	async changePassword(data: { current_password: string; new_password: string }): Promise<void> {
+		await api.post('/users/me/password', data);
 	}
 };

@@ -1,19 +1,83 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+	import { onMount } from 'svelte';
+	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Plus, Copy, Trash2, AlertTriangle } from '@lucide/svelte';
-	import { mockApiKeys } from '$lib/data/mock-api-keys.js';
+	import { apiKeyService } from '$lib/services/api-keys.js';
 	import { formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import type { ApiKeyListItem } from '$lib/types/domain.js';
 	const t = localeStore.t;
+
+	let apiKeys = $state<ApiKeyListItem[]>([]);
+	let isLoading = $state(true);
+	let errorMsg = $state('');
+	let isCreating = $state(false);
+	let isDeleting = $state<string | null>(null);
+
+	async function loadApiKeys() {
+		isLoading = true;
+		errorMsg = '';
+		try {
+			apiKeys = await apiKeyService.list();
+		} catch (e) {
+			errorMsg = t('common.error');
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	async function handleCreate() {
+		const name = prompt(t('settings.apiKeys.name'));
+		if (!name || !name.trim()) return;
+
+		isCreating = true;
+		try {
+			const result = await apiKeyService.create(name.trim());
+			alert(result.key || t('settings.apiKeys.key'));
+			await loadApiKeys();
+		} catch (e) {
+			errorMsg = t('common.errorSave');
+			console.error(e);
+		} finally {
+			isCreating = false;
+		}
+	}
+
+	async function handleDelete(id: string) {
+		if (!confirm(t('common.delete') + '?')) return;
+
+		isDeleting = id;
+		try {
+			await apiKeyService.delete(id);
+			apiKeys = apiKeys.filter((k) => k.id !== id);
+			await loadApiKeys();
+		} catch (e) {
+			errorMsg = t('common.errorSave');
+			console.error(e);
+		} finally {
+			isDeleting = null;
+		}
+	}
+
+	async function handleCopy(prefix: string) {
+		try {
+			await navigator.clipboard.writeText(prefix);
+		} catch {
+			console.error('Failed to copy');
+		}
+	}
+
+	onMount(loadApiKeys);
 </script>
 
 <div class="flex flex-col gap-4">
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<h2 class="text-lg font-semibold text-foreground">{t('settings.apiKeys.title')}</h2>
-		<Button size="sm">
+		<Button size="sm" onclick={handleCreate} disabled={isCreating}>
 			<Plus class="size-4" />
-			{t('settings.apiKeys.createNew')}
+			{isCreating ? t('common.saving') : t('settings.apiKeys.createNew')}
 		</Button>
 	</div>
 
@@ -24,6 +88,12 @@
 			<p class="text-sm text-muted-foreground">{t('settings.apiKeys.securityWarningDesc')}</p>
 		</div>
 	</div>
+
+	{#if errorMsg}
+		<div class="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3">
+			<p class="text-sm text-destructive">{errorMsg}</p>
+		</div>
+	{/if}
 
 	<Card>
 		<CardContent class="p-0">
@@ -38,23 +108,33 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each mockApiKeys as key}
-							<tr class="border-b last:border-b-0 hover:bg-muted/30">
-								<td class="px-4 py-3 font-medium text-foreground">{key.title}</td>
-								<td class="px-4 py-3 font-mono text-sm text-muted-foreground">{key.key}</td>
-								<td class="px-4 py-3 text-muted-foreground">{formatDate(key.created_at)}</td>
-								<td class="px-4 py-3 text-right">
-									<div class="inline-flex items-center gap-2">
-										<Button variant="ghost" size="sm">
-											<Copy class="size-4" />
-										</Button>
-										<Button variant="ghost" size="sm" class="text-destructive">
-											<Trash2 class="size-4" />
-										</Button>
-									</div>
-								</td>
+						{#if isLoading}
+							<tr>
+								<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
 							</tr>
-						{/each}
+						{:else if apiKeys.length === 0}
+							<tr>
+								<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td>
+							</tr>
+						{:else}
+							{#each apiKeys as key (key.id)}
+								<tr class="border-b last:border-b-0 hover:bg-muted/30">
+									<td class="px-4 py-3 font-medium text-foreground">{key.name}</td>
+									<td class="px-4 py-3 font-mono text-sm text-muted-foreground">{key.key_prefix}...</td>
+									<td class="px-4 py-3 text-muted-foreground">{formatDate(key.created_at)}</td>
+									<td class="px-4 py-3 text-right">
+										<div class="inline-flex items-center gap-2">
+											<Button variant="ghost" size="sm" onclick={() => handleCopy(key.key_prefix)}>
+												<Copy class="size-4" />
+											</Button>
+											<Button variant="ghost" size="sm" class="text-destructive" onclick={() => handleDelete(key.id)} disabled={isDeleting === key.id}>
+												<Trash2 class="size-4" />
+											</Button>
+										</div>
+									</td>
+								</tr>
+							{/each}
+						{/if}
 					</tbody>
 				</table>
 			</div>

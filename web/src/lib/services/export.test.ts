@@ -56,7 +56,7 @@ describe('exportService', () => {
     });
 
     it('includes auth header when token exists', async () => {
-      localStorageMock.getItem.mockReturnValueOnce('my-token');
+      localStorageMock.getItem.mockReturnValueOnce('my-token' as any);
       const mockBlob = new Blob(['csv'], { type: 'text/csv' });
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,

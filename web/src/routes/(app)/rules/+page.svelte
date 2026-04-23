@@ -21,7 +21,7 @@
 
 	onMount(async () => {
 		try {
-			items = await ruleService.list();
+			items = await ruleService.listGroups();
 		} catch (e) {
 			errorMsg = t('common.error');
 			console.error('Failed to load rules:', e);

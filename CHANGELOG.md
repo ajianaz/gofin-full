@@ -7,7 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
-- **Unit tests for all 15 service layer modules** (107 tests) — currencies, groups, reports, export, admin, wallets, transactions, categories, budgets, bills, tags, piggy-banks, recurring, rules, auth
+- **Unit tests for all 19 service layer modules** (127 tests) — currencies, groups, reports, export, admin, wallets, transactions, categories, budgets, bills, tags, piggy-banks, recurring, rules, auth, api-keys, preferences, notifications, wallet-members
+- **Real API integration for settings/api-keys page** — `apiKeyService` (list, create, delete), loading/error states, copy-to-clipboard, create dialog showing raw key
+- **Real API integration for settings/preferences page** — `preferenceService` (list, get, set, delete), local preference config map for type/options metadata, optimistic updates with rollback
+- **Real API integration for settings/notifications page** — `notificationService` (list, markRead, markAllRead), read/unread badge display
+- **Real API integration for wallets/[id]/members page** — `walletMemberService` (list, add, updateRole, remove), role badges (owner/editor/viewer)
+- **Real API integration for rules/[groupId] page** — `ruleService.listRules()` and `ruleService.getGroup()`, simplified rule display (title, active status, priority)
+- **Real API integration for settings/profile page** — `authService.getMe()` for user data, `authService.updateProfile()` and `authService.changePassword()`, initials derived from name, password validation
+- **Complete ruleService** — added `listGroups`, `getGroup`, `listRules`, `getRule`, `createRule`, `updateRule`, `deleteRule` methods
+- **Additional service methods** — `piggyBankService.addMoney/removeMoney`, `transactionService.split`, `groupService.get/update/delete`, `authService.updateProfile/changePassword`
+- New domain types: `Notification`, `WalletMember`, `ApiKeyListItem`, `ApiKeyCreateResponse`, `PreferenceItem`
+- i18n keys: `settings.profile.saveSuccess`, `settings.profile.passwordMismatch`, `settings.profile.passwordRequired`, `settings.profile.passwordChanged`
 - Tests verify JSON:API response unwrapping, field mapping (backend attribute names to frontend fields), default values for missing fields, error handling, and query string construction
 - **Vitest unit test framework** — vitest + @vitest/coverage-v8 + jsdom for frontend unit testing
 - `vitest.config.ts` with jsdom environment, path aliases ($lib, $components, $app), and globals
@@ -34,9 +44,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - 21 E2E tests covering full CRUD lifecycle (register → 9 creates → list pages → 9 deletes)
 
 ### Removed
-- 14 unused mock data files after all pages converted to real API (mock-audit-log, mock-bills, mock-budgets, mock-categories, mock-currencies, mock-exchange-rates, mock-groups, mock-notifications, mock-piggy-banks, mock-recurring, mock-tags, mock-transactions, mock-users, mock-wallets)
+- 17 unused mock data files after all pages converted to real API (mock-audit-log, mock-bills, mock-budgets, mock-categories, mock-currencies, mock-exchange-rates, mock-groups, mock-notifications, mock-piggy-banks, mock-recurring, mock-tags, mock-transactions, mock-users, mock-wallets, mock-api-keys, mock-preferences, mock-rules)
 
 ### Changed
+- **Settings/api-keys page uses real API** — replaced `mockApiKeys` with `apiKeyService.list()`, create shows raw key in alert, copy-to-clipboard for key prefix
+- **Settings/preferences page uses real API** — replaced `mockPreferences` with `preferenceService.list()`, changes persist immediately via `preferenceService.set()`
+- **Settings/notifications page uses real API** — replaced inline mock notifications with `notificationService.list()`, mark-all-read calls real API
+- **Settings/profile page uses real API** — replaced hardcoded user data with `authService.getMe()`, save and change-password wired to API
+- **Wallets/[id]/members page uses real API** — replaced inline mock members with `walletMemberService.list()`
+- **Rules/[groupId] page uses real API** — replaced `mockRuleGroups` and `mockRules` with `ruleService.getGroup()` and `ruleService.listRules()`
+- **Rules parent page** — updated `ruleService.list()` call to `ruleService.listGroups()` after service method rename
 - **Admin users page uses real API** — replaced `mockUsers` with `adminService.listUsers()`, added loading/error states
 - **Audit log page uses real API** — replaced `mockAuditLog` with `adminService.listAuditLogs()`, entity filter re-fetches from API, action filter is client-side
 - **Export page uses real API** — replaced `mockWallets` with `walletService.list()`, form submit triggers actual file download via `exportService`

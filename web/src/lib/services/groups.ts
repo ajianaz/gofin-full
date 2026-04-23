@@ -26,5 +26,19 @@ export const groupService = {
 
 	async switch(userGroupId: string): Promise<void> {
 		await api.post('/groups/switch', { user_group_id: userGroupId });
+	},
+
+	async get(id: string): Promise<UserGroup> {
+		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> } }>(`/groups/${id}`);
+		const g = { id: res.data.id, ...res.data.attributes } as UserGroup & { id: string };
+		return { id: g.id, title: (g as any).title ?? '', member_count: (g as any).member_count ?? 0, is_current: (g as any).is_current ?? false };
+	},
+
+	async update(id: string, data: { title?: string }): Promise<void> {
+		await api.put(`/groups/${id}`, data);
+	},
+
+	async delete(id: string): Promise<void> {
+		await api.delete(`/groups/${id}`);
 	}
 };

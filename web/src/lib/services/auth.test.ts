@@ -52,15 +52,13 @@ describe('authService', () => {
 
       const result = await authService.register({
         email: 'new@test.com',
-        password: 'pass123',
-        name: 'New User'
+        password: 'pass123'
       });
 
       expect(result).toEqual(tokenResponse);
       expect(mockedApi.post).toHaveBeenCalledWith('/auth/register', {
         email: 'new@test.com',
-        password: 'pass123',
-        name: 'New User'
+        password: 'pass123'
       });
     });
   });

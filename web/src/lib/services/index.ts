@@ -14,3 +14,7 @@ export { groupService } from './groups.js';
 export { reportService } from './reports.js';
 export { exportService } from './export.js';
 export { adminService } from './admin.js';
+export { apiKeyService } from './api-keys.js';
+export { preferenceService } from './preferences.js';
+export { notificationService } from './notifications.js';
+export { walletMemberService } from './wallet-members.js';

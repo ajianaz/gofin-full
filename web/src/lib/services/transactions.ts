@@ -51,5 +51,9 @@ export const transactionService = {
 
 	async delete(id: string): Promise<void> {
 		await api.delete(`/transactions/${id}`);
+	},
+
+	async split(id: string, splits: Array<{ amount: string; description?: string }>): Promise<void> {
+		await api.post(`/transactions/${id}/split`, { splits });
 	}
 };

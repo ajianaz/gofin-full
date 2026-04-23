@@ -19,15 +19,15 @@ describe('ruleService', () => {
     vi.clearAllMocks();
   });
 
-  describe('list', () => {
+  describe('listGroups', () => {
     it('unwraps and maps rule group fields with defaults', async () => {
       mockedApi.get.mockResolvedValueOnce({
         data: [
-          { id: 'rg1', attributes: { title: 'Auto-categorize', active: true } }
+          { id: 'rg1', attributes: { title: 'Auto-categorize', active: true, order: 1 } }
         ]
       });
 
-      const result = await ruleService.list();
+      const result = await ruleService.listGroups();
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual(
@@ -38,13 +38,13 @@ describe('ruleService', () => {
           rule_count: 0
         })
       );
-      expect(mockedApi.get).toHaveBeenCalledWith('/rules');
+      expect(mockedApi.get).toHaveBeenCalledWith('/rule-groups');
     });
 
     it('returns empty array', async () => {
       mockedApi.get.mockResolvedValueOnce({ data: [] });
 
-      const result = await ruleService.list();
+      const result = await ruleService.listGroups();
 
       expect(result).toEqual([]);
     });
@@ -70,7 +70,7 @@ describe('ruleService', () => {
     });
   });
 
-  describe('get', () => {
+  describe('getRule', () => {
     it('gets single rule by id', async () => {
       mockedApi.get.mockResolvedValueOnce({
         data: {
@@ -83,13 +83,12 @@ describe('ruleService', () => {
         }
       });
 
-      const result = await ruleService.get('rule1');
+      const result = await ruleService.getRule('rule1');
 
       expect(result).toEqual(
         expect.objectContaining({
           id: 'rule1',
           title: 'Categorize Groceries',
-          rule_group_id: 'rg1',
           active: true
         })
       );

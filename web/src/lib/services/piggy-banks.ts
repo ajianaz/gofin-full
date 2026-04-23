@@ -37,5 +37,13 @@ export const piggyBankService = {
 
 	async delete(walletId: string, id: string): Promise<void> {
 		await api.delete(`/wallets/${walletId}/piggy_banks/${id}`);
+	},
+
+	async addMoney(walletId: string, id: string, amount: string): Promise<void> {
+		await api.post(`/wallets/${walletId}/piggy_banks/${id}/add`, { amount });
+	},
+
+	async removeMoney(walletId: string, id: string, amount: string): Promise<void> {
+		await api.post(`/wallets/${walletId}/piggy_banks/${id}/remove`, { amount });
 	}
 };
