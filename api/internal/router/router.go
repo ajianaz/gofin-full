@@ -54,6 +54,7 @@ type RouterConfig struct {
 	APIKeyHandler        *handler.APIKeyHandler
 	KeyLookup            auth.KeyLookup
 	RoleLookup           auth.RoleLookup
+	TokenVersionLookup   auth.TokenVersionLookup
 	JWTManager           *auth.JWTManager
 	SSEHub               *sse.Hub
 	CustomMiddleware     []fiber.Handler
@@ -127,6 +128,13 @@ func New(cfg RouterConfig) *fiber.App {
 	if cfg.KeyLookup != nil {
 		protected.Use(auth.APIKeyMiddleware(cfg.KeyLookup))
 	}
+	// Inject token version lookup into context for AuthMiddleware
+	if cfg.TokenVersionLookup != nil {
+		protected.Use(func(c *fiber.Ctx) error {
+			c.Locals("token_version_lookup", cfg.TokenVersionLookup)
+			return c.Next()
+		})
+	}
 	protected.Use(auth.AuthMiddleware(cfg.JWTManager))
 	protected.Use(auth.GroupRoleMiddleware(cfg.RoleLookup))
 
@@ -139,7 +147,7 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Post("/groups", cfg.GroupHandler.Store)
 	protected.Post("/groups/switch", cfg.GroupHandler.Switch)
 	protected.Get("/groups/:id", cfg.GroupHandler.Show)
-	protected.Put("/groups/:id", cfg.GroupHandler.Update)
+	protected.Put("/groups/:id", auth.RBACMiddleware(auth.RoleOwner), cfg.GroupHandler.Update)
 	protected.Delete("/groups/:id", auth.RBACMiddleware(auth.RoleOwner), cfg.GroupHandler.Delete)
 
 	// Wallets — read: no RBAC, write: manage_meta

@@ -181,6 +181,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 		MetricsHandler:       metricsHandler,
 		MemberRepo:           walletMemberRepo,
 		RoleLookup:           userRepo,
+		TokenVersionLookup:   userRepo,
 		JWTManager:           jwtMgr,
 		SSEHub:               sseHub,
 		CustomMiddleware:     nil, // no logger/recovery overhead in tests

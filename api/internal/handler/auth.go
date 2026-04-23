@@ -1,19 +1,31 @@
 package handler
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/config"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
+
+// Login attempt lockout constants.
+const (
+	loginMaxAttempts      = 5
+	loginLockoutDuration  = 15 * time.Minute
+	loginAttemptWindow    = 15 * time.Minute
+	loginAttemptsKeyPrefix = "login_attempts:"
 )
 
 // AuthHandler handles authentication endpoints.
@@ -24,11 +36,17 @@ type AuthHandler struct {
 	userRepo     *repository.UserRepository
 	oauthState   *repository.OAuthStateRepository
 	refreshRepo  *repository.RefreshTokenRepository
+	rdb          redis.Cmdable // optional Redis for login attempt tracking
 }
 
 // NewAuthHandler creates a new auth handler.
 func NewAuthHandler(jwtMgr *auth.JWTManager, provider auth.AuthProvider, cfg *config.Config, userRepo *repository.UserRepository, oauthStateRepo *repository.OAuthStateRepository, refreshRepo *repository.RefreshTokenRepository) *AuthHandler {
 	return &AuthHandler{jwtMgr: jwtMgr, provider: provider, cfg: cfg, userRepo: userRepo, oauthState: oauthStateRepo, refreshRepo: refreshRepo}
+}
+
+// SetRedis injects an optional Redis client for login attempt tracking.
+func (h *AuthHandler) SetRedis(rdb redis.Cmdable) {
+	h.rdb = rdb
 }
 
 // Login handles POST /api/v1/auth/login.
@@ -43,17 +61,28 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 
+	// Check if account is temporarily locked due to too many failed attempts
+	if locked, retryMinutes := h.isAccountLocked(c.Context(), req.Email); locked {
+		return c.Status(429).JSON(fiber.Map{
+			"message": fmt.Sprintf("Account temporarily locked due to too many failed login attempts. Try again in %d minutes.", retryMinutes),
+		})
+	}
+
 	identity, err := h.provider.Authenticate(c.Context(), auth.Credentials{
 		Email:    req.Email,
 		Password: req.Password,
 	})
 	if err != nil {
+		h.recordFailedLogin(c.Context(), req.Email)
 		return apperrors.NewWithDetail(401, "Unauthenticated", err.Error())
 	}
 
 	if identity.Blocked {
 		return apperrors.NewWithDetail(403, "Forbidden", "User account is blocked.")
 	}
+
+	// Successful login — clear failed attempt counter
+	h.clearFailedLogins(c.Context(), req.Email)
 
 	tokens, err := h.jwtMgr.GenerateTokenPair(identity, identity.UserGroupID)
 	if err != nil {
@@ -68,6 +97,62 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(tokens)
+}
+
+// isAccountLocked checks if an account is locked due to too many failed login attempts.
+// Returns (locked, retryMinutes).
+func (h *AuthHandler) isAccountLocked(ctx context.Context, email string) (bool, int) {
+	if h.rdb == nil {
+		return false, 0
+	}
+
+	key := loginAttemptsKeyPrefix + email
+	val, err := h.rdb.Get(ctx, key).Result()
+	if err != nil {
+		return false, 0
+	}
+
+	attempts, err := strconv.Atoi(val)
+	if err != nil || attempts < loginMaxAttempts {
+		return false, 0
+	}
+
+	ttl, err := h.rdb.TTL(ctx, key).Result()
+	if err != nil || ttl <= 0 {
+		return false, 0
+	}
+
+	retryMinutes := int(ttl.Minutes())
+	if retryMinutes < 1 {
+		retryMinutes = 1
+	}
+	return true, retryMinutes
+}
+
+// recordFailedLogin increments the failed login counter for an email.
+func (h *AuthHandler) recordFailedLogin(ctx context.Context, email string) {
+	if h.rdb == nil {
+		return
+	}
+
+	key := loginAttemptsKeyPrefix + email
+	pipe := h.rdb.Pipeline()
+	pipe.Incr(ctx, key)
+	pipe.Expire(ctx, key, loginLockoutDuration)
+	if _, err := pipe.Exec(ctx); err != nil {
+		log.Printf("login attempt tracking: redis error: %v", err)
+	}
+}
+
+// clearFailedLogins removes the failed login counter for an email after successful login.
+func (h *AuthHandler) clearFailedLogins(ctx context.Context, email string) {
+	if h.rdb == nil {
+		return
+	}
+
+	if err := h.rdb.Del(ctx, loginAttemptsKeyPrefix+email).Err(); err != nil {
+		log.Printf("login attempt tracking: redis error on clear: %v", err)
+	}
 }
 
 // Register handles POST /api/v1/auth/register.
@@ -175,6 +260,12 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		_ = h.refreshRepo.RevokeByHash(c.Context(), tokenHash)
 	}
 
+	// Increment token_version to invalidate all existing JWT tokens for this user
+	user := auth.GetUser(c)
+	if user != nil {
+		_ = h.userRepo.IncrementTokenVersion(c.Context(), user.ID)
+	}
+
 	return c.JSON(fiber.Map{
 		"message": "Logged out successfully.",
 	})
@@ -210,9 +301,10 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	}
 
 	identity := &auth.UserIdentity{
-		ID:       claims.UserID,
-		Email:    claims.Email,
-		DemoUser: claims.DemoUser,
+		ID:           claims.UserID,
+		Email:        claims.Email,
+		DemoUser:     claims.DemoUser,
+		TokenVersion: claims.TokenVersion,
 	}
 
 	tokens, err := h.jwtMgr.GenerateTokenPair(identity, claims.GroupID)

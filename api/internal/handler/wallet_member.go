@@ -18,11 +18,17 @@ func NewWalletMemberHandler(memberRepo *repository.WalletMemberRepository) *Wall
 }
 
 func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
 
 	walletID, err := uuid.Parse(c.Params("wallet_id"))
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id format"}})
+	}
+
+	// Verify the requesting user is a member (or owner) of this wallet
+	role, err := h.memberRepo.GetWalletRole(c.Context(), walletID, user.ID)
+	if err != nil || role == "" {
+		return apperrors.New(403, "you do not have access to this wallet")
 	}
 
 	members, err := h.memberRepo.ListByWallet(c.Context(), walletID)

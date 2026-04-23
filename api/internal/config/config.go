@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -128,15 +127,24 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	validate(&cfg)
+	if err := validate(&cfg); err != nil {
+		return nil, err
+	}
 
 	return &cfg, nil
 }
 
-func validate(cfg *Config) {
-	if cfg.AuthJWTSecret == "change-me-in-production-32chars!" && cfg.AppEnv != "development" && cfg.AppEnv != "local" {
-		log.Printf("[WARN] JWT secret is still the default value. Set AUTH_JWT_SECRET to a strong random string in production.")
+func validate(cfg *Config) error {
+	if cfg.AppEnv == "development" || cfg.AppEnv == "local" || cfg.AppEnv == "testing" {
+		return nil
 	}
+	if cfg.AuthJWTSecret == "change-me-in-production-32chars!" {
+		return fmt.Errorf("AUTH_JWT_SECRET must be changed from the default value in %s environment", cfg.AppEnv)
+	}
+	if len(cfg.AuthJWTSecret) < 32 {
+		return fmt.Errorf("AUTH_JWT_SECRET must be at least 32 characters, got %d", len(cfg.AuthJWTSecret))
+	}
+	return nil
 }
 
 func setDefaults(v *viper.Viper) {

@@ -69,7 +69,7 @@ func (r *ExchangeRateRepository) FindRate(ctx context.Context, groupID uuid.UUID
 	return rate, nil
 }
 
-func (r *ExchangeRateRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := r.db.Exec(ctx, `DELETE FROM exchange_rates WHERE id = $1`, id)
+func (r *ExchangeRateRepository) Delete(ctx context.Context, groupID, id uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM exchange_rates WHERE id = $1 AND user_group_id = $2`, id, groupID)
 	return err
 }

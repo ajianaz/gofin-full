@@ -2,12 +2,52 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 )
+
+// memRateEntry tracks in-memory rate limit state per key.
+type memRateEntry struct {
+	timestamps []int64
+	mu         sync.Mutex
+}
+
+// memRateLimiter is a global in-memory rate limiter used as fallback when Redis is unavailable.
+var memRateLimiter sync.Map
+
+// memRateLimitCheck performs an in-memory sliding window rate limit check.
+// Returns true if the request should be allowed, false if rate limited.
+func memRateLimitCheck(key string, limit int, window time.Duration) bool {
+	now := time.Now().UnixMilli()
+	windowStart := now - window.Milliseconds()
+
+	val, _ := memRateLimiter.LoadOrStore(key, &memRateEntry{})
+	entry := val.(*memRateEntry)
+
+	entry.mu.Lock()
+	defer entry.mu.Unlock()
+
+	// Remove expired timestamps
+	valid := entry.timestamps[:0]
+	for _, ts := range entry.timestamps {
+		if ts > windowStart {
+			valid = append(valid, ts)
+		}
+	}
+	entry.timestamps = valid
+
+	if len(entry.timestamps) >= limit {
+		return false
+	}
+
+	entry.timestamps = append(entry.timestamps, now)
+	return true
+}
 
 // CacheControl adds HTTP cache headers to responses.
 func CacheControl(maxAgeSeconds int) fiber.Handler {
@@ -19,6 +59,7 @@ func CacheControl(maxAgeSeconds int) fiber.Handler {
 }
 
 // RateLimit provides a Redis-based sliding window rate limiter.
+// Falls back to an in-memory limiter when Redis is unavailable.
 func RateLimit(rdb redis.Cmdable, limit int, window time.Duration) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		ip := c.IP()
@@ -38,6 +79,14 @@ func RateLimit(rdb redis.Cmdable, limit int, window time.Duration) fiber.Handler
 		_, _ = pipe.Exec(c.Context())
 
 		if incr.Err() != nil || removeOld.Err() != nil || count.Err() != nil || expire.Err() != nil {
+			// Redis unavailable — fall back to in-memory rate limiter
+			log.Printf("rate limiter: redis error, applying in-memory fallback for %s", key)
+			if !memRateLimitCheck(key, limit, window) {
+				c.Set("Retry-After", strconv.Itoa(int(window.Seconds())))
+				return c.Status(429).JSON(fiber.Map{
+					"error": "Too many requests. Please try again later.",
+				})
+			}
 			return c.Next()
 		}
 

@@ -64,14 +64,14 @@ func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.
 			record := []string{
 				j.Date.Format("2006-01-02"),
 				string(j.Type),
-				j.Description,
+				sanitizeCSV(j.Description),
 				amount.StringFixed(2),
 				j.CurrencyID,
-				categoryName,
-				sourceName,
-				destName,
-				coalesceStr(j.Notes),
-				joinTagNames(j.Tags),
+				sanitizeCSV(categoryName),
+				sanitizeCSV(sourceName),
+				sanitizeCSV(destName),
+				sanitizeCSV(coalesceStr(j.Notes)),
+				sanitizeCSV(joinTagNames(j.Tags)),
 			}
 			if err := csvWriter.Write(record); err != nil {
 				return err
@@ -190,6 +190,18 @@ func joinTagNames(tags []domain.Tag) string {
 		result += t.Tag
 	}
 	return result
+}
+
+
+func sanitizeCSV(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	c := s[0]
+	if c == '=' || c == '+' || c == '-' || c == '@' || c == '	' || c == '' {
+		return "'" + s + "'"
+	}
+	return s
 }
 
 func escapeXML(s string) string {

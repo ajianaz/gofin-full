@@ -135,12 +135,17 @@ func (h *ExchangeRateHandler) Show(c *fiber.Ctx) error {
 func (h *ExchangeRateHandler) Delete(c *fiber.Ctx) error {
 	_ = auth.GetUser(c)
 
+	groupID := auth.GetActiveGroupID(c)
+	if groupID == nil {
+		return apperrors.New(403, "active group not found")
+	}
+
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.repo.Delete(c.Context(), id); err != nil {
+	if err := h.repo.Delete(c.Context(), *groupID, id); err != nil {
 		return apperrors.NotFoundResource("exchange_rate", id)
 	}
 

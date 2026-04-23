@@ -1,6 +1,11 @@
 package handler
 
 import (
+	"fmt"
+	"net"
+	"net/url"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -8,6 +13,37 @@ import (
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
+
+// blockedHosts are hostnames that must never be used as webhook targets (SSRF prevention).
+var blockedHosts = []string{
+	"localhost", "127.0.0.1", "0.0.0.0", "::1",
+	"169.254.169.254",        // AWS metadata
+	"metadata.google.internal", // GCP metadata
+	"100.100.100.200",        // GKE metadata
+}
+
+// validateWebhookURL checks that a webhook URL is not pointing to internal/private addresses.
+func validateWebhookURL(rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("URL scheme must be http or https")
+	}
+	host := strings.ToLower(u.Hostname())
+	for _, blocked := range blockedHosts {
+		if host == blocked || strings.HasSuffix(host, "."+blocked) {
+			return fmt.Errorf("URL host is not allowed")
+		}
+	}
+	// Block private IP ranges
+	ip := net.ParseIP(host)
+	if ip != nil && (ip.IsPrivate() || ip.IsLoopback() || ip.IsUnspecified() || ip.IsLinkLocalUnicast()) {
+		return fmt.Errorf("private/internal IP addresses are not allowed")
+	}
+	return nil
+}
 
 type WebhookHandler struct {
 	repo *repository.WebhookRepository
@@ -98,6 +134,10 @@ func (h *WebhookHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"title": {"title and url are required"}})
 	}
 
+	if err := validateWebhookURL(req.URL); err != nil {
+		return apperrors.NewValidationError(map[string][]string{"url": {err.Error()}})
+	}
+
 	w, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.URL)
 	if err != nil {
 		return apperrors.NewWithDetail(500, "failed to create webhook", err.Error())
@@ -138,6 +178,12 @@ func (h *WebhookHandler) Update(c *fiber.Ctx) error {
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
+	}
+
+	if req.URL != "" {
+		if err := validateWebhookURL(req.URL); err != nil {
+			return apperrors.NewValidationError(map[string][]string{"url": {err.Error()}})
+		}
 	}
 
 	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.URL, req.Active); err != nil {

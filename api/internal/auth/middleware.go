@@ -1,12 +1,23 @@
 package auth
 
 import (
+	"context"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
+
+// TokenVersionLookup is implemented by repositories that can check a user's token version.
+// This interface breaks the import cycle between auth and repository.
+type TokenVersionLookup interface {
+	GetTokenVersion(ctx context.Context, userID uuid.UUID) (int, error)
+}
+
+// ErrTokenInvalidated is returned when a JWT's token_version does not match the DB value.
+var ErrTokenInvalidated = apperrors.NewWithDetail(401, "Unauthenticated", "Token has been invalidated. Please log in again.")
 
 // AuthMiddleware creates a Fiber middleware that validates JWT tokens.
 func AuthMiddleware(jwtMgr *JWTManager) fiber.Handler {
@@ -29,6 +40,16 @@ func AuthMiddleware(jwtMgr *JWTManager) fiber.Handler {
 		claims, err := jwtMgr.ValidateAccessToken(parts[1])
 		if err != nil {
 			return apperrors.ErrUnauthorized
+		}
+
+		// Validate token_version against the DB to detect invalidated tokens.
+		// The version lookup is injected via c.Locals("token_version_lookup") which is set
+		// by the TokenVersionMiddleware that runs before this middleware.
+		if lookup, ok := c.Locals("token_version_lookup").(TokenVersionLookup); ok {
+			dbVersion, err := lookup.GetTokenVersion(c.Context(), claims.UserID)
+			if err == nil && dbVersion != claims.TokenVersion {
+				return ErrTokenInvalidated
+			}
 		}
 
 		// Store claims and user identity in context
@@ -65,6 +86,14 @@ func OptionalAuthMiddleware(jwtMgr *JWTManager) fiber.Handler {
 		claims, err := jwtMgr.ValidateAccessToken(parts[1])
 		if err != nil {
 			return c.Next()
+		}
+
+		// Validate token_version against the DB to detect invalidated tokens.
+		if lookup, ok := c.Locals("token_version_lookup").(TokenVersionLookup); ok {
+			dbVersion, err := lookup.GetTokenVersion(c.Context(), claims.UserID)
+			if err == nil && dbVersion != claims.TokenVersion {
+				return c.Next() // Optional auth: just skip, don't reject
+			}
 		}
 
 		SetClaims(c, claims)

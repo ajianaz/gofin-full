@@ -57,7 +57,7 @@ func (h *AttachmentHandler) Index(c *fiber.Ctx) error {
 }
 
 func (h *AttachmentHandler) Show(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
 
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -67,6 +67,10 @@ func (h *AttachmentHandler) Show(c *fiber.Ctx) error {
 	a, err := h.repo.FindByID(c.Context(), id)
 	if err != nil {
 		return apperrors.NotFoundResource("attachment", id)
+	}
+
+	if user == nil || a.UserID != user.ID {
+		return apperrors.ErrNotFound
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -120,11 +124,22 @@ func (h *AttachmentHandler) Store(c *fiber.Ctx) error {
 }
 
 func (h *AttachmentHandler) Delete(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
+	if user == nil {
+		return apperrors.ErrUnauthorized
+	}
 
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
+	}
+
+	a, err := h.repo.FindByID(c.Context(), id)
+	if err != nil {
+		return apperrors.NotFoundResource("attachment", id)
+	}
+	if a.UserID != user.ID {
+		return apperrors.ErrNotFound
 	}
 
 	if err := h.repo.Delete(c.Context(), id); err != nil {

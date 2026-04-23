@@ -11,11 +11,12 @@ import (
 
 // UserIdentity represents an authenticated user, extracted from any auth provider.
 type UserIdentity struct {
-	ID          uuid.UUID
-	Email       string
-	Blocked     bool
-	DemoUser    bool
-	UserGroupID *uuid.UUID
+	ID           uuid.UUID
+	Email        string
+	Blocked      bool
+	DemoUser     bool
+	UserGroupID  *uuid.UUID
+	TokenVersion int
 }
 
 // AuthProvider is the strategy interface for authentication.

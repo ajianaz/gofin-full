@@ -13,9 +13,12 @@ func TestLoad_Defaults(t *testing.T) {
 	// Ensure no .env file interferes
 	_ = os.Remove(".env")
 
+	// Set test env to skip JWT secret validation
+	t.Setenv("APP_ENV", "testing")
+
 	// Clear env vars that docker-compose sets, so we test true defaults
 	envVars := []string{
-		"APP_ENV", "APP_DEBUG", "APP_URL", "APP_TIMEZONE",
+		"APP_DEBUG", "APP_URL", "APP_TIMEZONE",
 		"HTTP_PORT", "HTTP_HOST",
 		"DB_HOST", "DB_PORT", "DB_DATABASE", "DB_USERNAME", "DB_PASSWORD", "DB_SSL_MODE", "DB_SCHEMA", "DB_DSN",
 		"REDIS_HOST", "REDIS_PORT", "REDIS_DB",
@@ -34,8 +37,8 @@ func TestLoad_Defaults(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	// App defaults
-	assert.Equal(t, "production", cfg.AppEnv)
+	// App defaults (APP_ENV set to testing for JWT validation bypass)
+	assert.Equal(t, "testing", cfg.AppEnv)
 	assert.False(t, cfg.AppDebug)
 	assert.Equal(t, "http://localhost", cfg.AppURL)
 	assert.Equal(t, "UTC", cfg.AppTimezone)

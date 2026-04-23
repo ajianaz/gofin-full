@@ -243,3 +243,26 @@ func (r *UserRepository) ListAll(ctx context.Context) ([]domain.User, error) {
 	}
 	return users, rows.Err()
 }
+
+// GetTokenVersion returns the user's current token_version.
+func (r *UserRepository) GetTokenVersion(ctx context.Context, userID uuid.UUID) (int, error) {
+	var version int
+	err := r.db.QueryRow(ctx,
+		`SELECT token_version FROM users WHERE id = $1 AND deleted_at IS NULL`,
+		userID,
+	).Scan(&version)
+	if err != nil {
+		return 0, err
+	}
+	return version, nil
+}
+
+// IncrementTokenVersion atomically increments the user's token_version,
+// invalidating all existing JWT tokens for that user.
+func (r *UserRepository) IncrementTokenVersion(ctx context.Context, userID uuid.UUID) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE users SET token_version = token_version + 1, updated_at = $2 WHERE id = $1 AND deleted_at IS NULL`,
+		userID, time.Now().UTC(),
+	)
+	return err
+}

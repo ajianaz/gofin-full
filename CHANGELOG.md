@@ -7,10 +7,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **JWT token version/invalidation mechanism (C6)** — `token_version` column on users table tracks token invalidation; JWT access and refresh tokens include `token_version` claim; `AuthMiddleware` compares claim version against DB and rejects mismatched tokens (401 "Token has been invalidated"); `IncrementTokenVersion` repository method for callers to invalidate all tokens for a user (called on logout, password change, group membership removal)
+- **Database migration** — `000012_token_version.up.sql` adds `token_version INTEGER NOT NULL DEFAULT 0` to users table
+
+### Fixed
+- **Group update restricted to owner role (C1)** — `PUT /groups/:id` now requires `RoleOwner` RBAC middleware, matching the delete route
+- **Wallet member Index group verification (C3)** — `GET /wallets/:wallet_id/members` now verifies the requesting user has a role on the wallet via `GetWalletRole`, returns 403 if unauthorized
+- **Attachment Show/Delete user ownership (C4+H1)** — `Show` and `Delete` attachment handlers now verify the attachment belongs to the requesting user via `UserID` comparison, preventing cross-user access
+- **DB transactions for money operations (C5)** — `CreateTransaction`, `CreateSplitTransaction`, and `DeleteTransaction` now wrap all multi-step operations (create group, journal, transactions, balance updates) in a single database transaction, preventing inconsistent state on partial failure
+- **Webhook URL validation (H3)** — webhook create/update now validates URLs: blocks internal IPs (loopback, private ranges, cloud metadata endpoints), requires http/https scheme
+- **JWT secret startup validation (H4)** — `config.Load()` rejects default JWT secret and secrets under 32 characters in production; development/testing/local environments are exempted
+- **Rate limiter fail-secure on Redis failure (H5)** — when Redis is unavailable, the rate limiter now falls back to an in-memory sliding window limiter instead of allowing all requests through
+- **Account lockout after failed logins (H6)** — after 5 consecutive failed login attempts, the account is temporarily locked for 15 minutes with a clear error message; counter resets on successful login; uses Redis INCR with TTL
+- **CSV injection prevention (M3)** — user-controlled fields in CSV export (description, category, wallet names, notes, tags) are prefixed with a single quote when they start with formula characters (`=`, `+`, `-`, `@`, tab, carriage return)
+- **Exchange rate delete group filter (L3)** — `DELETE /exchange-rates/:id` now filters by `user_group_id`, preventing cross-group deletion
+
+### Fixed
+- **DB transaction wrapping for money operations** — `CreateTransaction`, `CreateSplitTransaction`, and `DeleteTransaction` now execute all DB writes (group + journal + transactions + balance updates + soft deletes) in a single database transaction, preventing inconsistent state on partial failure
+
+### Added
 - **E2E tests for API integration validation** — 31 Playwright tests covering settings (api-keys, preferences, notifications, profile), wallet members, rules group detail, and full API endpoint validation
 - **E2E tests for all remaining pages** — 62 Playwright tests covering dashboard, wallets (list+create), transactions (list+create), categories (list+create), budgets (list+create), bills (list+create), recurring (list+create), piggy-banks (list+create), rules (list+create), tags (list+create), groups, currencies, exchange-rates, export, reports (4 pages), admin (users+audit-log), and full API endpoint validation for all 15 service endpoints
 
 ### Fixed
+- **JWT secret startup validation** — `config.Load()` now rejects the default `AUTH_JWT_SECRET` value and secrets shorter than 32 characters in all non-development environments (previously only a warning in production)
+- **Webhook URL SSRF prevention** — webhook create and update endpoints now validate URLs, blocking internal IPs (localhost, 127.0.0.1, private ranges), cloud metadata endpoints (AWS, GCP, GKE), and requiring http/https scheme
 - **Null-safety in service helpers** — `JsonApiMany.data` now accepts `null` (Go backend returns `null` for empty slices), `unwrapMany` handles null gracefully
 - **Unit tests for all 19 service layer modules** (127 tests) — currencies, groups, reports, export, admin, wallets, transactions, categories, budgets, bills, tags, piggy-banks, recurring, rules, auth, api-keys, preferences, notifications, wallet-members
 - **Real API integration for settings/api-keys page** — `apiKeyService` (list, create, delete), loading/error states, copy-to-clipboard, create dialog showing raw key

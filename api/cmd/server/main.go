@@ -40,12 +40,6 @@ func main() {
 
 	// Production safety checks
 	if cfg.IsProduction() {
-		if cfg.AuthJWTSecret == "change-me-in-production-32chars!" {
-			log.Fatal().Msg("AUTH_JWT_SECRET must be changed from default in production")
-		}
-		if len(cfg.AuthJWTSecret) < 32 {
-			log.Fatal().Msg("AUTH_JWT_SECRET must be at least 32 characters")
-		}
 		if cfg.StaticCronToken == "PLEASE_REPLACE_WITH_32_CHAR_CODE" {
 			log.Fatal().Msg("STATIC_CRON_TOKEN must be changed from default in production")
 		}
@@ -113,6 +107,9 @@ func main() {
 	// Create handlers
 	healthHandler := handler.NewHealthHandler(db, rdb)
 	authHandler := handler.NewAuthHandler(jwtMgr, authProvider, cfg, userRepo, oauthStateRepo, refreshRepo)
+	if rdb != nil {
+		authHandler.SetRedis(rdb)
+	}
 	userHandler := handler.NewUserHandler(userRepo)
 	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db)
 	walletHandler := handler.NewWalletHandler(walletRepo)
