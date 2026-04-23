@@ -1,16 +1,41 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { PageHeader, StatusBadge } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { mockUsers } from '$lib/data/mock-users.js';
+	import { adminService } from '$lib/services/index.js';
 	import { formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
+
+	interface AdminUser {
+		id: string;
+		email: string;
+		name: string;
+		role: string;
+		is_active: boolean;
+		created_at: string;
+	}
+
+	let users = $state<AdminUser[]>([]);
+	let isLoading = $state(true);
+	let errorMsg = $state('');
 
 	let roleLabels = $derived<Record<string, string>>({
 		admin: t('admin.users.roleAdmin'),
 		manager: t('admin.users.roleManager'),
 		user: t('admin.users.roleUser')
+	});
+
+	onMount(async () => {
+		try {
+			users = await adminService.listUsers();
+		} catch (e) {
+			errorMsg = t('common.error');
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
 	});
 </script>
 
@@ -30,17 +55,31 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each mockUsers as user}
-						<tr class="border-b hover:bg-muted/30">
-							<td class="p-3 text-foreground">{user.email}</td>
-							<td class="p-3 font-medium text-foreground">{user.name}</td>
-							<td class="p-3">
-								<Badge variant="outline">{roleLabels[user.role] ?? user.role}</Badge>
-							</td>
-							<td class="p-3"><StatusBadge status={user.is_active ? 'active' : 'inactive'} /></td>
-							<td class="p-3 text-muted-foreground">{formatDate(user.created_at)}</td>
+					{#if isLoading}
+						<tr>
+							<td colspan="5" class="py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
 						</tr>
-					{/each}
+					{:else if errorMsg}
+						<tr>
+							<td colspan="5" class="py-8 text-center text-sm text-destructive">{errorMsg}</td>
+						</tr>
+					{:else}
+						{#each users as user}
+							<tr class="border-b hover:bg-muted/30">
+								<td class="p-3 text-foreground">{user.email}</td>
+								<td class="p-3 font-medium text-foreground">{user.name}</td>
+								<td class="p-3">
+									<Badge variant="outline">{roleLabels[user.role] ?? user.role}</Badge>
+								</td>
+								<td class="p-3"><StatusBadge status={user.is_active ? 'active' : 'inactive'} /></td>
+								<td class="p-3 text-muted-foreground">{formatDate(user.created_at)}</td>
+							</tr>
+						{:else}
+							<tr>
+								<td colspan="5" class="py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td>
+							</tr>
+						{/each}
+					{/if}
 				</tbody>
 			</table>
 		</div>

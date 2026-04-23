@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Real API integration for admin pages** — admin users and audit log pages now use `adminService` API calls instead of mock data
+- `adminService` in `web/src/lib/services/admin.ts` (listUsers, listAuditLogs methods)
 - **Real API integration for export page** — CSV/OFX download via `exportService`, wallet dropdown populated from API
 - `exportService` in `web/src/lib/services/export.ts` (downloadCSV, downloadOFX methods)
 - i18n key `export.exporting` for English and Indonesian
@@ -27,6 +29,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - 21 E2E tests covering full CRUD lifecycle (register → 9 creates → list pages → 9 deletes)
 
 ### Changed
+- **Admin users page uses real API** — replaced `mockUsers` with `adminService.listUsers()`, added loading/error states
+- **Audit log page uses real API** — replaced `mockAuditLog` with `adminService.listAuditLogs()`, entity filter re-fetches from API, action filter is client-side
 - **Export page uses real API** — replaced `mockWallets` with `walletService.list()`, form submit triggers actual file download via `exportService`
 - **Reports pages use real API** — replaced `mockTransactions`, `mockWallets`, `mockCategories`, `mockBudgets` with `reportService` and `walletService` calls, added loading/error/empty states
 - **Currencies page uses real API** — replaced `mockCurrencies` with `currencyService.list()` including loading/error states
