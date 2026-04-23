@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Vitest unit test framework** — vitest + @vitest/coverage-v8 + jsdom for frontend unit testing
+- `vitest.config.ts` with jsdom environment, path aliases ($lib, $components, $app), and globals
+- Test scripts: `test` (single run), `test:watch` (watch mode), `test:coverage` (with v8 coverage)
 - **Real API integration for admin pages** — admin users and audit log pages now use `adminService` API calls instead of mock data
 - `adminService` in `web/src/lib/services/admin.ts` (listUsers, listAuditLogs methods)
 - **Real API integration for export page** — CSV/OFX download via `exportService`, wallet dropdown populated from API
