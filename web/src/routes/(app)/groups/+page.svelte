@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Plus } from '@lucide/svelte';
 	import { groupService } from '$lib/services/index.js';
+	import { authStore } from '$lib/stores/auth.svelte.js';
 	import type { UserGroup } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
@@ -28,7 +29,10 @@
 
 	async function handleSwitch(id: string) {
 		try {
-			await groupService.switch(id);
+			const tokens = await groupService.switch(id);
+			if (tokens) {
+				authStore.setTokens(tokens);
+			}
 			await loadGroups();
 		} catch (e) {
 			errorMsg = t('common.error');

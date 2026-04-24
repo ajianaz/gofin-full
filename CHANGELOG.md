@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 - **License updated from MIT to Apache 2.0** — project license changed to Apache License, Version 2.0
+- **Group switch uses tokens from response** — `setupGroup()` and groups page `handleSwitch` now extract JWT tokens directly from the `POST /groups/switch` response instead of making a separate refresh call
+- **API client auto-refresh on 401** — transparent token refresh when a request returns 401; retries the original request with new tokens; redirects to login if refresh fails; deduplicates concurrent refresh calls to prevent infinite loops
 
 ### Added
 - **JWT token version/invalidation mechanism (C6)** — `token_version` column on users table tracks token invalidation; JWT access and refresh tokens include `token_version` claim; `AuthMiddleware` compares claim version against DB and rejects mismatched tokens (401 "Token has been invalidated"); `IncrementTokenVersion` repository method for callers to invalidate all tokens for a user (called on logout, password change, group membership removal)

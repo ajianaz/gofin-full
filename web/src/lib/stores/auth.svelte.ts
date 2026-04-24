@@ -55,9 +55,10 @@ function createAuthStore() {
 			}
 
 			if (groupId) {
-				await api.post('/groups/switch', { user_group_id: groupId });
-				const newTokens = await authService.refresh(refreshToken);
-				setTokens(newTokens);
+				const switchRes = await api.post<{ tokens?: TokenResponse }>('/groups/switch', { user_group_id: groupId });
+				if (switchRes?.tokens) {
+					setTokens(switchRes.tokens);
+				}
 			}
 		} catch (err) {
 			console.error('Failed to setup group:', err);
@@ -124,11 +125,14 @@ function createAuthStore() {
 		get refreshToken() { return refreshToken; },
 		get isLoading() { return isLoading; },
 		get isAuthenticated() { return isAuthenticated; },
+		setTokens,
+		clearTokens,
 		login,
 		register,
 		logout,
 		fetchUser,
-		restore
+		restore,
+		setupGroup
 	};
 }
 

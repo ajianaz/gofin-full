@@ -1,6 +1,7 @@
 import { api } from './client.js';
 import { unwrapMany } from './helpers.js';
 import type { UserGroup } from '$lib/types/domain.js';
+import type { TokenResponse } from '$lib/types/index.js';
 
 export const groupService = {
 	async list(): Promise<UserGroup[]> {
@@ -24,8 +25,9 @@ export const groupService = {
 		return { id: g.id, title: (g as any).title ?? data.title, member_count: 1, is_current: false };
 	},
 
-	async switch(userGroupId: string): Promise<void> {
-		await api.post('/groups/switch', { user_group_id: userGroupId });
+	async switch(userGroupId: string): Promise<TokenResponse | null> {
+		const res = await api.post<{ tokens?: TokenResponse }>('/groups/switch', { user_group_id: userGroupId });
+		return res?.tokens ?? null;
 	},
 
 	async get(id: string): Promise<UserGroup> {
