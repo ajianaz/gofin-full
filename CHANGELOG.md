@@ -54,7 +54,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Request size limit middleware (H8)** — fixed the no-op `RequestSizeLimit` middleware to actually check `Content-Length` header and return 413; wired it into the router with `MaxRequestBodyBytes` config
 
 #### Medium
-- **CSV injection sanitization (M2)** — `sanitizeCSV` now trims whitespace before checking for formula prefixes, catching `\r\n=cmd` patterns
+- **Health endpoint error detail hiding (M1)** — `/health` now returns generic "connection failed" messages instead of raw DB/Redis error strings; actual errors are logged server-side
+- **Password change rate limiting (H5)** — `POST /users/me/password` is now rate-limited at half the global rate limit to prevent brute-force of current password
+- **Metrics endpoint authentication (M1)** — `/metrics` Prometheus endpoint moved behind authentication middleware, no longer publicly accessible without a valid token
+- **Stop leaking internal error details (M2)** — replaced `NewWithDetail(500, ..., err.Error())` with server-side logging and generic `ErrInternal` responses in webhook, note, attachment, and audit handlers; prevents exposing DB schema, connection details, and file paths to API clients
+- **WalletRBAC stop leaking internal errors (M3)** — wallet ownership and membership checks now log DB errors server-side and return generic 500 responses instead of raw error strings
+- **Notes list user ownership filter (M4)** — `GET /notes` now filters results to only return notes owned by the requesting user, preventing cross-user note visibility within the same group
+- **Attachment store nil check and type validation (M5)** — `POST /attachments` now validates user is authenticated and restricts `attachable_type` to known entity types (Transaction, Journal, Bill, PiggyBank, Recurring, Budget)
+- **Login/OAuth error message hiding (M6)** — login failure now returns generic "Invalid email or password." instead of provider error details; OAuth callback failure returns generic "Authentication failed." to prevent provider-specific information leakage
+- **Group delete membership verification (M7)** — confirmed `DELETE /groups/:id` correctly checks membership in the target group (not active group); no fix needed
+
+#### Medium
 - **JWT secret validation in all environments (M3)** — removed the dev/local/testing bypass; JWT secret length and default value are always validated
 - **In-memory rate limiter memory leak (M4)** — added periodic eviction (every 5 minutes) to remove stale rate limit entries, preventing unbounded memory growth
 - **Export service token handling (M5)** — export service now uses consistent token retrieval pattern matching the central API client

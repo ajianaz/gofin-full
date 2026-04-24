@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
@@ -44,18 +47,27 @@ func (h *NoteHandler) Index(c *fiber.Ctx) error {
 
 	notes, err := h.repo.ListByEntity(c.Context(), noteableType, noteableID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list notes", err.Error())
+		log.Printf("handler: failed to list notes: %v", err)
+		return apperrors.ErrInternal
+	}
+
+	// Filter notes to only include those owned by the current user
+	var filtered []domain.Note
+	for _, n := range notes {
+		if n.UserID == user.ID {
+			filtered = append(filtered, n)
+		}
 	}
 
 	var data []fiber.Map
-	for _, n := range notes {
+	for _, n := range filtered {
 		data = append(data, fiber.Map{
 			"type": "notes",
 			"id":   n.ID,
 			"attributes": fiber.Map{
-				"note":           n.Note,
-				"noteable_type":  n.NoteableType,
-				"noteable_id":    n.NoteableID,
+				"note":          n.Note,
+				"noteable_type": n.NoteableType,
+				"noteable_id":   n.NoteableID,
 			},
 		})
 	}
@@ -86,16 +98,17 @@ func (h *NoteHandler) Store(c *fiber.Ctx) error {
 
 	n, err := h.repo.Create(c.Context(), user.ID, *groupID, req.NoteableType, req.NoteableID, req.Note)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create note", err.Error())
+		log.Printf("handler: failed to create note: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{
 		"type": "notes",
 		"id":   n.ID,
 		"attributes": fiber.Map{
-			"note":           n.Note,
-			"noteable_type":  n.NoteableType,
-			"noteable_id":    n.NoteableID,
+			"note":          n.Note,
+			"noteable_type": n.NoteableType,
+			"noteable_id":   n.NoteableID,
 		},
 	}})
 }
@@ -131,7 +144,7 @@ func (h *NoteHandler) Update(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
-		"type":       "notes", "id": id,
+		"type": "notes", "id": id,
 		"attributes": fiber.Map{"note": req.Note},
 	}})
 }

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -40,7 +42,8 @@ func (h *AttachmentHandler) Index(c *fiber.Ctx) error {
 
 	attachments, err := h.repo.ListByEntityAndUser(c.Context(), attachableType, attachableID, user.ID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list attachments", err.Error())
+		log.Printf("handler: failed to list attachments: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -92,6 +95,9 @@ func (h *AttachmentHandler) Show(c *fiber.Ctx) error {
 
 func (h *AttachmentHandler) Store(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
+	if user == nil {
+		return apperrors.ErrUnauthorized
+	}
 
 	var req struct {
 		AttachableType string    `json:"attachable_type"`
@@ -107,9 +113,20 @@ func (h *AttachmentHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"filename": {"filename is required"}})
 	}
 
+	allowedTypes := map[string]bool{
+		"Transaction": true, "Journal": true, "Bill": true,
+		"PiggyBank": true, "Recurring": true, "Budget": true,
+	}
+	if req.AttachableType != "" && !allowedTypes[req.AttachableType] {
+		return apperrors.NewValidationError(map[string][]string{
+			"attachable_type": {"invalid attachable type"},
+		})
+	}
+
 	a, err := h.repo.Create(c.Context(), user.ID, req.AttachableType, req.AttachableID, req.Filename, req.MimeType, req.Size)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create attachment", err.Error())
+		log.Printf("handler: failed to create attachment: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -39,7 +41,8 @@ func (h *AuditHandler) Index(c *fiber.Ctx) error {
 
 	logs, err := h.repo.List(c.Context(), groupIDNum, entityType, entityID, 100)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list audit logs", err.Error())
+		log.Printf("handler: failed to list audit logs: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map

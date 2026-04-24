@@ -74,7 +74,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	})
 	if err != nil {
 		h.recordFailedLogin(c.Context(), req.Email)
-		return apperrors.NewWithDetail(401, "Unauthenticated", err.Error())
+		return apperrors.New(401, "Invalid email or password.")
 	}
 
 	if identity.Blocked {
@@ -394,7 +394,8 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 	// Authenticate with the provider
 	identity, err := h.provider.Authenticate(c.Context(), auth.Credentials{Code: code})
 	if err != nil {
-		return apperrors.NewWithDetail(401, "Unauthenticated", err.Error())
+		log.Printf("OAuth callback authentication failed: %v", err)
+		return apperrors.New(401, "Authentication failed.")
 	}
 
 	if identity.Blocked {
