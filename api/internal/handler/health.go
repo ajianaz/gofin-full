@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
+	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
 )
 
 // HealthHandler handles health check requests.
