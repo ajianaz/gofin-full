@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"description": "Gofin — Personal finance tracker web frontend",
 	"type": "module",
-	"license": "MIT",
+	"license": "Apache-2.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/ajianaz/gofin-full",
