@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -221,7 +222,8 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 	}
 
 	if err := h.userRepo.SetActiveGroup(c.Context(), user.ID, req.UserGroupID); err != nil {
-		return apperrors.NewWithDetail(400, "Bad Request", err.Error())
+		log.Printf("group switch failed: %v", err)
+		return apperrors.New(400, "Failed to switch group. You may not be a member of the target group.")
 	}
 
 	// Re-issue JWT with updated group claim

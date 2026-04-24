@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -61,8 +62,8 @@ func (h *TransactionHandler) Index(c *fiber.Ctx) error {
 	var data []fiber.Map
 	for _, g := range groups {
 		data = append(data, fiber.Map{
-			"type":       "transactions",
-			"id":         g.ID,
+			"type": "transactions",
+			"id":   g.ID,
 			"attributes": fiber.Map{
 				"group_title": g.GroupTitle,
 				"created_at":  g.CreatedAt,
@@ -148,7 +149,8 @@ func (h *TransactionHandler) Store(c *fiber.Ctx) error {
 
 	result, err := h.txService.CreateTransaction(c.Context(), user.ID, *groupID, input)
 	if err != nil {
-		return apperrors.NewWithDetail(422, "failed to create transaction", err.Error())
+		log.Printf("create transaction failed: %v", err)
+		return apperrors.New(422, "Transaction could not be created. Check your account balances.")
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{
@@ -192,7 +194,8 @@ func (h *TransactionHandler) StoreSplit(c *fiber.Ctx) error {
 
 	result, err := h.txService.CreateSplitTransaction(c.Context(), user.ID, *groupID, req.Type, req.Date, req.Title, req.Journals)
 	if err != nil {
-		return apperrors.NewWithDetail(422, "failed to create split transaction", err.Error())
+		log.Printf("create split transaction failed: %v", err)
+		return apperrors.New(422, "Split transaction could not be created. Check your account balances.")
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{
@@ -215,9 +218,9 @@ func (h *TransactionHandler) Update(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		Description string     `json:"description"`
-		Date        *time.Time `json:"date"`
-		Notes       *string    `json:"notes"`
+		Description string      `json:"description"`
+		Date        *time.Time  `json:"date"`
+		Notes       *string     `json:"notes"`
 		CategoryIDs []uuid.UUID `json:"category_ids"`
 		TagIDs      []uuid.UUID `json:"tag_ids"`
 	}
@@ -268,14 +271,14 @@ func transactionGroupToMap(g *domain.TransactionGroup) fiber.Map {
 	for _, j := range g.Journals {
 		journal := fiber.Map{
 			"transaction_journal_id": j.ID,
-			"type":                  string(j.Type),
-			"date":                  j.Date,
-			"description":           j.Description,
-			"currency_id":           j.CurrencyID,
-			"reconciled":            j.Reconciled,
-			"notes":                 j.Notes,
-			"created_at":            j.CreatedAt,
-			"updated_at":            j.UpdatedAt,
+			"type":                   string(j.Type),
+			"date":                   j.Date,
+			"description":            j.Description,
+			"currency_id":            j.CurrencyID,
+			"reconciled":             j.Reconciled,
+			"notes":                  j.Notes,
+			"created_at":             j.CreatedAt,
+			"updated_at":             j.UpdatedAt,
 		}
 
 		if len(j.SourceTransactions) > 0 {
@@ -292,8 +295,8 @@ func transactionGroupToMap(g *domain.TransactionGroup) fiber.Map {
 	}
 
 	return fiber.Map{
-		"type":       "transactions",
-		"id":         g.ID,
+		"type": "transactions",
+		"id":   g.ID,
 		"attributes": fiber.Map{
 			"group_title":  g.GroupTitle,
 			"transactions": journals,

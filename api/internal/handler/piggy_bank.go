@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -224,7 +226,8 @@ func (h *PiggyBankHandler) AddMoney(c *fiber.Ctx) error {
 	}
 	evt, err := h.repo.AddMoney(c.Context(), id, groupID, amount)
 	if err != nil {
-		return apperrors.NewWithDetail(422, "failed to add money", err.Error())
+		log.Printf("piggy bank add money failed: %v", err)
+		return apperrors.New(422, "Could not add money to piggy bank. Check your wallet balance.")
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
@@ -261,7 +264,8 @@ func (h *PiggyBankHandler) RemoveMoney(c *fiber.Ctx) error {
 	}
 	evt, err := h.repo.RemoveMoney(c.Context(), id, groupID, amount)
 	if err != nil {
-		return apperrors.NewWithDetail(422, "failed to remove money", err.Error())
+		log.Printf("piggy bank remove money failed: %v", err)
+		return apperrors.New(422, "Could not remove money from piggy bank. Insufficient piggy bank balance.")
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
