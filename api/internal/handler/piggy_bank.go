@@ -49,13 +49,13 @@ func (h *PiggyBankHandler) Index(c *fiber.Ctx) error {
 	var data []fiber.Map
 	for _, pb := range pbs {
 		data = append(data, fiber.Map{
-			"type":       "piggy_banks",
-			"id":         pb.ID,
+			"type": "piggy_banks",
+			"id":   pb.ID,
 			"attributes": fiber.Map{
 				"wallet_id": pb.AccountID, "name": pb.Name,
 				"target_amount": pb.TargetAmount.StringFixed(2),
 				"start_date":    pb.StartDate, "target_date": pb.TargetDate,
-				"order":         pb.Order,
+				"order": pb.Order,
 			},
 		})
 	}
@@ -81,13 +81,13 @@ func (h *PiggyBankHandler) Show(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"data": fiber.Map{
 		"type": "piggy_banks", "id": pb.ID,
 		"attributes": fiber.Map{
-			"account_id":      pb.AccountID, "name": pb.Name,
-			"target_amount":   pb.TargetAmount.StringFixed(2),
-			"current_amount":  pb.CurrentAmount.StringFixed(2),
-			"left_to_target":  pb.LeftToTarget.StringFixed(2),
-			"percentage":      pb.Percentage,
-			"start_date":      pb.StartDate, "target_date": pb.TargetDate,
-			"order":           pb.Order, "notes": pb.Notes,
+			"account_id": pb.AccountID, "name": pb.Name,
+			"target_amount":  pb.TargetAmount.StringFixed(2),
+			"current_amount": pb.CurrentAmount.StringFixed(2),
+			"left_to_target": pb.LeftToTarget.StringFixed(2),
+			"percentage":     pb.Percentage,
+			"start_date":     pb.StartDate, "target_date": pb.TargetDate,
+			"order": pb.Order, "notes": pb.Notes,
 		},
 	}})
 }
@@ -99,11 +99,11 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		WalletID    uuid.UUID `json:"wallet_id"`
-		Name         string  `json:"name"`
-		TargetAmount string  `json:"target_amount"`
-		Order        int     `json:"order"`
-		Notes        *string `json:"notes"`
+		WalletID     uuid.UUID `json:"wallet_id"`
+		Name         string    `json:"name"`
+		TargetAmount string    `json:"target_amount"`
+		Order        int       `json:"order"`
+		Notes        *string   `json:"notes"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
@@ -139,7 +139,7 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 		"attributes": fiber.Map{
 			"wallet_id": pb.AccountID, "name": pb.Name,
 			"target_amount": pb.TargetAmount.StringFixed(2),
-			"order": pb.Order,
+			"order":         pb.Order,
 		},
 	}})
 }
