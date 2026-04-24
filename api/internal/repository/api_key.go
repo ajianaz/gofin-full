@@ -57,17 +57,21 @@ func (r *APIKeyRepository) Create(ctx context.Context, userID uuid.UUID, name st
 }
 
 // FindByHash looks up an API key by its SHA-256 hash.
-// Returns the userID and keyID, or an error if not found or soft-deleted.
-func (r *APIKeyRepository) FindByHash(ctx context.Context, keyHash string) (uuid.UUID, uuid.UUID, error) {
+// Returns the userID, keyID, and the user's active group ID, or an error if not found or soft-deleted.
+func (r *APIKeyRepository) FindByHash(ctx context.Context, keyHash string) (uuid.UUID, uuid.UUID, *uuid.UUID, error) {
 	var userID, keyID uuid.UUID
+	var groupID *uuid.UUID
 	err := r.db.QueryRow(ctx,
-		`SELECT user_id, id FROM api_keys WHERE key_hash = $1 AND deleted_at IS NULL`,
+		`SELECT ak.user_id, ak.id, u.user_group_id
+		 FROM api_keys ak
+		 JOIN users u ON u.id = ak.user_id AND u.deleted_at IS NULL
+		 WHERE ak.key_hash = $1 AND ak.deleted_at IS NULL`,
 		keyHash,
-	).Scan(&userID, &keyID)
+	).Scan(&userID, &keyID, &groupID)
 	if err != nil {
-		return uuid.Nil, uuid.Nil, fmt.Errorf("api key not found")
+		return uuid.Nil, uuid.Nil, nil, fmt.Errorf("api key not found")
 	}
-	return userID, keyID, nil
+	return userID, keyID, groupID, nil
 }
 
 // ListByUser returns all non-deleted API keys for a user.

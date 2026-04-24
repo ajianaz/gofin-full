@@ -23,6 +23,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Piggy bank withdraw balance check (H9)** — `RemoveMoney` now verifies piggy bank has sufficient current amount (from events) before allowing withdrawal
 - **Piggy bank add wallet balance check (H9b)** — `AddMoney` now verifies source wallet has sufficient `virtual_balance` before moving money to piggy bank
 - **Transaction split URL mismatch** — frontend `transactionService.split()` now sends correct payload (`type`, `date`, `journals`) to `POST /transactions/split` matching the backend API
+- **GroupRoleMiddleware DB error logging** — `GroupRoleMiddleware` now logs database errors from `GetUserRoleInGroup` instead of silently swallowing them, while still failing open for availability
+- **API key group resolution for RBAC** — `APIKeyMiddleware` now resolves the user's active group from the users table via JOIN and sets `active_group_id` in context, enabling `GroupRoleMiddleware` and `RBACMiddleware` to work correctly for API key authenticated requests
+- **User email update validation** — `PUT /users/me` now validates email format and checks for duplicates (returns 409) before updating
 
 ### Fixed
 - **Group update restricted to owner role (C1)** — `PUT /groups/:id` now requires `RoleOwner` RBAC middleware, matching the delete route

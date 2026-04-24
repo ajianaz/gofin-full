@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -30,8 +31,9 @@ func GroupRoleMiddleware(roleLookup RoleLookup) fiber.Handler {
 
 		role, err := roleLookup.GetUserRoleInGroup(c.Context(), user.ID, *groupID)
 		if err != nil {
-			// User has no membership in this group — leave role unset,
-			// RBACMiddleware will reject with 403.
+			// DB error — log it but still proceed (fail-open for availability).
+			// RBACMiddleware will reject with 403 since role is unset.
+			log.Printf("GroupRoleMiddleware: failed to lookup role for user %s in group %s: %v", user.ID, *groupID, err)
 			return c.Next()
 		}
 

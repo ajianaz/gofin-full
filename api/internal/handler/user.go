@@ -114,6 +114,23 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		})
 	}
 
+	// Validate email if provided
+	if req.Email != "" {
+		if !isValidEmail(req.Email) {
+			return apperrors.NewValidationError(map[string][]string{
+				"email": {"Invalid email format."},
+			})
+		}
+
+		// Check for duplicate email
+		existing, err := h.repo.FindByEmail(c.Context(), req.Email)
+		if err == nil && existing != nil && existing.ID != user.ID {
+			return c.Status(409).JSON(fiber.Map{
+				"message": "A user with this email already exists.",
+			})
+		}
+	}
+
 	if err := h.repo.Update(c.Context(), user.ID, req.Email, ""); err != nil {
 		return apperrors.ErrInternal
 	}
