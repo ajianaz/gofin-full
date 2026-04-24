@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Changed
+- **OpenAPI spec updated** — license changed to Apache-2.0, added `POST /users/me/password` endpoint, fixed `POST /groups/switch` request body (`user_group_id`), added tokens to group switch response, secured `/metrics` with bearer auth, fixed RBAC notes on configurations and groups endpoints, added piggy bank alias routes, added RBAC note to reconcile export
+- **READMEs updated** — license changed from MIT to Apache 2.0 in root and api READMEs, added user endpoints and register endpoint to api README
+- **TODO cleaned up** — marked completed mock-to-real API pages (currencies, groups, reports, export, admin) as done
 - **License updated from MIT to Apache 2.0** — project license changed to Apache License, Version 2.0
 - **Group switch uses tokens from response** — `setupGroup()` and groups page `handleSwitch` now extract JWT tokens directly from the `POST /groups/switch` response instead of making a separate refresh call
 - **API client auto-refresh on 401** — transparent token refresh when a request returns 401; retries the original request with new tokens; redirects to login if refresh fails; deduplicates concurrent refresh calls to prevent infinite loops

@@ -6,7 +6,7 @@ Post-MVP enhancements for production readiness.
 
 - [ ] **Toast/snackbar notifications** — add sonner or similar lib for success/error feedback after create, delete, update operations (currently redirects silently)
 - [ ] **Inline form validation** — replace HTML5 `required` only with per-field error messages on create forms
-- [ ] **Update UI** — service layer has `update()` for all 9 resources but no UI to trigger them (only delete has buttons)
+- [ ] **Update UI** — service layer has `update()` for all 9 resources but no UI to trigger them (only delete has buttons) (partially done: groups and piggy banks have update UI)
 
 ## Accessibility
 
@@ -21,11 +21,11 @@ Post-MVP enhancements for production readiness.
 
 ## Mock → Real API (remaining pages)
 
-- [ ] **Currencies** — `currencies/+page.svelte` uses `mockCurrencies`, needs real API (`GET /currencies`)
-- [ ] **Groups** — `groups/+page.svelte` uses `mockGroups`, needs real API (`GET /groups`, `POST /groups`, `POST /groups/switch`)
-- [ ] **Reports** — `reports/+page.svelte` and subpages use mock data, needs real API aggregation
-- [ ] **Export** — `export/+page.svelte` form needs to trigger real CSV/OFX export via API
-- [ ] **Admin pages** — `admin/users/+page.svelte` and `admin/audit-log/+page.svelte` use mock data, need real API
+- [x] **Currencies** — `currencies/+page.svelte` uses `mockCurrencies`, needs real API (`GET /currencies`)
+- [x] **Groups** — `groups/+page.svelte` uses `mockGroups`, needs real API (`GET /groups`, `POST /groups`, `POST /groups/switch`)
+- [x] **Reports** — `reports/+page.svelte` and subpages use mock data, needs real API aggregation
+- [x] **Export** — `export/+page.svelte` form needs to trigger real CSV/OFX export via API
+- [x] **Admin pages** — `admin/users/+page.svelte` and `admin/audit-log/+page.svelte` use mock data, need real API
 
 ## Performance
 

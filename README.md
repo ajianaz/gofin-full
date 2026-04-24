@@ -6,7 +6,7 @@ Self-hosted personal finance tracker. Go API + SvelteKit web frontend.
 ![SvelteKit](https://img.shields.io/badge/SvelteKit-5-FF3E00?logo=svelte)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis)
-![License](https://img.shields.io/badge/License-MIT-green)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue)
 
 Gofin is a self-hosted personal finance tracker. It uses **wallets** as the primary financial container, supports double-entry bookkeeping with split transactions, hierarchical role-based access control across groups and wallets, and real-time notifications via Server-Sent Events.
 
@@ -108,4 +108,4 @@ gofin-full/
 
 ## License
 
-MIT
+Apache License, Version 2.0

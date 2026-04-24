@@ -81,9 +81,18 @@ All protected endpoints require a JWT token in the `Authorization: Bearer <token
 
 ```
 GET    /api/v1/auth/provider    # Get configured auth provider
+POST   /api/v1/auth/register    # Create a new user account
 POST   /api/v1/auth/login       # Email/password login
 POST   /api/v1/auth/logout      # Invalidate token
 POST   /api/v1/auth/refresh     # Refresh JWT
+```
+
+### User Endpoints
+
+```
+GET    /api/v1/users/me                  # Get current user profile
+PUT    /api/v1/users/me                  # Update current user profile
+POST   /api/v1/users/me/password         # Change password
 ```
 
 ### Core Resources
@@ -218,4 +227,4 @@ Key variables (see `.env.example` for the full list):
 
 ## License
 
-MIT
+Apache License, Version 2.0
