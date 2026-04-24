@@ -124,12 +124,9 @@ func (h *NoteHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	n, err := h.repo.FindByID(c.Context(), id)
+	n, err := h.repo.FindByID(c.Context(), id, user.ID)
 	if err != nil || n == nil {
 		return apperrors.NotFoundResource("note", id)
-	}
-	if n.UserID != user.ID {
-		return apperrors.ErrNotFound
 	}
 
 	var req struct {
@@ -139,7 +136,7 @@ func (h *NoteHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), id, req.Note); err != nil {
+	if err := h.repo.Update(c.Context(), id, user.ID, req.Note); err != nil {
 		return apperrors.NotFoundResource("note", id)
 	}
 
@@ -160,15 +157,12 @@ func (h *NoteHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	n, err := h.repo.FindByID(c.Context(), id)
+	n, err := h.repo.FindByID(c.Context(), id, user.ID)
 	if err != nil || n == nil {
 		return apperrors.NotFoundResource("note", id)
 	}
-	if n.UserID != user.ID {
-		return apperrors.ErrNotFound
-	}
 
-	if err := h.repo.Delete(c.Context(), id); err != nil {
+	if err := h.repo.Delete(c.Context(), id, user.ID); err != nil {
 		return apperrors.NotFoundResource("note", id)
 	}
 

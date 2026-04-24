@@ -246,7 +246,6 @@ func (h *TransactionHandler) Update(c *fiber.Ctx) error {
 }
 
 func (h *TransactionHandler) Delete(c *fiber.Ctx) error {
-	user := auth.GetUser(c)
 	groupID := auth.GetActiveGroupID(c)
 	if groupID == nil {
 		return apperrors.New(400, "no active group")
@@ -257,7 +256,7 @@ func (h *TransactionHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	if err := h.txService.DeleteTransaction(c.Context(), id, user.ID, *groupID); err != nil {
+	if err := h.txService.DeleteTransaction(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("transaction", id)
 	}
 

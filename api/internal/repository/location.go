@@ -34,12 +34,12 @@ func (r *LocationRepository) Set(ctx context.Context, userID, groupID uuid.UUID,
 	return &loc, nil
 }
 
-func (r *LocationRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Location, error) {
+func (r *LocationRepository) FindByID(ctx context.Context, id, userID uuid.UUID) (*domain.Location, error) {
 	var loc domain.Location
 	err := r.db.QueryRow(ctx,
 		`SELECT id, user_id, user_group_id, locatable_type, locatable_id, latitude, longitude, zoom_level, created_at, updated_at
-		 FROM locations WHERE id = $1`,
-		id,
+		 FROM locations WHERE id = $1 AND user_id = $2`,
+		id, userID,
 	).Scan(&loc.ID, &loc.UserID, &loc.GroupID, &loc.LocatableType, &loc.LocatableID, &loc.Latitude, &loc.Longitude, &loc.ZoomLevel, &loc.CreatedAt, &loc.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("location not found: %w", err)
@@ -47,12 +47,12 @@ func (r *LocationRepository) FindByID(ctx context.Context, id uuid.UUID) (*domai
 	return &loc, nil
 }
 
-func (r *LocationRepository) GetByEntity(ctx context.Context, locatableType string, locatableID uuid.UUID) (*domain.Location, error) {
+func (r *LocationRepository) GetByEntity(ctx context.Context, locatableType string, locatableID, userID uuid.UUID) (*domain.Location, error) {
 	var loc domain.Location
 	err := r.db.QueryRow(ctx,
 		`SELECT id, user_id, user_group_id, locatable_type, locatable_id, latitude, longitude, zoom_level, created_at, updated_at
-		 FROM locations WHERE locatable_type = $1 AND locatable_id = $2`,
-		locatableType, locatableID,
+		 FROM locations WHERE locatable_type = $1 AND locatable_id = $2 AND user_id = $3`,
+		locatableType, locatableID, userID,
 	).Scan(&loc.ID, &loc.UserID, &loc.GroupID, &loc.LocatableType, &loc.LocatableID, &loc.Latitude, &loc.Longitude, &loc.ZoomLevel, &loc.CreatedAt, &loc.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("location not found: %w", err)
@@ -60,7 +60,7 @@ func (r *LocationRepository) GetByEntity(ctx context.Context, locatableType stri
 	return &loc, nil
 }
 
-func (r *LocationRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := r.db.Exec(ctx, `DELETE FROM locations WHERE id = $1`, id)
+func (r *LocationRepository) Delete(ctx context.Context, id, userID uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM locations WHERE id = $1 AND user_id = $2`, id, userID)
 	return err
 }

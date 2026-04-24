@@ -91,11 +91,6 @@ func New(cfg RouterConfig) *fiber.App {
 	// Health check (no auth required)
 	app.Get("/health", cfg.HealthHandler.Check)
 
-	// Prometheus metrics (no auth)
-	if !cfg.DisableMetrics {
-		app.Get("/metrics", cfg.MetricsHandler.Prometheus)
-	}
-
 	// API v1 routes
 	v1 := app.Group("/api/v1")
 
@@ -145,7 +140,14 @@ func New(cfg RouterConfig) *fiber.App {
 	// Current user
 	protected.Get("/users/me", cfg.UserHandler.Show)
 	protected.Put("/users/me", cfg.UserHandler.Update)
-	protected.Post("/users/me/password", cfg.UserHandler.ChangePassword)
+
+	// Sensitive user operations (rate limited)
+	sensitiveUser := protected.Group("")
+	if cfg.RedisClient != nil && cfg.RateLimitMax > 0 {
+		rl := middleware.RateLimit(cfg.RedisClient, cfg.RateLimitMax/2, time.Duration(cfg.RateLimitWindowSec)*time.Second)
+		sensitiveUser.Use(rl)
+	}
+	sensitiveUser.Post("/users/me/password", cfg.UserHandler.ChangePassword)
 
 	// User groups
 	protected.Get("/groups", cfg.GroupHandler.Index)
@@ -306,7 +308,7 @@ func New(cfg RouterConfig) *fiber.App {
 	// Export — read: no RBAC
 	protected.Get("/export/csv", cfg.ExportHandler.CSV)
 	protected.Get("/export/ofx", cfg.ExportHandler.OFX)
-	protected.Post("/export/reconcile", cfg.ExportHandler.Reconcile)
+	protected.Post("/export/reconcile", auth.RBACMiddleware(auth.RoleManageTransactions), cfg.ExportHandler.Reconcile)
 
 	// Analytics — read: view_reports
 	protected.Get("/analytics/spending-by-category", auth.RBACMiddleware(auth.RoleViewReports), cfg.AnalyticsHandler.SpendingByCategory)
@@ -328,6 +330,11 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Post("/admin/users", auth.AdminMiddleware(), cfg.AdminHandler.CreateUser)
 	protected.Get("/admin/feature-flags", auth.AdminMiddleware(), cfg.AdminHandler.FeatureFlags)
 	protected.Post("/admin/feature-flags", auth.AdminMiddleware(), cfg.AdminHandler.SetFeatureFlag)
+
+	// Prometheus metrics (requires authentication)
+	if !cfg.DisableMetrics {
+		protected.Get("/metrics", cfg.MetricsHandler.Prometheus)
+	}
 
 	return app
 }

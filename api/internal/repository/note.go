@@ -34,12 +34,12 @@ func (r *NoteRepository) Create(ctx context.Context, userID, groupID uuid.UUID, 
 	return &n, nil
 }
 
-func (r *NoteRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Note, error) {
+func (r *NoteRepository) FindByID(ctx context.Context, id, userID uuid.UUID) (*domain.Note, error) {
 	var n domain.Note
 	err := r.db.QueryRow(ctx,
 		`SELECT id, user_id, user_group_id, noteable_type, noteable_id, note, created_at, updated_at
-		 FROM notes WHERE id = $1`,
-		id,
+		 FROM notes WHERE id = $1 AND user_id = $2`,
+		id, userID,
 	).Scan(&n.ID, &n.UserID, &n.GroupID, &n.NoteableType, &n.NoteableID, &n.Note, &n.CreatedAt, &n.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("note not found: %w", err)
@@ -68,14 +68,14 @@ func (r *NoteRepository) ListByEntity(ctx context.Context, noteableType string, 
 	return notes, rows.Err()
 }
 
-func (r *NoteRepository) Update(ctx context.Context, id uuid.UUID, note string) error {
+func (r *NoteRepository) Update(ctx context.Context, id, userID uuid.UUID, note string) error {
 	_, err := r.db.Exec(ctx,
-		`UPDATE notes SET note = $1, updated_at = $2 WHERE id = $3`,
-		note, time.Now().UTC(), id)
+		`UPDATE notes SET note = $1, updated_at = $2 WHERE id = $3 AND user_id = $4`,
+		note, time.Now().UTC(), id, userID)
 	return err
 }
 
-func (r *NoteRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := r.db.Exec(ctx, `DELETE FROM notes WHERE id = $1`, id)
+func (r *NoteRepository) Delete(ctx context.Context, id, userID uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM notes WHERE id = $1 AND user_id = $2`, id, userID)
 	return err
 }

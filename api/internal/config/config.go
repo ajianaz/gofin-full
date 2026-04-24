@@ -141,6 +141,9 @@ func validate(cfg *Config) error {
 	if len(cfg.AuthJWTSecret) < 32 {
 		return fmt.Errorf("AUTH_JWT_SECRET must be at least 32 characters, got %d", len(cfg.AuthJWTSecret))
 	}
+	if cfg.IsProduction() && cfg.AuthProvider == "disabled" {
+		return fmt.Errorf("AUTH_PROVIDER=disabled is not allowed in production environment")
+	}
 	return nil
 }
 

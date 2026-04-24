@@ -77,7 +77,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **CSV injection prevention (M3)** — user-controlled fields in CSV export (description, category, wallet names, notes, tags) are prefixed with a single quote when they start with formula characters (`=`, `+`, `-`, `@`, tab, carriage return)
 - **Exchange rate delete group filter (L3)** — `DELETE /exchange-rates/:id` now filters by `user_group_id`, preventing cross-group deletion
 
-### Fixed
+### Fixed (Security Audit Round 2)
+
+#### High
+- **Note repository user_id filtering (H1)** — `FindByID`, `Update`, and `Delete` now require `user_id` parameter and filter by it in SQL, preventing cross-user note access via UUID guessing
+- **Location repository user_id filtering (H2)** — `FindByID`, `GetByEntity`, and `Delete` now require `user_id` parameter and filter by it in SQL, preventing cross-user location access
+- **Export reconcile RBAC (H3)** — `POST /export/reconcile` now requires `RoleManageTransactions` RBAC, preventing `read_only` users from creating transactions via reconcile
+
+#### Medium
+- **Attachment ListByEntityAndUser filter (M1)** — `ListByEntityAndUser` now actually filters by `user_id` in SQL; previously the parameter was accepted but not used in the query
+- **Disabled auth provider production guard (M2)** — `AUTH_PROVIDER=disabled` is now rejected at startup in production environment, preventing accidental authentication bypass
+- **Dead userID parameter removed (M3)** — removed unused `userID` parameter from `DeleteFullTransaction` repository method and all callers, reducing confusion about scoping
 - **DB transaction wrapping for money operations** — `CreateTransaction`, `CreateSplitTransaction`, and `DeleteTransaction` now execute all DB writes (group + journal + transactions + balance updates + soft deletes) in a single database transaction, preventing inconsistent state on partial failure
 
 ### Added

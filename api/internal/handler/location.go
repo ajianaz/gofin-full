@@ -42,7 +42,7 @@ func (h *LocationHandler) Show(c *fiber.Ctx) error {
 		})
 	}
 
-	loc, err := h.repo.GetByEntity(c.Context(), locatableType, locatableID)
+	loc, err := h.repo.GetByEntity(c.Context(), locatableType, locatableID, user.ID)
 	if err != nil {
 		return apperrors.NotFoundResource("location", uuid.Nil)
 	}
@@ -71,11 +71,11 @@ func (h *LocationHandler) Store(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		LocatableType string   `json:"locatable_type"`
+		LocatableType string    `json:"locatable_type"`
 		LocatableID   uuid.UUID `json:"locatable_id"`
-		Latitude      *float64 `json:"latitude"`
-	Longitude     *float64 `json:"longitude"`
-		ZoomLevel     int      `json:"zoom_level"`
+		Latitude      *float64  `json:"latitude"`
+		Longitude     *float64  `json:"longitude"`
+		ZoomLevel     int       `json:"zoom_level"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
@@ -113,15 +113,12 @@ func (h *LocationHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
-	loc, err := h.repo.FindByID(c.Context(), id)
+	loc, err := h.repo.FindByID(c.Context(), id, user.ID)
 	if err != nil || loc == nil {
 		return apperrors.NotFoundResource("location", id)
 	}
-	if loc.UserID != user.ID {
-		return apperrors.ErrNotFound
-	}
 
-	if err := h.repo.Delete(c.Context(), id); err != nil {
+	if err := h.repo.Delete(c.Context(), id, user.ID); err != nil {
 		return apperrors.NotFoundResource("location", id)
 	}
 

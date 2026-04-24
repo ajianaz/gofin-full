@@ -678,7 +678,7 @@ func (r *TransactionRepository) CreateSplitTransactionInTx(ctx context.Context, 
 
 // DeleteFullTransaction reverses wallet balances and soft-deletes the transaction group
 // in a single database transaction. If any step fails, everything is rolled back.
-func (r *TransactionRepository) DeleteFullTransaction(ctx context.Context, groupID, userID, groupIDScope uuid.UUID) error {
+func (r *TransactionRepository) DeleteFullTransaction(ctx context.Context, groupID, groupIDScope uuid.UUID) error {
 	// Load the full transaction to reverse balances (read before write, outside tx is fine)
 	group, err := r.FindGroupByID(ctx, groupID, groupIDScope)
 	if err != nil {

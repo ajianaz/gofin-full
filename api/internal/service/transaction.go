@@ -255,6 +255,6 @@ func (s *TransactionService) calculateAmounts(txType string, amount decimal.Deci
 
 // DeleteTransaction soft-deletes a transaction group and reverses wallet balances.
 // The balance reversal and soft delete are performed in a single database transaction.
-func (s *TransactionService) DeleteTransaction(ctx context.Context, groupID, userID, groupIDScope uuid.UUID) error {
-	return s.txRepo.DeleteFullTransaction(ctx, groupID, userID, groupIDScope)
+func (s *TransactionService) DeleteTransaction(ctx context.Context, groupID, groupIDScope uuid.UUID) error {
+	return s.txRepo.DeleteFullTransaction(ctx, groupID, groupIDScope)
 }
