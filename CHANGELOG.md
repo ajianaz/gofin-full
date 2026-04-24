@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Database migration** — `000013_notes_locations_ownership.up.sql` adds `user_id` and `user_group_id` columns to notes and locations tables for ownership tracking
 
 ### Fixed
+- **JWT re-issue on group switch** — `POST /api/v1/groups/switch` now returns a new JWT token pair with the updated `group_id` claim, so subsequent requests operate on the correct group without requiring re-authentication
 - **Withdrawal balance check (H8)** — `CreateTransaction` now verifies source wallet has sufficient `virtual_balance` before processing withdrawal; returns error with current and required amounts
 - **Split transaction balance check** — `CreateSplitTransaction` aggregates debits per source wallet and validates each has sufficient balance before processing
 - **Piggy bank withdraw balance check (H9)** — `RemoveMoney` now verifies piggy bank has sufficient current amount (from events) before allowing withdrawal

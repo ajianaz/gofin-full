@@ -111,7 +111,7 @@ func main() {
 		authHandler.SetRedis(rdb)
 	}
 	userHandler := handler.NewUserHandler(userRepo)
-	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db)
+	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr)
 	walletHandler := handler.NewWalletHandler(walletRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	tagHandler := handler.NewTagHandler(tagRepo)
@@ -192,7 +192,7 @@ func main() {
 		RateLimitWindowSec:   cfg.RateLimitWindowSeconds,
 		DisableMetrics:       cfg.DisablePrometheus,
 		RedisClient:          rdb,
-			MaxRequestBodyBytes:  cfg.MaxRequestBodyBytes,
+		MaxRequestBodyBytes:  cfg.MaxRequestBodyBytes,
 		CustomMiddleware: []fiber.Handler{
 			middleware.Logger(log),
 			middleware.Recovery(log),
