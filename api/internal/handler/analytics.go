@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -106,15 +107,29 @@ func parseDateRange(c *fiber.Ctx) (time.Time, time.Time) {
 	end := now
 
 	if s := c.Query("start"); s != "" {
-		if t, err := time.Parse(time.RFC3339, s); err == nil {
+		if t, err := parseFlexDate(s); err == nil {
 			start = t
 		}
 	}
 	if e := c.Query("end"); e != "" {
-		if t, err := time.Parse(time.RFC3339, e); err == nil {
+		if t, err := parseFlexDate(e); err == nil {
 			end = t
 		}
 	}
 
 	return start, end
+}
+
+// parseFlexDate tries multiple date layouts to support both RFC3339 and plain YYYY-MM-DD.
+func parseFlexDate(s string) (time.Time, error) {
+	for _, layout := range []string{
+		time.RFC3339,
+		"2006-01-02",
+		"2006-01-02T15:04:05Z",
+	} {
+		if t, err := time.Parse(layout, s); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unrecognized date format: %s", s)
 }

@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"encoding/csv"
-	"strings"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,8 +38,8 @@ type CSVRow struct {
 }
 
 // ExportTransactionsCSV exports transactions as CSV.
-func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.UUID, w io.Writer) error {
-	groups, _, err := s.txRepo.ListGroups(ctx, groupID, repository.TransactionFilter{})
+func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.UUID, w io.Writer, filter repository.TransactionFilter) error {
+	groups, _, err := s.txRepo.ListGroups(ctx, groupID, filter)
 	if err != nil {
 		return fmt.Errorf("failed to list transactions: %w", err)
 	}
@@ -84,8 +84,8 @@ func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.
 }
 
 // ExportTransactionsOFX exports transactions in OFX (Open Financial Exchange) format.
-func (s *ExportService) ExportTransactionsOFX(ctx context.Context, groupID uuid.UUID, w io.Writer) error {
-	groups, _, err := s.txRepo.ListGroups(ctx, groupID, repository.TransactionFilter{})
+func (s *ExportService) ExportTransactionsOFX(ctx context.Context, groupID uuid.UUID, w io.Writer, filter repository.TransactionFilter) error {
+	groups, _, err := s.txRepo.ListGroups(ctx, groupID, filter)
 	if err != nil {
 		return fmt.Errorf("failed to list transactions: %w", err)
 	}

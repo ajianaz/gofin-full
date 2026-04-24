@@ -2,9 +2,13 @@ package handler
 
 import (
 	"bytes"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/repository"
 	"github.com/ajianaz/gofin-full/api/internal/service"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
@@ -24,8 +28,10 @@ func (h *ExportHandler) CSV(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
+	filter := parseExportFilter(c)
+
 	buf := &bytes.Buffer{}
-	if err := h.exportService.ExportTransactionsCSV(c.Context(), *groupID, buf); err != nil {
+	if err := h.exportService.ExportTransactionsCSV(c.Context(), *groupID, buf, filter); err != nil {
 		return apperrors.NewWithDetail(500, "failed to export CSV", err.Error())
 	}
 
@@ -41,8 +47,10 @@ func (h *ExportHandler) OFX(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
+	filter := parseExportFilter(c)
+
 	buf := &bytes.Buffer{}
-	if err := h.exportService.ExportTransactionsOFX(c.Context(), *groupID, buf); err != nil {
+	if err := h.exportService.ExportTransactionsOFX(c.Context(), *groupID, buf, filter); err != nil {
 		return apperrors.NewWithDetail(500, "failed to export OFX", err.Error())
 	}
 
@@ -76,4 +84,25 @@ func (h *ExportHandler) Reconcile(c *fiber.Ctx) error {
 			"total_checked": result.TotalChecked,
 		},
 	}})
+}
+
+// parseExportFilter builds a TransactionFilter from export query parameters.
+func parseExportFilter(c *fiber.Ctx) repository.TransactionFilter {
+	var filter repository.TransactionFilter
+	if v := c.Query("start"); v != "" {
+		if t, err := time.Parse("2006-01-02", v); err == nil {
+			filter.DateFrom = &t
+		}
+	}
+	if v := c.Query("end"); v != "" {
+		if t, err := time.Parse("2006-01-02", v); err == nil {
+			filter.DateTo = &t
+		}
+	}
+	if v := c.Query("wallet_id"); v != "" {
+		if id, err := uuid.Parse(v); err == nil {
+			filter.WalletID = &id
+		}
+	}
+	return filter
 }

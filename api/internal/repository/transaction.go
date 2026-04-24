@@ -275,13 +275,24 @@ func (r *TransactionRepository) ListGroups(ctx context.Context, groupID uuid.UUI
 
 	// Fetch groups
 	dataQuery := fmt.Sprintf(
-		`SELECT DISTINCT g.id, g.user_id, g.user_group_id, g.group_title, g.created_at, g.updated_at
-		 FROM transaction_groups g
-		 JOIN transaction_journals j ON j.transaction_group_id = g.id AND j.deleted_at IS NULL
-		 LEFT JOIN transaction_types tt ON tt.id = j.transaction_type_id
-		 WHERE %s
-		 ORDER BY g.created_at DESC
-		 LIMIT $%d OFFSET $%d`, where, argN, argN+1)
+		`SELECT DISTINCT g.id, g.user_id, g.user_group_id, g.group_title, g.created_at, g.updated_at,
+			 COALESCE(js.description, ''),
+			 COALESCE(js.amount, '0')
+			 FROM transaction_groups g
+			 JOIN transaction_journals j ON j.transaction_group_id = g.id AND j.deleted_at IS NULL
+			 LEFT JOIN transaction_types tt ON tt.id = j.transaction_type_id
+			 LEFT JOIN LATERAL (
+			   SELECT j2.description,
+			          COALESCE(st.amount, '0') as amount
+			   FROM transaction_journals j2
+			   LEFT JOIN transactions st ON st.transaction_journal_id = j2.id
+			   WHERE j2.transaction_group_id = g.id AND j2.deleted_at IS NULL
+			   ORDER BY j2."order"
+			   LIMIT 1
+			 ) js ON true
+			 WHERE %s
+			 ORDER BY g.created_at DESC
+			 LIMIT $%d OFFSET $%d`, where, argN, argN+1)
 	args = append(args, f.PerPage, offset)
 
 	rows, err := r.db.Query(ctx, dataQuery, args...)
@@ -293,7 +304,7 @@ func (r *TransactionRepository) ListGroups(ctx context.Context, groupID uuid.UUI
 	var groups []domain.TransactionGroup
 	for rows.Next() {
 		var g domain.TransactionGroup
-		if err := rows.Scan(&g.ID, &g.UserID, &g.UserGroupID, &g.GroupTitle, &g.CreatedAt, &g.UpdatedAt); err != nil {
+		if err := rows.Scan(&g.ID, &g.UserID, &g.UserGroupID, &g.GroupTitle, &g.CreatedAt, &g.UpdatedAt, &g.Description, &g.Amount); err != nil {
 			return nil, 0, err
 		}
 		groups = append(groups, g)

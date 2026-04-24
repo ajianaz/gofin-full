@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -26,20 +27,13 @@ func (h *AuditHandler) Index(c *fiber.Ctx) error {
 	}
 
 	entityType := c.Query("entity_type", "")
-	entityIDStr := c.Query("entity_id", "")
 
-	var entityID int64
-	if entityIDStr != "" {
-		entityID = 0
+	var entityID uuid.UUID
+	if v := c.Query("entity_id"); v != "" {
+		entityID, _ = uuid.Parse(v)
 	}
 
-	// Use groupID bytes as a numeric hash for the audit query
-	var groupIDNum int64
-	for i, b := range groupID {
-		groupIDNum += int64(b) << (uint(i%8) * 8)
-	}
-
-	logs, err := h.repo.List(c.Context(), groupIDNum, entityType, entityID, 100)
+	logs, err := h.repo.List(c.Context(), *groupID, entityType, entityID, 100)
 	if err != nil {
 		log.Printf("handler: failed to list audit logs: %v", err)
 		return apperrors.ErrInternal
@@ -52,6 +46,7 @@ func (h *AuditHandler) Index(c *fiber.Ctx) error {
 			"id":   log.ID,
 			"attributes": fiber.Map{
 				"user_id":     log.UserID,
+				"user_email":  log.UserEmail,
 				"action":      log.Action,
 				"entity_type": log.Entity,
 				"entity_id":   log.EntityID,

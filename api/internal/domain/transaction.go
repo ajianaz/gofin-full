@@ -26,6 +26,8 @@ type TransactionGroup struct {
 	UserID     uuid.UUID            `json:"user_id" db:"user_id"`
 	UserGroupID uuid.UUID           `json:"user_group_id" db:"user_group_id"`
 	GroupTitle string               `json:"group_title" db:"group_title"`
+	Description string              `json:"description,omitempty" db:"-"`
+	Amount     decimal.Decimal      `json:"amount,omitempty" db:"-"`
 	CreatedAt  time.Time            `json:"created_at" db:"created_at"`
 	UpdatedAt  time.Time            `json:"updated_at" db:"updated_at"`
 	DeletedAt  *time.Time           `json:"-" db:"deleted_at"`

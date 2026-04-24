@@ -66,6 +66,8 @@ func (h *TransactionHandler) Index(c *fiber.Ctx) error {
 			"id":   g.ID,
 			"attributes": fiber.Map{
 				"group_title": g.GroupTitle,
+				"description": g.Description,
+				"amount":      g.Amount.StringFixed(2),
 				"created_at":  g.CreatedAt,
 				"updated_at":  g.UpdatedAt,
 			},

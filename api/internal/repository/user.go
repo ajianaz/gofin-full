@@ -186,6 +186,22 @@ func (r *UserRepository) HasGlobalRole(ctx context.Context, userID uuid.UUID, ro
 	return count > 0, err
 }
 
+// GetGlobalRole returns the user's highest-priority global role title.
+func (r *UserRepository) GetGlobalRole(ctx context.Context, userID uuid.UUID) string {
+	var title string
+	err := r.db.QueryRow(ctx,
+		`SELECT r.title FROM role_user ru
+			 JOIN roles r ON r.id = ru.role_id
+			 WHERE ru.user_id = $1
+			 ORDER BY r.title LIMIT 1`,
+		userID,
+	).Scan(&title)
+	if err != nil {
+		return "member"
+	}
+	return title
+}
+
 // GetUserRoleInGroup returns the user's role in a specific group.
 func (r *UserRepository) GetUserRoleInGroup(ctx context.Context, userID, groupID uuid.UUID) (auth.GroupRole, error) {
 	var roleTitle string

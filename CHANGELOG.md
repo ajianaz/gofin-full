@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Audit log response includes user_email** — `GET /audit-logs` now joins with users table to return `user_email` alongside `user_id`; audit repository types fixed from int64 to UUID to match database schema
+- **Admin user list returns name, role, is_active** — `GET /admin/users` now includes `name` (email fallback), `role` (global role lookup), and `is_active` (NOT blocked) fields
+- **Export handlers respect query parameters** — CSV and OFX export now parse `start`, `end`, and `wallet_id` query parameters to filter exported transactions
+- **Transaction list includes amount and description** — `GET /transactions` now returns `description` and `amount` for each transaction group via lateral join
+- **Analytics accepts YYYY-MM-DD date format** — `parseDateRange` now tries RFC3339, plain YYYY-MM-DD, and ISO timestamp formats when parsing date query parameters
+
 ### Changed
 - **OpenAPI spec updated** — license changed to Apache-2.0, added `POST /users/me/password` endpoint, fixed `POST /groups/switch` request body (`user_group_id`), added tokens to group switch response, secured `/metrics` with bearer auth, fixed RBAC notes on configurations and groups endpoints, added piggy bank alias routes, added RBAC note to reconcile export
 - **READMEs updated** — license changed from MIT to Apache 2.0 in root and api READMEs, added user endpoints and register endpoint to api README
