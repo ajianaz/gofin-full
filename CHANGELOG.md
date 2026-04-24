@@ -26,6 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **GroupRoleMiddleware DB error logging** — `GroupRoleMiddleware` now logs database errors from `GetUserRoleInGroup` instead of silently swallowing them, while still failing open for availability
 - **API key group resolution for RBAC** — `APIKeyMiddleware` now resolves the user's active group from the users table via JOIN and sets `active_group_id` in context, enabling `GroupRoleMiddleware` and `RBACMiddleware` to work correctly for API key authenticated requests
 - **User email update validation** — `PUT /users/me` now validates email format and checks for duplicates (returns 409) before updating
+- **Email validation strengthened** — registration now uses `net/mail.ParseAddress` for proper RFC 5322 email validation instead of weak string checks
+- **Removed unused import-usage hacks** — cleaned up `var _` declarations and unused `response` package import in auth handler
+- **Refresh endpoint comment accuracy** — fixed misleading comment that incorrectly stated the endpoint accepts expired access tokens
 
 ### Fixed
 - **Group update restricted to owner role (C1)** — `PUT /groups/:id` now requires `RoleOwner` RBAC middleware, matching the delete route

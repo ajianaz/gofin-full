@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"log"
+	"net/mail"
 	"net/url"
 	"strconv"
 	"strings"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/config"
-	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
@@ -272,8 +272,8 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 }
 
 // Refresh handles POST /api/v1/auth/refresh.
-// Requires a valid (possibly expired) access token in the Authorization header.
-// The refresh_token in the body is validated to ensure it was issued alongside the access token.
+// Requires a valid access token (for authentication) and a refresh_token in the body.
+// The refresh token is validated cryptographically and rotated (old token is revoked).
 func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
@@ -321,10 +321,6 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 
 	return c.JSON(tokens)
 }
-
-// Ensure response package is used.
-var _ = response.HealthResponse{}
-var _ = apperrors.ErrBadRequest
 
 // OAuthURL handles GET /api/v1/auth/:provider/url.
 // Generates an OAuth state and returns the provider's authorization URL.
@@ -471,7 +467,8 @@ func generateRandomPassword(length int) string {
 	return string(b)
 }
 
-// isValidEmail performs basic email format validation.
+// isValidEmail validates email format using the standard net/mail parser.
 func isValidEmail(email string) bool {
-	return strings.Contains(email, "@") && strings.Contains(email, ".") && len(email) >= 5
+	_, err := mail.ParseAddress(email)
+	return err == nil
 }
