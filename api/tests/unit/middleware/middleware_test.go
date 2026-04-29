@@ -325,7 +325,7 @@ func TestLogger_CapturesRequestID(t *testing.T) {
 // --- CORS Middleware ---
 
 func TestCORS_SetsHeaders(t *testing.T) {
-	app := setupTestApp(middleware.CORS("", "local"))
+	app := setupTestApp(middleware.CORS("", "local", "http://example.com"))
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendStatus(200)
 	})
@@ -341,7 +341,7 @@ func TestCORS_SetsHeaders(t *testing.T) {
 }
 
 func TestCORS_Preflight(t *testing.T) {
-	app := setupTestApp(middleware.CORS("", "local"))
+	app := setupTestApp(middleware.CORS("", "local", "http://example.com"))
 	app.Options("/", func(c *fiber.Ctx) error {
 		return c.SendStatus(204)
 	})

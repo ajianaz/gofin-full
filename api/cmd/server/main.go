@@ -67,6 +67,11 @@ func main() {
 	authProvider.SetDB(db)
 	log.Info().Str("provider", authProvider.Name()).Msg("auth provider initialized")
 
+	// Warn if auth is disabled (all requests treated as superuser)
+	if authProvider.Name() == "disabled" {
+		log.Warn().Msg("⚠️  AUTH_PROVIDER=disabled: ALL authentication is bypassed. Every request is treated as superuser. Do NOT use in production!")
+	}
+
 	// Setup SSE hub for real-time notifications
 	sseHub := sse.NewHub(log)
 	log.Info().Msg("SSE hub initialized")
@@ -150,6 +155,7 @@ func main() {
 	app := router.New(router.RouterConfig{
 		AppURL:               cfg.AppURL,
 		AppEnv:               cfg.AppEnv,
+		CORSAllowedOrigins:   cfg.CORSAllowedOrigins,
 		HealthHandler:        healthHandler,
 		AuthHandler:          authHandler,
 		UserHandler:          userHandler,

@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Security
+- **CORS no longer uses wildcard in non-production** — replaced `AllowOrigins: "*"` with localhost-only fallback (`localhost:5173`, `localhost:8080`); `CORS_ALLOWED_ORIGINS` env var now takes priority over all other settings
+- **Panic details hidden in production** — recovery middleware no longer exposes exception details to clients unless `APP_DEBUG=true`
+- **Login lockout uses email+IP key** — prevents account lockout denial-of-service by keying rate limit on `email:clientIP` instead of just `email`
+- **Password complexity validation** — registration and password change now require at least 3 of 4 character types (uppercase, lowercase, digit, special character)
+- **HSTS only sent in production** — `Strict-Transport-Security` header is now only set when `APP_ENV=production`; CSP is relaxed in debug mode for SPA compatibility
+- **Disabled auth provider shows startup warning** — logs a prominent warning when `AUTH_PROVIDER=disabled` is active
+- **Selfhost docker-compose requires security env vars** — `AUTH_JWT_SECRET` and `STATIC_CRON_TOKEN` must be explicitly set (no insecure defaults); docker-compose will fail fast if missing
+- **Random password generation uses rejection sampling** — fixed modulo bias in OAuth auto-provisioned password generation
+
 ### Fixed
 - **Audit log response includes user_email** — `GET /audit-logs` now joins with users table to return `user_email` alongside `user_id`; audit repository types fixed from int64 to UUID to match database schema
 - **Admin user list returns name, role, is_active** — `GET /admin/users` now includes `name` (email fallback), `role` (global role lookup), and `is_active` (NOT blocked) fields

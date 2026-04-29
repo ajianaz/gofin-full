@@ -64,11 +64,11 @@ func TestRouter_CORSHeaders(t *testing.T) {
 	app := router.New(*cfg)
 
 	req := httptest.NewRequest("GET", "/health", nil)
-	req.Header.Set("Origin", "http://example.com")
+	req.Header.Set("Origin", "http://localhost:5173")
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
-	// CORS header should be set
+	// CORS header should be set for localhost origins
 	assert.NotEmpty(t, resp.Header.Get("Access-Control-Allow-Origin"))
 }
 

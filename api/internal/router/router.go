@@ -58,6 +58,7 @@ type RouterConfig struct {
 	JWTManager           *auth.JWTManager
 	SSEHub               *sse.Hub
 	CustomMiddleware     []fiber.Handler
+	CORSAllowedOrigins   string
 	RateLimitMax         int
 	RateLimitWindowSec   int
 	DisableMetrics       bool
@@ -73,7 +74,7 @@ func New(cfg RouterConfig) *fiber.App {
 
 	// Global middleware
 	app.Use(middleware.RequestID())
-	app.Use(middleware.CORS(cfg.AppURL, cfg.AppEnv))
+	app.Use(middleware.CORS(cfg.AppURL, cfg.AppEnv, cfg.CORSAllowedOrigins))
 	app.Use(middleware.AcceptHeaders())
 	app.Use(middleware.SecurityHeaders())
 	if cfg.MaxRequestBodyBytes > 0 {

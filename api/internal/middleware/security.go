@@ -1,11 +1,16 @@
 package middleware
 
 import (
+	"os"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 // SecurityHeaders adds common security headers to responses.
 func SecurityHeaders() fiber.Handler {
+	isProd := os.Getenv("APP_ENV") == "production"
+	isDebug := os.Getenv("APP_DEBUG") == "true"
+
 	return func(c *fiber.Ctx) error {
 		err := c.Next()
 
@@ -17,10 +22,18 @@ func SecurityHeaders() fiber.Handler {
 		c.Set("X-XSS-Protection", "1; mode=block")
 		// Referrer policy
 		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
-		// HSTS (enable in production with HTTPS)
-		c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-		// Content Security Policy
-		c.Set("Content-Security-Policy", "default-src 'self'")
+
+		// HSTS: only enable in production (requires HTTPS)
+		if isProd {
+			c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
+
+		// Content Security Policy: restrictive in production, permissive in debug
+		if isDebug {
+			c.Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline' 'unsafe-eval'")
+		} else if isProd {
+			c.Set("Content-Security-Policy", "default-src 'self'")
+		}
 
 		return err
 	}

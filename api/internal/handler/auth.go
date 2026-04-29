@@ -61,10 +61,12 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 
+	clientIP := c.IP()
+
 	// Check if account is temporarily locked due to too many failed attempts
-	if locked, retryMinutes := h.isAccountLocked(c.Context(), req.Email); locked {
+	if locked, retryMinutes := h.isAccountLocked(c.Context(), req.Email, clientIP); locked {
 		return c.Status(429).JSON(fiber.Map{
-			"message": fmt.Sprintf("Account temporarily locked due to too many failed login attempts. Try again in %d minutes.", retryMinutes),
+			"message": fmt.Sprintf("Too many failed login attempts. Try again in %d minutes.", retryMinutes),
 		})
 	}
 
@@ -73,7 +75,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		Password: req.Password,
 	})
 	if err != nil {
-		h.recordFailedLogin(c.Context(), req.Email)
+		h.recordFailedLogin(c.Context(), req.Email, clientIP)
 		return apperrors.New(401, "Invalid email or password.")
 	}
 
@@ -82,7 +84,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 
 	// Successful login — clear failed attempt counter
-	h.clearFailedLogins(c.Context(), req.Email)
+	h.clearFailedLogins(c.Context(), req.Email, clientIP)
 
 	tokens, err := h.jwtMgr.GenerateTokenPair(identity, identity.UserGroupID)
 	if err != nil {
@@ -99,14 +101,14 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	return c.JSON(tokens)
 }
 
-// isAccountLocked checks if an account is locked due to too many failed login attempts.
-// Returns (locked, retryMinutes).
-func (h *AuthHandler) isAccountLocked(ctx context.Context, email string) (bool, int) {
+// isAccountLocked checks if an email+IP combination is locked due to too many failed login attempts.
+// Uses email+IP as key to prevent account lockout DoS attacks.
+func (h *AuthHandler) isAccountLocked(ctx context.Context, email, clientIP string) (bool, int) {
 	if h.rdb == nil {
 		return false, 0
 	}
 
-	key := loginAttemptsKeyPrefix + email
+	key := loginAttemptsKeyPrefix + email + ":" + clientIP
 	val, err := h.rdb.Get(ctx, key).Result()
 	if err != nil {
 		return false, 0
@@ -129,13 +131,13 @@ func (h *AuthHandler) isAccountLocked(ctx context.Context, email string) (bool, 
 	return true, retryMinutes
 }
 
-// recordFailedLogin increments the failed login counter for an email.
-func (h *AuthHandler) recordFailedLogin(ctx context.Context, email string) {
+// recordFailedLogin increments the failed login counter for an email+IP combination.
+func (h *AuthHandler) recordFailedLogin(ctx context.Context, email, clientIP string) {
 	if h.rdb == nil {
 		return
 	}
 
-	key := loginAttemptsKeyPrefix + email
+	key := loginAttemptsKeyPrefix + email + ":" + clientIP
 	pipe := h.rdb.Pipeline()
 	pipe.Incr(ctx, key)
 	pipe.Expire(ctx, key, loginLockoutDuration)
@@ -144,13 +146,13 @@ func (h *AuthHandler) recordFailedLogin(ctx context.Context, email string) {
 	}
 }
 
-// clearFailedLogins removes the failed login counter for an email after successful login.
-func (h *AuthHandler) clearFailedLogins(ctx context.Context, email string) {
+// clearFailedLogins removes the failed login counter for an email+IP after successful login.
+func (h *AuthHandler) clearFailedLogins(ctx context.Context, email, clientIP string) {
 	if h.rdb == nil {
 		return
 	}
 
-	if err := h.rdb.Del(ctx, loginAttemptsKeyPrefix+email).Err(); err != nil {
+	if err := h.rdb.Del(ctx, loginAttemptsKeyPrefix+email+":"+clientIP).Err(); err != nil {
 		log.Printf("login attempt tracking: redis error on clear: %v", err)
 	}
 }
@@ -184,9 +186,9 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 			"email": {"Invalid email format."},
 		})
 	}
-	if len(req.Password) < 8 {
+	if pwErrs := validatePasswordStrength(req.Password); len(pwErrs) > 0 {
 		return apperrors.NewValidationError(map[string][]string{
-			"password": {"Password must be at least 8 characters."},
+			"password": pwErrs,
 		})
 	}
 
@@ -460,9 +462,28 @@ func isAllowedRedirect(redirect, appURL string) bool {
 func generateRandomPassword(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, length)
-	rand.Read(b)
+	for {
+		if _, err := rand.Read(b); err != nil {
+			// Fallback: use time-based (not ideal but won't panic)
+			for i := range b {
+				b[i] = byte(time.Now().UnixNano())
+			}
+			break
+		}
+		// Reject bytes that would cause modulo bias
+		valid := true
+		for i := range b {
+			if int(b[i]) >= 256-(256%len(charset)) {
+				valid = false
+				break
+			}
+		}
+		if valid {
+			break
+		}
+	}
 	for i := range b {
-		b[i] = charset[int(b[i])%len(charset)]
+		b[i] = charset[b[i]%byte(len(charset))]
 	}
 	return string(b)
 }
@@ -471,4 +492,47 @@ func generateRandomPassword(length int) string {
 func isValidEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
+}
+
+// validatePasswordStrength checks password meets minimum security requirements.
+// Requires at least 8 characters with a mix of character types.
+func validatePasswordStrength(password string) []string {
+	var errors []string
+	if len(password) < 8 {
+		errors = append(errors, "Password must be at least 8 characters.")
+	}
+	hasUpper := false
+	hasLower := false
+	hasDigit := false
+	hasSpecial := false
+	for _, c := range password {
+		switch {
+		case 'A' <= c && c <= 'Z':
+			hasUpper = true
+		case 'a' <= c && c <= 'z':
+			hasLower = true
+		case '0' <= c && c <= '9':
+			hasDigit = true
+		default:
+			hasSpecial = true
+		}
+	}
+	// Require at least 3 of 4 character types
+	types := 0
+	if hasUpper {
+		types++
+	}
+	if hasLower {
+		types++
+	}
+	if hasDigit {
+		types++
+	}
+	if hasSpecial {
+		types++
+	}
+	if types < 3 {
+		errors = append(errors, "Password must include at least 3 of: uppercase, lowercase, digit, special character.")
+	}
+	return errors
 }

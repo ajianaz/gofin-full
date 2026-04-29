@@ -47,6 +47,11 @@ func (h *UserHandler) ChangePassword(c *fiber.Ctx) error {
 			"new_password": {"New password must be at least 8 characters."},
 		})
 	}
+	if pwErrs := validatePasswordStrength(req.NewPassword); len(pwErrs) > 0 {
+		return apperrors.NewValidationError(map[string][]string{
+			"new_password": pwErrs,
+		})
+	}
 
 	// Fetch current user to verify old password
 	u, err := h.repo.FindByID(c.Context(), user.ID)

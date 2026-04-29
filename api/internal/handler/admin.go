@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -195,6 +194,3 @@ func isDuplicateKey(err error) bool {
 	}
 	return strings.Contains(err.Error(), "duplicate key")
 }
-
-// Ensure pgx is available for the type assertion.
-var _ pgx.Tx
