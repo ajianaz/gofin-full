@@ -1,21 +1,43 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Plus, ChevronDown, Landmark, Smartphone, CreditCard, Wallet } from '@lucide/svelte';
-	import { mockWallets } from '$lib/data/mock-wallets.js';
+	import { Plus, ChevronDown, Landmark, Smartphone, CreditCard, Wallet, Trash2 } from '@lucide/svelte';
+	import { walletService } from '$lib/services/index.js';
+	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
 
+	let items = $state<Account[]>([]);
+	let isLoading = $state(true);
+	let errorMsg = $state('');
 	let typeFilter = $state('all');
+
+	async function handleDelete(id: string) {
+		if (!confirm(t('common.delete') + '?')) return;
+		await walletService.delete(id);
+		items = items.filter((w) => w.id !== id);
+	}
+
+	onMount(async () => {
+		try {
+			items = await walletService.list();
+		} catch (e) {
+			errorMsg = t('common.error');
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	});
 
 	let filtered = $derived(
 		typeFilter === 'all'
-			? mockWallets
-			: mockWallets.filter((w) => w.type === typeFilter)
+			? items
+			: items.filter((w) => w.type === typeFilter)
 	);
 
-	function walletIcon(w: (typeof mockWallets)[number]) {
+	function walletIcon(w: Account) {
 		if (w.type === 'liability') return CreditCard;
 		if (w.type === 'cash') return Wallet;
 		const name = w.name.toLowerCase();
@@ -24,7 +46,7 @@
 		return Landmark;
 	}
 
-	function walletLabel(w: (typeof mockWallets)[number]): string {
+	function walletLabel(w: Account): string {
 		if (w.type === 'liability') return t('wallets.list.creditCard');
 		if (w.type === 'cash') return t('wallets.list.cash');
 		const name = w.name.toLowerCase();
@@ -70,13 +92,23 @@
 	</div>
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#each filtered as wallet}
+		{#if isLoading}
+			<p class="col-span-full py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</p>
+		{:else if errorMsg}
+			<p class="col-span-full text-sm text-destructive py-8 text-center">{errorMsg}</p>
+		{:else}
+			{#each filtered as wallet}
 			{@const Icon = walletIcon(wallet)}
 			<Card class="hover:shadow-md transition-shadow">
 				<CardContent class="p-5">
-					<div class="flex items-center gap-2 mb-4">
-						<Icon class="size-[18px] text-primary" />
-						<span class="text-base font-semibold text-foreground">{wallet.name}</span>
+					<div class="flex items-center justify-between mb-4">
+						<div class="flex items-center gap-2">
+							<Icon class="size-[18px] text-primary" />
+							<span class="text-base font-semibold text-foreground">{wallet.name}</span>
+						</div>
+						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(wallet.id)}>
+							<Trash2 class="size-4" />
+						</button>
 					</div>
 					<p class="text-xl font-bold {parseFloat(wallet.balance) < 0 ? 'text-red-600' : 'text-foreground'}">
 						{formatBalance(wallet.balance)}
@@ -84,6 +116,9 @@
 					<p class="mt-1 text-xs text-muted-foreground">{walletLabel(wallet)}</p>
 				</CardContent>
 			</Card>
-		{/each}
+			{:else}
+				<p class="col-span-full py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+			{/each}
+		{/if}
 	</div>
 </div>

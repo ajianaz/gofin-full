@@ -15,7 +15,7 @@ import (
 // KeyLookup is implemented by the API key repository.
 // This interface breaks the import cycle between auth and repository.
 type KeyLookup interface {
-	FindByHash(ctx context.Context, keyHash string) (userID uuid.UUID, keyID uuid.UUID, err error)
+	FindByHash(ctx context.Context, keyHash string) (userID uuid.UUID, keyID uuid.UUID, groupID *uuid.UUID, err error)
 	UpdateLastUsed(ctx context.Context, keyID uuid.UUID) error
 }
 
@@ -32,7 +32,7 @@ func APIKeyMiddleware(lookup KeyLookup) fiber.Handler {
 		}
 
 		keyHash := HashAPIKey(rawKey)
-		userID, keyID, err := lookup.FindByHash(c.Context(), keyHash)
+		userID, keyID, groupID, err := lookup.FindByHash(c.Context(), keyHash)
 		if err != nil {
 			// Key had gofin_ prefix but lookup failed — reject
 			return apperrors.ErrUnauthorized
@@ -48,6 +48,11 @@ func APIKeyMiddleware(lookup KeyLookup) fiber.Handler {
 			Email: "",
 		})
 		c.Locals("auth_method", "api_key")
+
+		// Set active group so GroupRoleMiddleware can resolve RBAC
+		if groupID != nil && *groupID != uuid.Nil {
+			SetActiveGroupID(c, *groupID)
+		}
 
 		return c.Next()
 	}

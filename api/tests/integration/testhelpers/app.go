@@ -112,7 +112,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 	healthHandler := handler.NewHealthHandler(db, nil) // nil Redis is fine for tests
 	authHandler := handler.NewAuthHandler(jwtMgr, authProvider, prodCfg, userRepo, oauthStateRepo, refreshRepo)
 	userHandler := handler.NewUserHandler(userRepo)
-	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db)
+	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr)
 	walletHandler := handler.NewWalletHandler(walletRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	tagHandler := handler.NewTagHandler(tagRepo)
@@ -134,7 +134,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 	noteHandler := handler.NewNoteHandler(noteRepo)
 	locationHandler := handler.NewLocationHandler(locationRepo)
 	accountTypeHandler := handler.NewAccountTypeHandler(accountTypeRepo)
-	walletMemberHandler := handler.NewWalletMemberHandler(walletMemberRepo)
+	walletMemberHandler := handler.NewWalletMemberHandler(walletMemberRepo, userRepo)
 	exportHandler := handler.NewExportHandler(exportService)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo)
 	auditHandler := handler.NewAuditHandler(auditRepo)
@@ -175,12 +175,13 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 		AnalyticsHandler:     analyticsHandler,
 		AuditHandler:         auditHandler,
 		AdminHandler:         adminHandler,
-			APIKeyHandler:        apiKeyHandler,
-			KeyLookup:            apiKeyRepo,
+		APIKeyHandler:        apiKeyHandler,
+		KeyLookup:            apiKeyRepo,
 		APIDocHandler:        apiDocHandler,
 		MetricsHandler:       metricsHandler,
 		MemberRepo:           walletMemberRepo,
 		RoleLookup:           userRepo,
+		TokenVersionLookup:   userRepo,
 		JWTManager:           jwtMgr,
 		SSEHub:               sseHub,
 		CustomMiddleware:     nil, // no logger/recovery overhead in tests

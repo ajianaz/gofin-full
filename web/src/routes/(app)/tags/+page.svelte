@@ -1,13 +1,36 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { PageHeader } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Plus } from '@lucide/svelte';
-	import { mockTags } from '$lib/data/mock-tags.js';
+	import { Plus, Trash2 } from '@lucide/svelte';
+	import { tagService } from '$lib/services/index.js';
+	import type { Tag } from '$lib/types/domain.js';
 	import { formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
+
+	let items = $state<Tag[]>([]);
+	let isLoading = $state(true);
+	let errorMsg = $state('');
+
+	async function handleDelete(id: string) {
+		if (!confirm(t('common.delete') + '?')) return;
+		await tagService.delete(id);
+		items = items.filter((t) => t.id !== id);
+	}
+
+	onMount(async () => {
+		try {
+			items = await tagService.list();
+		} catch (e) {
+			errorMsg = t('common.error');
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	});
 </script>
 
 <PageHeader title={t('tags.list.title')} description={t('tags.list.description')}>
@@ -21,14 +44,6 @@
 	{/snippet}
 </PageHeader>
 
-<div class="flex flex-wrap gap-2 mb-4">
-	{#each mockTags as tag}
-		<Badge variant="outline" class="px-3 py-1.5 text-sm">
-			#{tag.tag}
-		</Badge>
-	{/each}
-</div>
-
 <Card>
 	<CardContent class="p-0">
 		<div class="overflow-x-auto">
@@ -38,16 +53,34 @@
 						<th class="text-left p-3 font-medium text-muted-foreground">{t('tags.list.colTag')}</th>
 						<th class="text-left p-3 font-medium text-muted-foreground">{t('tags.list.colDescription')}</th>
 						<th class="text-left p-3 font-medium text-muted-foreground">{t('tags.list.colDate')}</th>
+						<th class="w-[50px] p-3"></th>
 					</tr>
 				</thead>
 				<tbody>
-					{#each mockTags as tag}
+					{#if isLoading}
+						<tr>
+							<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
+						</tr>
+					{:else if errorMsg}
+						<tr>
+							<td colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</td>
+						</tr>
+					{:else}
+					{#each items as tag}
 						<tr class="border-b hover:bg-muted/30">
 							<td class="p-3"><Badge variant="secondary">#{tag.tag}</Badge></td>
 							<td class="p-3 text-muted-foreground">{tag.description ?? '-'}</td>
 							<td class="p-3 text-muted-foreground">{formatDate(tag.date)}</td>
+							<td class="p-3">
+								<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(tag.id)}>
+									<Trash2 class="size-4" />
+								</button>
+							</td>
 						</tr>
+					{:else}
+						<tr><td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td></tr>
 					{/each}
+					{/if}
 				</tbody>
 			</table>
 		</div>

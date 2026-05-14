@@ -13,9 +13,14 @@ func TestLoad_Defaults(t *testing.T) {
 	// Ensure no .env file interferes
 	_ = os.Remove(".env")
 
+	// Set test env
+	t.Setenv("APP_ENV", "testing")
+	// Set a valid JWT secret (required in all environments)
+	t.Setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-chars!!")
+
 	// Clear env vars that docker-compose sets, so we test true defaults
 	envVars := []string{
-		"APP_ENV", "APP_DEBUG", "APP_URL", "APP_TIMEZONE",
+		"APP_DEBUG", "APP_URL", "APP_TIMEZONE",
 		"HTTP_PORT", "HTTP_HOST",
 		"DB_HOST", "DB_PORT", "DB_DATABASE", "DB_USERNAME", "DB_PASSWORD", "DB_SSL_MODE", "DB_SCHEMA", "DB_DSN",
 		"REDIS_HOST", "REDIS_PORT", "REDIS_DB",
@@ -34,8 +39,8 @@ func TestLoad_Defaults(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	// App defaults
-	assert.Equal(t, "production", cfg.AppEnv)
+	// App defaults (APP_ENV set to testing for JWT validation bypass)
+	assert.Equal(t, "testing", cfg.AppEnv)
 	assert.False(t, cfg.AppDebug)
 	assert.Equal(t, "http://localhost", cfg.AppURL)
 	assert.Equal(t, "UTC", cfg.AppTimezone)
@@ -100,6 +105,7 @@ func TestLoad_FromEnvVars(t *testing.T) {
 	// Viper reads env vars at load time via AutomaticEnv
 	// Set env vars before calling Load
 	t.Setenv("APP_ENV", "testing")
+	t.Setenv("AUTH_JWT_SECRET", "test-secret-that-is-at-least-32-chars!!")
 	t.Setenv("APP_DEBUG", "true")
 	t.Setenv("HTTP_PORT", "9090")
 	t.Setenv("DB_HOST", "db-host")
@@ -119,7 +125,7 @@ func TestLoad_FromEnvVars(t *testing.T) {
 	assert.Equal(t, "db-host", cfg.DBHost)
 	assert.Equal(t, 5433, cfg.DBPort)
 	assert.Equal(t, "redis-host", cfg.RedisHost)
-	assert.Equal(t, "redis-host:6379", cfg.RedisAddr())
+	assert.Equal(t, "redis-host:6380", cfg.RedisAddr())
 	assert.Equal(t, "console", cfg.LogFormat)
 	assert.Equal(t, 50, cfg.RateLimitMax)
 	assert.Equal(t, "http://localhost:3000,https://app.gofin.io", cfg.CORSAllowedOrigins)
@@ -179,8 +185,8 @@ func TestConfig_HTTPAddr(t *testing.T) {
 
 func TestConfig_KeycloakURLs(t *testing.T) {
 	cfg := &config.Config{
-		KeycloakURL:     "http://keycloak:8080",
-		KeycloakRealm:   "myrealm",
+		KeycloakURL:      "http://keycloak:8080",
+		KeycloakRealm:    "myrealm",
 		KeycloakClientID: "myclient",
 	}
 

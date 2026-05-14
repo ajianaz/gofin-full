@@ -5,10 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/ajianaz/gofin-full/api/internal/handler"
 	"github.com/ajianaz/gofin-full/api/internal/middleware"
-	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
+	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -40,10 +40,10 @@ func TestHealthCheck_NoDependencies(t *testing.T) {
 	}
 
 	assert.Equal(t, "error", serviceMap["postgresql"].Status)
-	assert.Contains(t, serviceMap["postgresql"].Error, "not initialized")
+	assert.Equal(t, "connection failed", serviceMap["postgresql"].Error)
 
 	assert.Equal(t, "error", serviceMap["redis"].Status)
-	assert.Contains(t, serviceMap["redis"].Error, "not initialized")
+	assert.Equal(t, "connection failed", serviceMap["redis"].Error)
 }
 
 func TestHealthCheck_ResponseFormat(t *testing.T) {

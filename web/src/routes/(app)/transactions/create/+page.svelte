@@ -1,15 +1,23 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { ChevronDown } from '@lucide/svelte';
-	import { mockWallets } from '$lib/data/mock-wallets.js';
-	import { mockCategories } from '$lib/data/mock-categories.js';
-	import { mockTags } from '$lib/data/mock-tags.js';
+	import { transactionService, walletService, categoryService, tagService } from '$lib/services/index.js';
+	import type { Account } from '$lib/types/domain.js';
+	import type { Category } from '$lib/types/domain.js';
+	import type { Tag } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
+
+	let isLoading = $state(false);
+	let errorMsg = $state('');
+	let wallets = $state<Account[]>([]);
+	let categories = $state<Category[]>([]);
+	let tags = $state<Tag[]>([]);
 
 	let type = $state('withdrawal');
 	let date = $state(new Date().toISOString().split('T')[0]);
@@ -19,6 +27,37 @@
 	let destAccount = $state('');
 	let category = $state('');
 	let note = $state('');
+
+	onMount(async () => {
+		try {
+			wallets = await walletService.list();
+			categories = await categoryService.list();
+			tags = await tagService.list();
+		} catch (e) { console.error(e); }
+	});
+
+	async function handleSubmit(e: Event) {
+		e.preventDefault();
+		isLoading = true;
+		errorMsg = '';
+		try {
+			const payload = {
+				type,
+				description,
+				amount: String(amount),
+				source_id: sourceAccount,
+				destination_id: type === 'transfer' ? destAccount : sourceAccount,
+				date,
+				category_ids: category ? [category] : [],
+			};
+			await transactionService.create(payload);
+			goto('/transactions');
+		} catch (err: any) {
+			errorMsg = err.detail || err.message || t('common.errorSave');
+		} finally {
+			isLoading = false;
+		}
+	}
 </script>
 
 <div class="flex flex-col gap-4">
@@ -27,7 +66,7 @@
 			<CardTitle>{t('transactions.create.title')}</CardTitle>
 		</CardHeader>
 		<CardContent>
-			<form class="flex flex-col gap-6" onsubmit={(e) => { e.preventDefault(); goto('/transactions'); }}>
+			<form class="flex flex-col gap-6" onsubmit={handleSubmit}>
 				<div class="grid gap-6 md:grid-cols-2">
 					<div class="flex flex-col gap-4">
 						<div class="flex flex-col gap-2">
@@ -60,7 +99,7 @@
 									class="cn-input w-full appearance-none bg-background pr-8"
 								>
 									<option value="">{t('common.selectWallet')}</option>
-									{#each mockWallets as w}
+									{#each wallets as w}
 										<option value={w.id}>{w.name} ({w.currency_code})</option>
 									{/each}
 								</select>
@@ -78,7 +117,7 @@
 										class="cn-input w-full appearance-none bg-background pr-8"
 									>
 										<option value="">{t('common.selectWallet')}</option>
-										{#each mockWallets as w}
+										{#each wallets as w}
 											<option value={w.id}>{w.name} ({w.currency_code})</option>
 										{/each}
 									</select>
@@ -96,7 +135,7 @@
 									class="cn-input w-full appearance-none bg-background pr-8"
 								>
 									<option value="">{t('common.selectCategory')}</option>
-									{#each mockCategories as cat}
+									{#each categories as cat}
 										<option value={cat.id}>{cat.name}</option>
 									{/each}
 								</select>
@@ -129,7 +168,7 @@
 									class="cn-input w-full appearance-none bg-background pr-8"
 								>
 									<option value="">{t('transactions.create.selectTag')}</option>
-									{#each mockTags as tag}
+									{#each tags as tag}
 										<option value={tag.tag}>{tag.tag}</option>
 									{/each}
 								</select>
@@ -140,7 +179,10 @@
 				</div>
 
 				<div class="flex gap-2">
-					<Button type="submit" class="flex-1">{t('transactions.create.submit')}</Button>
+					{#if errorMsg}
+						<p class="text-sm text-destructive">{errorMsg}</p>
+					{/if}
+					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? t('common.saving') : t('transactions.create.submit')}</Button>
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/transactions')}>{t('common.cancel')}</Button>
 				</div>
 			</form>

@@ -1,69 +1,47 @@
-import type { LoginRequest, RegisterRequest, TokenResponse, User, ApiError } from '$lib/types/index.js';
-
-const MOCK_USERS: Record<string, { password: string; user: User }> = {
-	'admin@gofin.id': {
-		password: 'admin123',
-		user: { id: 'u1', email: 'admin@gofin.id', name: 'Admin Gofin', created_at: '2025-01-01' }
-	},
-	'budi@gofin.id': {
-		password: 'budi123',
-		user: { id: 'u2', email: 'budi@gofin.id', name: 'Budi Santoso', created_at: '2025-03-15' }
-	},
-	'sari@gofin.id': {
-		password: 'sari123',
-		user: { id: 'u3', email: 'sari@gofin.id', name: 'Sari Dewi', created_at: '2025-06-20' }
-	}
-};
-
-function mockTokens(): TokenResponse {
-	return {
-		access_token: 'mock_access_token_' + Date.now(),
-		refresh_token: 'mock_refresh_token_' + Date.now(),
-		expires_in: 3600,
-		token_type: 'Bearer'
-	};
-}
-
-function delay(ms = 300) {
-	return new Promise((r) => setTimeout(r, ms));
-}
+import { api } from './client.js';
+import type { LoginRequest, RegisterRequest, TokenResponse, User } from '$lib/types/index.js';
+import { unwrapOne } from './helpers.js';
 
 export const authService = {
 	async login(data: LoginRequest): Promise<TokenResponse> {
-		await delay();
-		const entry = MOCK_USERS[data.email];
-		if (!entry || entry.password !== data.password) {
-			const err: ApiError = { status: 401, detail: 'Email atau password salah.' };
-			throw err;
-		}
-		return mockTokens();
+		return api.post<TokenResponse>('/auth/login', data);
 	},
 
 	async register(data: RegisterRequest): Promise<TokenResponse> {
-		await delay();
-		if (MOCK_USERS[data.email]) {
-			const err: ApiError = { status: 409, detail: 'Email sudah terdaftar.' };
-			throw err;
-		}
-		return mockTokens();
+		return api.post<TokenResponse>('/auth/register', data);
 	},
 
-	async logout(): Promise<{ message: string }> {
-		await delay(100);
-		return { message: 'ok' };
+	async logout(refreshToken?: string): Promise<{ message: string }> {
+		return api.post<{ message: string }>('/auth/logout', { refresh_token: refreshToken });
 	},
 
-	async refresh(_refreshToken: string): Promise<TokenResponse> {
-		await delay();
-		return mockTokens();
+	async refresh(refreshToken: string): Promise<TokenResponse> {
+		return api.post<TokenResponse>('/auth/refresh', { refresh_token: refreshToken });
 	},
 
 	async getMe(): Promise<User> {
-		await delay(100);
-		return { id: 'u1', email: 'admin@gofin.id', name: 'Admin Gofin', created_at: '2025-01-01' };
+		const res = await api.get<{ data: { id: string; attributes: { email: string; created_at?: string } } }>('/users/me');
+		const raw = unwrapOne<{ email: string; created_at?: string }>(res);
+		const email = raw.email || '';
+		const name = email.split('@')[0] || '';
+		return {
+			id: raw.id,
+			email: raw.email,
+			name,
+			created_at: raw.created_at || new Date().toISOString()
+		};
 	},
 
 	async getProvider(): Promise<{ provider: string }> {
-		return { provider: 'local' };
+		return api.get<{ provider: string }>('/auth/provider');
+	},
+
+	async updateProfile(data: { name?: string; email?: string }): Promise<User> {
+		await api.put('/users/me', data);
+		return this.getMe();
+	},
+
+	async changePassword(data: { current_password: string; new_password: string }): Promise<void> {
+		await api.post('/users/me/password', data);
 	}
 };

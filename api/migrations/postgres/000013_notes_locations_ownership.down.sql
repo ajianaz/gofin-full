@@ -1,0 +1,5 @@
+ALTER TABLE notes DROP COLUMN IF EXISTS user_group_id;
+ALTER TABLE notes DROP COLUMN IF EXISTS user_id;
+
+ALTER TABLE locations DROP COLUMN IF EXISTS user_group_id;
+ALTER TABLE locations DROP COLUMN IF EXISTS user_id;

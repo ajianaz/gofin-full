@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"context"
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,11 +18,12 @@ type UserGroupHandler struct {
 	groupRepo *repository.UserGroupRepository
 	userRepo  *repository.UserRepository
 	db        *pgxpool.Pool
+	jwtMgr    *auth.JWTManager
 }
 
 // NewUserGroupHandler creates a new user group handler.
-func NewUserGroupHandler(groupRepo *repository.UserGroupRepository, userRepo *repository.UserRepository, db *pgxpool.Pool) *UserGroupHandler {
-	return &UserGroupHandler{groupRepo: groupRepo, userRepo: userRepo, db: db}
+func NewUserGroupHandler(groupRepo *repository.UserGroupRepository, userRepo *repository.UserRepository, db *pgxpool.Pool, jwtMgr *auth.JWTManager) *UserGroupHandler {
+	return &UserGroupHandler{groupRepo: groupRepo, userRepo: userRepo, db: db, jwtMgr: jwtMgr}
 }
 
 // Index handles GET /api/v1/groups.
@@ -37,8 +41,8 @@ func (h *UserGroupHandler) Index(c *fiber.Ctx) error {
 	var data []fiber.Map
 	for _, g := range groups {
 		data = append(data, fiber.Map{
-			"type":       "user_groups",
-			"id":         g.ID,
+			"type": "user_groups",
+			"id":   g.ID,
 			"attributes": fiber.Map{
 				"title": g.Title,
 			},
@@ -73,8 +77,8 @@ func (h *UserGroupHandler) Show(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"data": fiber.Map{
-			"type":       "user_groups",
-			"id":         group.ID,
+			"type": "user_groups",
+			"id":   group.ID,
 			"attributes": fiber.Map{
 				"title": group.Title,
 			},
@@ -110,8 +114,8 @@ func (h *UserGroupHandler) Store(c *fiber.Ctx) error {
 
 	return c.Status(201).JSON(fiber.Map{
 		"data": fiber.Map{
-			"type":       "user_groups",
-			"id":         group.ID,
+			"type": "user_groups",
+			"id":   group.ID,
 			"attributes": fiber.Map{
 				"title": group.Title,
 			},
@@ -152,8 +156,8 @@ func (h *UserGroupHandler) Update(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"data": fiber.Map{
-			"type":       "user_groups",
-			"id":         id,
+			"type": "user_groups",
+			"id":   id,
 			"attributes": fiber.Map{
 				"title": req.Title,
 			},
@@ -183,6 +187,21 @@ func (h *UserGroupHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
+	// Invalidate tokens for all group members since the group no longer exists
+	go func() {
+		rows, err := h.db.Query(context.Background(), `SELECT user_id FROM group_memberships WHERE user_group_id = $1`, id)
+		if err != nil {
+			return
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var uid uuid.UUID
+			if rows.Scan(&uid) == nil {
+				_ = h.userRepo.IncrementTokenVersion(context.Background(), uid)
+			}
+		}
+	}()
+
 	return c.Status(204).Send(nil)
 }
 
@@ -203,9 +222,35 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 	}
 
 	if err := h.userRepo.SetActiveGroup(c.Context(), user.ID, req.UserGroupID); err != nil {
-		return apperrors.NewWithDetail(400, "Bad Request", err.Error())
+		log.Printf("group switch failed: %v", err)
+		return apperrors.New(400, "Failed to switch group. You may not be a member of the target group.")
 	}
 
+	// Re-issue JWT with updated group claim
+	claims := auth.GetClaims(c)
+	if claims != nil {
+		identity := &auth.UserIdentity{
+			ID:           claims.UserID,
+			Email:        claims.Email,
+			DemoUser:     claims.DemoUser,
+			TokenVersion: claims.TokenVersion,
+		}
+		tokens, err := h.jwtMgr.GenerateTokenPair(identity, &req.UserGroupID)
+		if err == nil {
+			return c.JSON(fiber.Map{
+				"data": fiber.Map{
+					"type": "user_groups",
+					"id":   req.UserGroupID,
+				},
+				"meta": fiber.Map{
+					"message": "Active group switched successfully.",
+				},
+				"tokens": tokens,
+			})
+		}
+	}
+
+	// Fallback: return success without new tokens if JWT generation fails
 	return c.JSON(fiber.Map{
 		"data": fiber.Map{
 			"type": "user_groups",

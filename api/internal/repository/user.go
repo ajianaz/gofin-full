@@ -186,6 +186,22 @@ func (r *UserRepository) HasGlobalRole(ctx context.Context, userID uuid.UUID, ro
 	return count > 0, err
 }
 
+// GetGlobalRole returns the user's highest-priority global role title.
+func (r *UserRepository) GetGlobalRole(ctx context.Context, userID uuid.UUID) string {
+	var title string
+	err := r.db.QueryRow(ctx,
+		`SELECT r.title FROM role_user ru
+			 JOIN roles r ON r.id = ru.role_id
+			 WHERE ru.user_id = $1
+			 ORDER BY r.title LIMIT 1`,
+		userID,
+	).Scan(&title)
+	if err != nil {
+		return "member"
+	}
+	return title
+}
+
 // GetUserRoleInGroup returns the user's role in a specific group.
 func (r *UserRepository) GetUserRoleInGroup(ctx context.Context, userID, groupID uuid.UUID) (auth.GroupRole, error) {
 	var roleTitle string
@@ -242,4 +258,27 @@ func (r *UserRepository) ListAll(ctx context.Context) ([]domain.User, error) {
 		users = append(users, u)
 	}
 	return users, rows.Err()
+}
+
+// GetTokenVersion returns the user's current token_version.
+func (r *UserRepository) GetTokenVersion(ctx context.Context, userID uuid.UUID) (int, error) {
+	var version int
+	err := r.db.QueryRow(ctx,
+		`SELECT token_version FROM users WHERE id = $1 AND deleted_at IS NULL`,
+		userID,
+	).Scan(&version)
+	if err != nil {
+		return 0, err
+	}
+	return version, nil
+}
+
+// IncrementTokenVersion atomically increments the user's token_version,
+// invalidating all existing JWT tokens for that user.
+func (r *UserRepository) IncrementTokenVersion(ctx context.Context, userID uuid.UUID) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE users SET token_version = token_version + 1, updated_at = $2 WHERE id = $1 AND deleted_at IS NULL`,
+		userID, time.Now().UTC(),
+	)
+	return err
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,8 +38,8 @@ type CSVRow struct {
 }
 
 // ExportTransactionsCSV exports transactions as CSV.
-func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.UUID, w io.Writer) error {
-	groups, _, err := s.txRepo.ListGroups(ctx, groupID, repository.TransactionFilter{})
+func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.UUID, w io.Writer, filter repository.TransactionFilter) error {
+	groups, _, err := s.txRepo.ListGroups(ctx, groupID, filter)
 	if err != nil {
 		return fmt.Errorf("failed to list transactions: %w", err)
 	}
@@ -64,14 +65,14 @@ func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.
 			record := []string{
 				j.Date.Format("2006-01-02"),
 				string(j.Type),
-				j.Description,
+				sanitizeCSV(j.Description),
 				amount.StringFixed(2),
 				j.CurrencyID,
-				categoryName,
-				sourceName,
-				destName,
-				coalesceStr(j.Notes),
-				joinTagNames(j.Tags),
+				sanitizeCSV(categoryName),
+				sanitizeCSV(sourceName),
+				sanitizeCSV(destName),
+				sanitizeCSV(coalesceStr(j.Notes)),
+				sanitizeCSV(joinTagNames(j.Tags)),
 			}
 			if err := csvWriter.Write(record); err != nil {
 				return err
@@ -83,8 +84,8 @@ func (s *ExportService) ExportTransactionsCSV(ctx context.Context, groupID uuid.
 }
 
 // ExportTransactionsOFX exports transactions in OFX (Open Financial Exchange) format.
-func (s *ExportService) ExportTransactionsOFX(ctx context.Context, groupID uuid.UUID, w io.Writer) error {
-	groups, _, err := s.txRepo.ListGroups(ctx, groupID, repository.TransactionFilter{})
+func (s *ExportService) ExportTransactionsOFX(ctx context.Context, groupID uuid.UUID, w io.Writer, filter repository.TransactionFilter) error {
+	groups, _, err := s.txRepo.ListGroups(ctx, groupID, filter)
 	if err != nil {
 		return fmt.Errorf("failed to list transactions: %w", err)
 	}
@@ -190,6 +191,21 @@ func joinTagNames(tags []domain.Tag) string {
 		result += t.Tag
 	}
 	return result
+}
+
+func sanitizeCSV(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	trimmed := strings.TrimSpace(s)
+	if len(trimmed) == 0 {
+		return s
+	}
+	c := trimmed[0]
+	if c == '=' || c == '+' || c == '-' || c == '@' || c == '\t' || c == '\r' {
+		return "'" + s + "'"
+	}
+	return s
 }
 
 func escapeXML(s string) string {

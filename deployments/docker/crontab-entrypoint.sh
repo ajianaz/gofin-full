@@ -14,4 +14,12 @@ if [ "${SKIP_FIRST_BACKUP}" != "true" ]; then
 fi
 
 echo "[backup] Starting cron daemon..."
-exec crond -f -l 2
+# On Docker Desktop (macOS/Windows), crond may fail due to setpgid restrictions.
+# The initial backup already ran above; cron scheduling works on Linux hosts.
+if crond -f -l 2 2>/dev/null; then
+  : # cron running
+else
+  echo "[backup] Cron daemon unavailable (Docker Desktop). Backup completed. Use external scheduler for automated backups."
+  # Keep container alive with sleep so docker considers it running
+  tail -f /dev/null
+fi

@@ -11,18 +11,32 @@ import (
 
 type WalletMemberHandler struct {
 	memberRepo *repository.WalletMemberRepository
+	userRepo   *repository.UserRepository
 }
 
-func NewWalletMemberHandler(memberRepo *repository.WalletMemberRepository) *WalletMemberHandler {
-	return &WalletMemberHandler{memberRepo: memberRepo}
+func NewWalletMemberHandler(memberRepo *repository.WalletMemberRepository, userRepo *repository.UserRepository) *WalletMemberHandler {
+	return &WalletMemberHandler{memberRepo: memberRepo, userRepo: userRepo}
 }
 
 func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
-	_ = auth.GetUser(c)
+	user := auth.GetUser(c)
 
 	walletID, err := uuid.Parse(c.Params("wallet_id"))
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet id format"}})
+	}
+
+	// Verify the requesting user is a member (or owner) of this wallet
+	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
+	if err != nil {
+		return apperrors.NewWithDetail(500, "failed to check wallet ownership", err.Error())
+	}
+
+	if !isOwner {
+		role, err := h.memberRepo.GetWalletRole(c.Context(), walletID, user.ID)
+		if err != nil || role == "" {
+			return apperrors.New(403, "you do not have access to this wallet")
+		}
 	}
 
 	members, err := h.memberRepo.ListByWallet(c.Context(), walletID)
@@ -151,6 +165,8 @@ func (h *WalletMemberHandler) Delete(c *fiber.Ctx) error {
 	if err := h.memberRepo.RemoveMember(c.Context(), walletID, userID); err != nil {
 		return apperrors.NewWithDetail(500, "failed to remove wallet member", err.Error())
 	}
+
+	_ = h.userRepo.IncrementTokenVersion(c.Context(), userID)
 
 	return c.Status(204).Send(nil)
 }

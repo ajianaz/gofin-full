@@ -334,7 +334,7 @@ func TestSelfRegistrationDisabled(t *testing.T) {
 	app := testApp.App
 
 	t.Run("register_endpoint_exists", func(t *testing.T) {
-		body := `{"email":"test@register.io","password":"password123"}`
+		body := `{"email":"test@register.io","password": "SecurePass1!"}`
 		resp := testhelpers.MakeRequest(t, app, "POST", "/api/v1/auth/register", body, "")
 		// With registration enabled, this should succeed
 		require.Equal(t, http.StatusCreated, resp.StatusCode)

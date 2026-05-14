@@ -1,34 +1,52 @@
 package handler
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
+	"log"
+	"net/mail"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/config"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
+
+// Login attempt lockout constants.
+const (
+	loginMaxAttempts       = 5
+	loginLockoutDuration   = 15 * time.Minute
+	loginAttemptWindow     = 15 * time.Minute
+	loginAttemptsKeyPrefix = "login_attempts:"
 )
 
 // AuthHandler handles authentication endpoints.
 type AuthHandler struct {
-	jwtMgr       *auth.JWTManager
-	provider     auth.AuthProvider
-	cfg          *config.Config
-	userRepo     *repository.UserRepository
-	oauthState   *repository.OAuthStateRepository
-	refreshRepo  *repository.RefreshTokenRepository
+	jwtMgr      *auth.JWTManager
+	provider    auth.AuthProvider
+	cfg         *config.Config
+	userRepo    *repository.UserRepository
+	oauthState  *repository.OAuthStateRepository
+	refreshRepo *repository.RefreshTokenRepository
+	rdb         redis.Cmdable // optional Redis for login attempt tracking
 }
 
 // NewAuthHandler creates a new auth handler.
 func NewAuthHandler(jwtMgr *auth.JWTManager, provider auth.AuthProvider, cfg *config.Config, userRepo *repository.UserRepository, oauthStateRepo *repository.OAuthStateRepository, refreshRepo *repository.RefreshTokenRepository) *AuthHandler {
 	return &AuthHandler{jwtMgr: jwtMgr, provider: provider, cfg: cfg, userRepo: userRepo, oauthState: oauthStateRepo, refreshRepo: refreshRepo}
+}
+
+// SetRedis injects an optional Redis client for login attempt tracking.
+func (h *AuthHandler) SetRedis(rdb redis.Cmdable) {
+	h.rdb = rdb
 }
 
 // Login handles POST /api/v1/auth/login.
@@ -43,17 +61,30 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 
+	clientIP := c.IP()
+
+	// Check if account is temporarily locked due to too many failed attempts
+	if locked, retryMinutes := h.isAccountLocked(c.Context(), req.Email, clientIP); locked {
+		return c.Status(429).JSON(fiber.Map{
+			"message": fmt.Sprintf("Too many failed login attempts. Try again in %d minutes.", retryMinutes),
+		})
+	}
+
 	identity, err := h.provider.Authenticate(c.Context(), auth.Credentials{
 		Email:    req.Email,
 		Password: req.Password,
 	})
 	if err != nil {
-		return apperrors.NewWithDetail(401, "Unauthenticated", err.Error())
+		h.recordFailedLogin(c.Context(), req.Email, clientIP)
+		return apperrors.New(401, "Invalid email or password.")
 	}
 
 	if identity.Blocked {
 		return apperrors.NewWithDetail(403, "Forbidden", "User account is blocked.")
 	}
+
+	// Successful login — clear failed attempt counter
+	h.clearFailedLogins(c.Context(), req.Email, clientIP)
 
 	tokens, err := h.jwtMgr.GenerateTokenPair(identity, identity.UserGroupID)
 	if err != nil {
@@ -68,6 +99,62 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(tokens)
+}
+
+// isAccountLocked checks if an email+IP combination is locked due to too many failed login attempts.
+// Uses email+IP as key to prevent account lockout DoS attacks.
+func (h *AuthHandler) isAccountLocked(ctx context.Context, email, clientIP string) (bool, int) {
+	if h.rdb == nil {
+		return false, 0
+	}
+
+	key := loginAttemptsKeyPrefix + email + ":" + clientIP
+	val, err := h.rdb.Get(ctx, key).Result()
+	if err != nil {
+		return false, 0
+	}
+
+	attempts, err := strconv.Atoi(val)
+	if err != nil || attempts < loginMaxAttempts {
+		return false, 0
+	}
+
+	ttl, err := h.rdb.TTL(ctx, key).Result()
+	if err != nil || ttl <= 0 {
+		return false, 0
+	}
+
+	retryMinutes := int(ttl.Minutes())
+	if retryMinutes < 1 {
+		retryMinutes = 1
+	}
+	return true, retryMinutes
+}
+
+// recordFailedLogin increments the failed login counter for an email+IP combination.
+func (h *AuthHandler) recordFailedLogin(ctx context.Context, email, clientIP string) {
+	if h.rdb == nil {
+		return
+	}
+
+	key := loginAttemptsKeyPrefix + email + ":" + clientIP
+	pipe := h.rdb.Pipeline()
+	pipe.Incr(ctx, key)
+	pipe.Expire(ctx, key, loginLockoutDuration)
+	if _, err := pipe.Exec(ctx); err != nil {
+		log.Printf("login attempt tracking: redis error: %v", err)
+	}
+}
+
+// clearFailedLogins removes the failed login counter for an email+IP after successful login.
+func (h *AuthHandler) clearFailedLogins(ctx context.Context, email, clientIP string) {
+	if h.rdb == nil {
+		return
+	}
+
+	if err := h.rdb.Del(ctx, loginAttemptsKeyPrefix+email+":"+clientIP).Err(); err != nil {
+		log.Printf("login attempt tracking: redis error on clear: %v", err)
+	}
 }
 
 // Register handles POST /api/v1/auth/register.
@@ -99,9 +186,9 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 			"email": {"Invalid email format."},
 		})
 	}
-	if len(req.Password) < 8 {
+	if pwErrs := validatePasswordStrength(req.Password); len(pwErrs) > 0 {
 		return apperrors.NewValidationError(map[string][]string{
-			"password": {"Password must be at least 8 characters."},
+			"password": pwErrs,
 		})
 	}
 
@@ -175,14 +262,20 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		_ = h.refreshRepo.RevokeByHash(c.Context(), tokenHash)
 	}
 
+	// Increment token_version to invalidate all existing JWT tokens for this user
+	user := auth.GetUser(c)
+	if user != nil {
+		_ = h.userRepo.IncrementTokenVersion(c.Context(), user.ID)
+	}
+
 	return c.JSON(fiber.Map{
 		"message": "Logged out successfully.",
 	})
 }
 
 // Refresh handles POST /api/v1/auth/refresh.
-// Requires a valid (possibly expired) access token in the Authorization header.
-// The refresh_token in the body is validated to ensure it was issued alongside the access token.
+// Requires a valid access token (for authentication) and a refresh_token in the body.
+// The refresh token is validated cryptographically and rotated (old token is revoked).
 func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
@@ -210,9 +303,10 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	}
 
 	identity := &auth.UserIdentity{
-		ID:       claims.UserID,
-		Email:    claims.Email,
-		DemoUser: claims.DemoUser,
+		ID:           claims.UserID,
+		Email:        claims.Email,
+		DemoUser:     claims.DemoUser,
+		TokenVersion: claims.TokenVersion,
 	}
 
 	tokens, err := h.jwtMgr.GenerateTokenPair(identity, claims.GroupID)
@@ -229,10 +323,6 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 
 	return c.JSON(tokens)
 }
-
-// Ensure response package is used.
-var _ = response.HealthResponse{}
-var _ = apperrors.ErrBadRequest
 
 // OAuthURL handles GET /api/v1/auth/:provider/url.
 // Generates an OAuth state and returns the provider's authorization URL.
@@ -302,7 +392,8 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 	// Authenticate with the provider
 	identity, err := h.provider.Authenticate(c.Context(), auth.Credentials{Code: code})
 	if err != nil {
-		return apperrors.NewWithDetail(401, "Unauthenticated", err.Error())
+		log.Printf("OAuth callback authentication failed: %v", err)
+		return apperrors.New(401, "Authentication failed.")
 	}
 
 	if identity.Blocked {
@@ -371,14 +462,77 @@ func isAllowedRedirect(redirect, appURL string) bool {
 func generateRandomPassword(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, length)
-	rand.Read(b)
+	for {
+		if _, err := rand.Read(b); err != nil {
+			// Fallback: use time-based (not ideal but won't panic)
+			for i := range b {
+				b[i] = byte(time.Now().UnixNano())
+			}
+			break
+		}
+		// Reject bytes that would cause modulo bias
+		valid := true
+		for i := range b {
+			if int(b[i]) >= 256-(256%len(charset)) {
+				valid = false
+				break
+			}
+		}
+		if valid {
+			break
+		}
+	}
 	for i := range b {
-		b[i] = charset[int(b[i])%len(charset)]
+		b[i] = charset[b[i]%byte(len(charset))]
 	}
 	return string(b)
 }
 
-// isValidEmail performs basic email format validation.
+// isValidEmail validates email format using the standard net/mail parser.
 func isValidEmail(email string) bool {
-	return strings.Contains(email, "@") && strings.Contains(email, ".") && len(email) >= 5
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
+
+// validatePasswordStrength checks password meets minimum security requirements.
+// Requires at least 8 characters with a mix of character types.
+func validatePasswordStrength(password string) []string {
+	var errors []string
+	if len(password) < 8 {
+		errors = append(errors, "Password must be at least 8 characters.")
+	}
+	hasUpper := false
+	hasLower := false
+	hasDigit := false
+	hasSpecial := false
+	for _, c := range password {
+		switch {
+		case 'A' <= c && c <= 'Z':
+			hasUpper = true
+		case 'a' <= c && c <= 'z':
+			hasLower = true
+		case '0' <= c && c <= '9':
+			hasDigit = true
+		default:
+			hasSpecial = true
+		}
+	}
+	// Require at least 3 of 4 character types
+	types := 0
+	if hasUpper {
+		types++
+	}
+	if hasLower {
+		types++
+	}
+	if hasDigit {
+		types++
+	}
+	if hasSpecial {
+		types++
+	}
+	if types < 3 {
+		errors = append(errors, "Password must include at least 3 of: uppercase, lowercase, digit, special character.")
+	}
+	return errors
 }

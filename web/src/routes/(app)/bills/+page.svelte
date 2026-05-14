@@ -1,18 +1,40 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Plus, ChevronDown } from '@lucide/svelte';
-	import { mockBills } from '$lib/data/mock-bills.js';
+	import { Plus, Trash2, ChevronDown } from '@lucide/svelte';
+	import { billService } from '$lib/services/index.js';
+	import type { Bill } from '$lib/types/domain.js';
 	import { formatCurrency, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
 
+	let items = $state<Bill[]>([]);
+	let isLoading = $state(true);
+	let errorMsg = $state('');
 	let accountFilter = $state('all');
 
+	async function handleDelete(id: string) {
+		if (!confirm(t('common.delete') + '?')) return;
+		await billService.delete(id);
+		items = items.filter((b) => b.id !== id);
+	}
+
+	onMount(async () => {
+		try {
+			items = await billService.list();
+		} catch (e) {
+			errorMsg = t('common.error');
+			console.error(e);
+		} finally {
+			isLoading = false;
+		}
+	});
+
 	let filtered = $derived(
-		accountFilter === 'all' ? mockBills : mockBills.filter((b) => b.active)
+		accountFilter === 'all' ? items : items.filter((b) => b.active)
 	);
 </script>
 
@@ -45,28 +67,39 @@
 	<Card>
 		<CardContent class="p-0">
 			<p class="px-5 pt-4 text-[13px] font-normal text-muted-foreground">{t('bills.list.activeList')}</p>
-			{#each filtered as bill}
-				<div class="flex items-center justify-between px-5 py-3 border-b last:border-b-0">
-					<div class="flex flex-col gap-1">
-						<p class="text-sm font-semibold text-foreground">{bill.name}</p>
-						<p class="text-[13px] text-muted-foreground">
-							{#if bill.amount_min === bill.amount_max}
-								{formatCurrency(bill.amount_min)}{t('bills.list.perMonth')}
+			{#if isLoading}
+				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</p>
+			{:else if errorMsg}
+				<p class="px-5 py-8 text-center text-sm text-destructive">{errorMsg}</p>
+			{:else}
+				{#each filtered as bill}
+					<div class="flex items-center justify-between px-5 py-3 border-b last:border-b-0">
+						<div class="flex flex-col gap-1">
+							<p class="text-sm font-semibold text-foreground">{bill.name}</p>
+							<p class="text-[13px] text-muted-foreground">
+								{#if bill.amount_min === bill.amount_max}
+									{formatCurrency(bill.amount_min)}{t('bills.list.perMonth')}
+								{:else}
+									{formatCurrency(bill.amount_min)} — {formatCurrency(bill.amount_max)}
+								{/if}
+							</p>
+						</div>
+						<div class="flex shrink-0 items-center gap-3">
+							<span class="text-[13px] text-muted-foreground">{formatDate(bill.next_date)}</span>
+							{#if bill.active}
+								<Badge variant="secondary" class="text-xs">{t('bills.list.active')}</Badge>
 							{:else}
-								{formatCurrency(bill.amount_min)} — {formatCurrency(bill.amount_max)}
+								<Badge variant="outline" class="text-xs">{t('bills.list.inactive')}</Badge>
 							{/if}
-						</p>
+							<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(bill.id)}>
+								<Trash2 class="size-4" />
+							</button>
+						</div>
 					</div>
-					<div class="flex shrink-0 items-center gap-3">
-						<span class="text-[13px] text-muted-foreground">{formatDate(bill.next_date)}</span>
-						{#if bill.active}
-							<Badge variant="secondary" class="text-xs">{t('bills.list.active')}</Badge>
-						{:else}
-							<Badge variant="outline" class="text-xs">{t('bills.list.inactive')}</Badge>
-						{/if}
-					</div>
-				</div>
-			{/each}
+				{:else}
+					<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+				{/each}
+			{/if}
 		</CardContent>
 	</Card>
 </div>

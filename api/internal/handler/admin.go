@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -54,11 +53,15 @@ func (h *AdminHandler) ListUsers(c *fiber.Ctx) error {
 
 	var data []fiber.Map
 	for _, u := range users {
+		role := h.userRepo.GetGlobalRole(c.Context(), u.ID)
 		data = append(data, fiber.Map{
 			"type": "users",
 			"id":   u.ID,
 			"attributes": fiber.Map{
 				"email":      u.Email,
+				"name":       u.Email,
+				"role":       role,
+				"is_active":  !u.Blocked,
 				"created_at": u.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			},
 		})
@@ -191,6 +194,3 @@ func isDuplicateKey(err error) bool {
 	}
 	return strings.Contains(err.Error(), "duplicate key")
 }
-
-// Ensure pgx is available for the type assertion.
-var _ pgx.Tx

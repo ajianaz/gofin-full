@@ -21,20 +21,22 @@ type TokenPair struct {
 // Claims represents the JWT claims for access tokens.
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID   uuid.UUID `json:"user_id"`
-	Email    string    `json:"email"`
-	GroupID  *uuid.UUID `json:"group_id,omitempty"`
-	DemoUser bool      `json:"demo_user,omitempty"`
+	UserID       uuid.UUID  `json:"user_id"`
+	Email        string     `json:"email"`
+	GroupID      *uuid.UUID `json:"group_id,omitempty"`
+	DemoUser     bool       `json:"demo_user,omitempty"`
+	TokenVersion int        `json:"token_version"`
 }
 
 // refreshClaims represents the JWT claims for refresh tokens.
 type refreshClaims struct {
 	jwt.RegisteredClaims
-	UserID   uuid.UUID  `json:"user_id"`
-	Email    string     `json:"email"`
-	GroupID  *uuid.UUID `json:"group_id,omitempty"`
-	DemoUser bool       `json:"demo_user,omitempty"`
-	TokenID  string     `json:"tid"`
+	UserID       uuid.UUID  `json:"user_id"`
+	Email        string     `json:"email"`
+	GroupID      *uuid.UUID `json:"group_id,omitempty"`
+	DemoUser     bool       `json:"demo_user,omitempty"`
+	TokenID      string     `json:"tid"`
+	TokenVersion int        `json:"token_version"`
 }
 
 // JWTManager handles JWT token creation and validation.
@@ -65,10 +67,11 @@ func (m *JWTManager) GenerateTokenPair(identity *UserIdentity, groupID *uuid.UUI
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.accessExpiry)),
 		},
-		UserID:   identity.ID,
-		Email:    identity.Email,
-		GroupID:  groupID,
-		DemoUser: identity.DemoUser,
+		UserID:       identity.ID,
+		Email:        identity.Email,
+		GroupID:      groupID,
+		DemoUser:     identity.DemoUser,
+		TokenVersion: identity.TokenVersion,
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
@@ -85,11 +88,12 @@ func (m *JWTManager) GenerateTokenPair(identity *UserIdentity, groupID *uuid.UUI
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.refreshExpiry)),
 		},
-		UserID:   identity.ID,
-		Email:    identity.Email,
-		GroupID:  groupID,
-		DemoUser: identity.DemoUser,
-		TokenID:  tid,
+		UserID:       identity.ID,
+		Email:        identity.Email,
+		GroupID:      groupID,
+		DemoUser:     identity.DemoUser,
+		TokenID:      tid,
+		TokenVersion: identity.TokenVersion,
 	}
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
@@ -147,10 +151,11 @@ func (m *JWTManager) ValidateRefreshToken(tokenStr string) (*Claims, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject: rc.Subject,
 		},
-		UserID:   rc.UserID,
-		Email:    rc.Email,
-		GroupID:  rc.GroupID,
-		DemoUser: rc.DemoUser,
+		UserID:       rc.UserID,
+		Email:        rc.Email,
+		GroupID:      rc.GroupID,
+		DemoUser:     rc.DemoUser,
+		TokenVersion: rc.TokenVersion,
 	}, nil
 }
 

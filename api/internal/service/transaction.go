@@ -57,6 +57,8 @@ type CreateResult struct {
 
 // CreateTransaction creates a triple-layer transaction atomically.
 // It enforces double-entry: source gets debited, destination gets credited.
+// All DB operations (group + journal + transactions + balance updates + category/tag links)
+// are wrapped in a single database transaction for consistency.
 func (s *TransactionService) CreateTransaction(ctx context.Context, userID, groupID uuid.UUID, input CreateTransactionInput) (*CreateResult, error) {
 	amount, err := decimal.NewFromString(input.Amount)
 	if err != nil {
@@ -88,77 +90,58 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, userID, grou
 		return nil, err
 	}
 
-	// Create the group
+	// For withdrawals, check that the source wallet has sufficient balance
+	if sourceAmount.IsNegative() && sourceWallet.VirtualBalance.LessThan(sourceAmount.Abs()) {
+		return nil, fmt.Errorf("insufficient balance: wallet %s has %s, needs %s",
+			sourceWallet.ID, sourceWallet.VirtualBalance.StringFixed(2), amount.StringFixed(2))
+	}
+
+	// Build the group title
 	title := ""
 	if len(input.Description) > 0 {
 		title = input.Description
 	}
-	group, err := s.txRepo.CreateGroup(ctx, userID, groupID, title)
+
+	result, err := s.txRepo.CreateFullTransaction(ctx, repository.CreateFullTransactionInput{
+		UserID:     userID,
+		GroupID:    groupID,
+		GroupTitle: title,
+		Journal: &domain.TransactionJournal{
+			TransactionTypeID: typeID,
+			Date:              input.Date,
+			Description:       input.Description,
+			CurrencyID:        input.CurrencyID,
+			BudgetID:          input.BudgetID,
+			PiggyBankID:       input.PiggyBankID,
+			Notes:             input.Notes,
+		},
+		SourceTxn: &domain.Transaction{
+			AccountID:    sourceWallet.ID,
+			Amount:       sourceAmount,
+			NativeAmount: sourceAmount,
+		},
+		DestTxn: &domain.Transaction{
+			AccountID:    destWallet.ID,
+			Amount:       destAmount,
+			NativeAmount: destAmount,
+		},
+		SourceWalletID: sourceWallet.ID,
+		DestWalletID:   destWallet.ID,
+		SourceAmount:   sourceAmount,
+		DestAmount:     destAmount,
+		CategoryIDs:    input.CategoryIDs,
+		TagIDs:         input.TagIDs,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Create the journal
-	journal := &domain.TransactionJournal{
-		TransactionGroupID: group.ID,
-		UserID:             userID,
-		UserGroupID:        groupID,
-		TransactionTypeID:  typeID,
-		Date:               input.Date,
-		Description:        input.Description,
-		CurrencyID:         input.CurrencyID,
-		BudgetID:           input.BudgetID,
-		PiggyBankID:        input.PiggyBankID,
-		Notes:              input.Notes,
-	}
-	journal, err = s.txRepo.CreateJournal(ctx, journal)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create source transaction (debit)
-	srcTxn := &domain.Transaction{
-		TransactionJournalID: journal.ID,
-		AccountID:            sourceWallet.ID,
-		Amount:               sourceAmount,
-		NativeAmount:         sourceAmount, // same currency for now
-	}
-	if _, err := s.txRepo.CreateTransaction(ctx, srcTxn); err != nil {
-		return nil, err
-	}
-
-	// Create destination transaction (credit)
-	dstTxn := &domain.Transaction{
-		TransactionJournalID: journal.ID,
-		AccountID:            destWallet.ID,
-		Amount:               destAmount,
-		NativeAmount:         destAmount,
-	}
-	if _, err := s.txRepo.CreateTransaction(ctx, dstTxn); err != nil {
-		return nil, err
-	}
-
-	// Update wallet balances
-	if err := s.txRepo.UpdateWalletBalance(ctx, sourceWallet.ID, sourceAmount); err != nil {
-		return nil, fmt.Errorf("failed to update source balance: %w", err)
-	}
-	if err := s.txRepo.UpdateWalletBalance(ctx, destWallet.ID, destAmount); err != nil {
-		return nil, fmt.Errorf("failed to update destination balance: %w", err)
-	}
-
-	// Link categories and tags
-	if len(input.CategoryIDs) > 0 {
-		s.txRepo.SetJournalCategories(ctx, journal.ID, input.CategoryIDs)
-	}
-	if len(input.TagIDs) > 0 {
-		s.txRepo.SetJournalTags(ctx, journal.ID, input.TagIDs)
-	}
-
-	return &CreateResult{GroupID: group.ID, JournalID: journal.ID}, nil
+	return &CreateResult{GroupID: result.GroupID, JournalID: result.JournalID}, nil
 }
 
 // CreateSplitTransaction creates a single group with multiple journals.
 // All journals share the same type but have different amounts/descriptions.
+// The entire operation (group + all journals + transactions + balance updates) is atomic.
 func (s *TransactionService) CreateSplitTransaction(
 	ctx context.Context, userID, groupID uuid.UUID,
 	txType string, date time.Time, groupTitle string,
@@ -186,14 +169,27 @@ func (s *TransactionService) CreateSplitTransaction(
 		totalAmount = totalAmount.Add(amt)
 	}
 
-	// Create group
-	group, err := s.txRepo.CreateGroup(ctx, userID, groupID, groupTitle)
-	if err != nil {
-		return nil, err
+	// Check balance for all source wallets in the split
+	if domain.TransactionType(txType) == domain.TransactionTypeWithdrawal {
+		debitsByWallet := make(map[uuid.UUID]decimal.Decimal)
+		for _, j := range journals {
+			amt, _ := decimal.NewFromString(j.Amount)
+			debitsByWallet[j.SourceID] = debitsByWallet[j.SourceID].Add(amt)
+		}
+		for walletID, totalDebit := range debitsByWallet {
+			wallet, err := s.walletRepo.FindByID(ctx, walletID, groupID)
+			if err != nil {
+				return nil, fmt.Errorf("source wallet %s not found: %w", walletID, err)
+			}
+			if wallet.VirtualBalance.LessThan(totalDebit) {
+				return nil, fmt.Errorf("insufficient balance: wallet %s has %s, needs %s",
+					walletID, wallet.VirtualBalance.StringFixed(2), totalDebit.StringFixed(2))
+			}
+		}
 	}
 
-	var firstJournalID uuid.UUID
-
+	// Build split journal entries
+	entries := make([]repository.SplitJournalEntryInput, len(journals))
 	for i, jInput := range journals {
 		amount, _ := decimal.NewFromString(jInput.Amount)
 		sourceAmt, destAmt, err := s.calculateAmounts(txType, amount)
@@ -201,64 +197,43 @@ func (s *TransactionService) CreateSplitTransaction(
 			return nil, err
 		}
 
-		journal := &domain.TransactionJournal{
-			TransactionGroupID: group.ID,
-			UserID:             userID,
-			UserGroupID:        groupID,
-			TransactionTypeID:  typeID,
-			Date:               date,
-			Order:              i,
-			Description:        jInput.Description,
-			CurrencyID:         "",
-		}
-		journal, err = s.txRepo.CreateJournal(ctx, journal)
-		if err != nil {
-			return nil, err
-		}
-		if i == 0 {
-			firstJournalID = journal.ID
-		}
-
-		// Source transaction
-		srcTxn := &domain.Transaction{
-			TransactionJournalID: journal.ID,
-			AccountID:            jInput.SourceID,
-			Amount:               sourceAmt,
-			NativeAmount:         sourceAmt,
-		}
-		if _, err := s.txRepo.CreateTransaction(ctx, srcTxn); err != nil {
-			return nil, err
-		}
-
-		// Destination transaction
-		dstTxn := &domain.Transaction{
-			TransactionJournalID: journal.ID,
-			AccountID:            jInput.DestinationID,
-			Amount:               destAmt,
-			NativeAmount:         destAmt,
-		}
-		if _, err := s.txRepo.CreateTransaction(ctx, dstTxn); err != nil {
-			return nil, err
-		}
-
-		// Update balances
-		if err := s.txRepo.UpdateWalletBalance(ctx, jInput.SourceID, sourceAmt); err != nil {
-			return nil, err
-		}
-		if err := s.txRepo.UpdateWalletBalance(ctx, jInput.DestinationID, destAmt); err != nil {
-			return nil, err
-		}
-
-		// Link categories and tags
-		if len(jInput.CategoryIDs) > 0 {
-			s.txRepo.SetJournalCategories(ctx, journal.ID, jInput.CategoryIDs)
-		}
-		if len(jInput.TagIDs) > 0 {
-			s.txRepo.SetJournalTags(ctx, journal.ID, jInput.TagIDs)
+		entries[i] = repository.SplitJournalEntryInput{
+			Journal: &domain.TransactionJournal{
+				TransactionTypeID: typeID,
+				Date:              date,
+				Description:       jInput.Description,
+				CurrencyID:        "",
+			},
+			SourceTxn: &domain.Transaction{
+				AccountID:    jInput.SourceID,
+				Amount:       sourceAmt,
+				NativeAmount: sourceAmt,
+			},
+			DestTxn: &domain.Transaction{
+				AccountID:    jInput.DestinationID,
+				Amount:       destAmt,
+				NativeAmount: destAmt,
+			},
+			SourceWalletID: jInput.SourceID,
+			DestWalletID:   jInput.DestinationID,
+			SourceAmount:   sourceAmt,
+			DestAmount:     destAmt,
+			CategoryIDs:    jInput.CategoryIDs,
+			TagIDs:         jInput.TagIDs,
 		}
 	}
 
-	return &CreateResult{GroupID: group.ID, JournalID: firstJournalID}, nil
+	result, err := s.txRepo.CreateSplitTransactionInTx(ctx, repository.CreateSplitTransactionInput{
+		UserID:     userID,
+		GroupID:    groupID,
+		GroupTitle: groupTitle,
+		Journals:   entries,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &CreateResult{GroupID: result.GroupID, JournalID: result.JournalID}, nil
 }
 
 // calculateAmounts determines the debit/credit amounts based on transaction type.
@@ -279,26 +254,7 @@ func (s *TransactionService) calculateAmounts(txType string, amount decimal.Deci
 }
 
 // DeleteTransaction soft-deletes a transaction group and reverses wallet balances.
-func (s *TransactionService) DeleteTransaction(ctx context.Context, groupID, userID, groupIDScope uuid.UUID) error {
-	// Load the full transaction to reverse balances
-	group, err := s.txRepo.FindGroupByID(ctx, groupID, groupIDScope)
-	if err != nil {
-		return err
-	}
-
-	// Reverse balances for all journals
-	for _, journal := range group.Journals {
-		for _, t := range journal.SourceTransactions {
-			if err := s.txRepo.UpdateWalletBalance(ctx, t.AccountID, t.Amount.Neg()); err != nil {
-				return fmt.Errorf("failed to reverse source balance: %w", err)
-			}
-		}
-		for _, t := range journal.DestinationTransactions {
-			if err := s.txRepo.UpdateWalletBalance(ctx, t.AccountID, t.Amount.Neg()); err != nil {
-				return fmt.Errorf("failed to reverse destination balance: %w", err)
-			}
-		}
-	}
-
-	return s.txRepo.DeleteGroup(ctx, groupID, groupIDScope)
+// The balance reversal and soft delete are performed in a single database transaction.
+func (s *TransactionService) DeleteTransaction(ctx context.Context, groupID, groupIDScope uuid.UUID) error {
+	return s.txRepo.DeleteFullTransaction(ctx, groupID, groupIDScope)
 }

@@ -1,26 +1,59 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Progress } from '$lib/components/ui/progress/index.js';
-	import { Plus, ChevronDown, PiggyBank } from '@lucide/svelte';
-	import { mockPiggyBanks } from '$lib/data/mock-piggy-banks.js';
+	import { Plus, ChevronDown, Trash2, PiggyBank as PiggyBankIcon } from '@lucide/svelte';
+	import { piggyBankService, walletService } from '$lib/services/index.js';
 	import { formatCurrency, formatPercentage } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import type { PiggyBank, Account } from '$lib/types/domain.js';
 	const t = localeStore.t;
+
+	let isLoading = $state(true);
+	let errorMsg = $state('');
+	let items = $state<PiggyBank[]>([]);
+	let wallets = $state<Account[]>([]);
 
 	let accountFilter = $state('all');
 
+	async function handleDelete(walletId: string, id: string) {
+		if (!confirm(t('common.delete') + '?')) return;
+		await piggyBankService.delete(walletId, id);
+		items = items.filter((pb) => pb.id !== id);
+	}
+
+	onMount(async () => {
+		try {
+			const walletList = await walletService.list();
+			wallets = walletList;
+			if (walletList.length > 0) {
+				items = await piggyBankService.list(walletList[0].id);
+			}
+		} catch (e) {
+			errorMsg = t('common.error');
+			console.error('Failed to load piggy banks:', e);
+		} finally {
+			isLoading = false;
+		}
+	});
+
 	let filtered = $derived(
 		accountFilter === 'all'
-			? mockPiggyBanks
-			: mockPiggyBanks.filter((pb) => pb.account_id === accountFilter)
+			? items
+			: items.filter((pb) => pb.account_id === accountFilter)
 	);
 
-	const accounts = [...new Set(mockPiggyBanks.map((pb) => pb.account_id))];
+	const accounts = $derived([...new Set(items.map((pb) => pb.account_id))]);
 </script>
 
 <div class="flex flex-col gap-4">
+	{#if isLoading}
+		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+	{:else if errorMsg}
+		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
+	{:else}
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="flex items-center gap-3">
 			<h2 class="text-lg font-semibold text-foreground">{t('piggyBanks.list.title')}</h2>
@@ -36,7 +69,7 @@
 				>
 					<option value="all">{t('piggyBanks.list.allWallets')}</option>
 					{#each accounts as id}
-						{@const w = mockPiggyBanks.find((pb) => pb.account_id === id)}
+						{@const w = items.find((pb) => pb.account_id === id)}
 						<option value={id}>{w?.account_name ?? id}</option>
 					{/each}
 				</select>
@@ -58,19 +91,27 @@
 					: 0}
 				<div class="flex items-center gap-4 px-5 py-4 border-b last:border-b-0">
 					<div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-						<PiggyBank class="size-5 text-foreground" />
+						<PiggyBankIcon class="size-5 text-foreground" />
 					</div>
 					<div class="flex flex-col gap-1 min-w-0">
 						<p class="text-sm font-semibold text-foreground truncate">{pb.name}</p>
 						<p class="text-xs text-muted-foreground">{t('piggyBanks.list.walletPrefix')} {pb.account_name}</p>
 						<Progress value={Math.min(pct, 100)} class="mt-1 h-1.5 w-[120px]" />
 					</div>
-					<div class="ml-auto shrink-0 text-right">
-						<p class="text-sm font-semibold text-foreground">{formatCurrency(pb.current_amount)}</p>
-						<p class="text-xs text-muted-foreground">{t('piggyBanks.list.of', { pct: Math.round(pct), target: formatCurrency(pb.target_amount) })}</p>
+					<div class="ml-auto shrink-0 flex items-center gap-3">
+						<div class="text-right">
+							<p class="text-sm font-semibold text-foreground">{formatCurrency(pb.current_amount)}</p>
+							<p class="text-xs text-muted-foreground">{t('piggyBanks.list.of', { pct: Math.round(pct), target: formatCurrency(pb.target_amount) })}</p>
+						</div>
+						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(pb.account_id, pb.id)}>
+							<Trash2 class="size-4" />
+						</button>
 					</div>
 				</div>
+			{:else}
+				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
 			{/each}
 		</CardContent>
 	</Card>
+	{/if}
 </div>

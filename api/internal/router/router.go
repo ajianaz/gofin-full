@@ -16,8 +16,8 @@ import (
 
 // RouterConfig holds all dependencies needed by the router.
 type RouterConfig struct {
-	AppURL  string
-	AppEnv  string
+	AppURL               string
+	AppEnv               string
 	HealthHandler        *handler.HealthHandler
 	AuthHandler          *handler.AuthHandler
 	UserHandler          *handler.UserHandler
@@ -54,13 +54,16 @@ type RouterConfig struct {
 	APIKeyHandler        *handler.APIKeyHandler
 	KeyLookup            auth.KeyLookup
 	RoleLookup           auth.RoleLookup
+	TokenVersionLookup   auth.TokenVersionLookup
 	JWTManager           *auth.JWTManager
 	SSEHub               *sse.Hub
 	CustomMiddleware     []fiber.Handler
+	CORSAllowedOrigins   string
 	RateLimitMax         int
 	RateLimitWindowSec   int
 	DisableMetrics       bool
 	RedisClient          redis.Cmdable
+	MaxRequestBodyBytes  int64
 }
 
 // New creates a new Fiber app with all routes registered.
@@ -71,9 +74,12 @@ func New(cfg RouterConfig) *fiber.App {
 
 	// Global middleware
 	app.Use(middleware.RequestID())
-	app.Use(middleware.CORS(cfg.AppURL, cfg.AppEnv))
+	app.Use(middleware.CORS(cfg.AppURL, cfg.AppEnv, cfg.CORSAllowedOrigins))
 	app.Use(middleware.AcceptHeaders())
 	app.Use(middleware.SecurityHeaders())
+	if cfg.MaxRequestBodyBytes > 0 {
+		app.Use(middleware.RequestSizeLimit(cfg.MaxRequestBodyBytes))
+	}
 	if !cfg.DisableMetrics {
 		app.Use(middleware.Metrics())
 	}
@@ -85,11 +91,6 @@ func New(cfg RouterConfig) *fiber.App {
 
 	// Health check (no auth required)
 	app.Get("/health", cfg.HealthHandler.Check)
-
-	// Prometheus metrics (no auth)
-	if !cfg.DisableMetrics {
-		app.Get("/metrics", cfg.MetricsHandler.Prometheus)
-	}
 
 	// API v1 routes
 	v1 := app.Group("/api/v1")
@@ -127,6 +128,13 @@ func New(cfg RouterConfig) *fiber.App {
 	if cfg.KeyLookup != nil {
 		protected.Use(auth.APIKeyMiddleware(cfg.KeyLookup))
 	}
+	// Inject token version lookup into context for AuthMiddleware
+	if cfg.TokenVersionLookup != nil {
+		protected.Use(func(c *fiber.Ctx) error {
+			c.Locals("token_version_lookup", cfg.TokenVersionLookup)
+			return c.Next()
+		})
+	}
 	protected.Use(auth.AuthMiddleware(cfg.JWTManager))
 	protected.Use(auth.GroupRoleMiddleware(cfg.RoleLookup))
 
@@ -134,12 +142,20 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Get("/users/me", cfg.UserHandler.Show)
 	protected.Put("/users/me", cfg.UserHandler.Update)
 
+	// Sensitive user operations (rate limited)
+	sensitiveUser := protected.Group("")
+	if cfg.RedisClient != nil && cfg.RateLimitMax > 0 {
+		rl := middleware.RateLimit(cfg.RedisClient, cfg.RateLimitMax/2, time.Duration(cfg.RateLimitWindowSec)*time.Second)
+		sensitiveUser.Use(rl)
+	}
+	sensitiveUser.Post("/users/me/password", cfg.UserHandler.ChangePassword)
+
 	// User groups
 	protected.Get("/groups", cfg.GroupHandler.Index)
 	protected.Post("/groups", cfg.GroupHandler.Store)
 	protected.Post("/groups/switch", cfg.GroupHandler.Switch)
 	protected.Get("/groups/:id", cfg.GroupHandler.Show)
-	protected.Put("/groups/:id", cfg.GroupHandler.Update)
+	protected.Put("/groups/:id", auth.RBACMiddleware(auth.RoleOwner), cfg.GroupHandler.Update)
 	protected.Delete("/groups/:id", auth.RBACMiddleware(auth.RoleOwner), cfg.GroupHandler.Delete)
 
 	// Wallets — read: no RBAC, write: manage_meta
@@ -186,6 +202,9 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Delete("/wallets/:wallet_id/piggy_banks/:id", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.Delete)
 	protected.Post("/wallets/:wallet_id/piggy_banks/:id/add-money", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.AddMoney)
 	protected.Post("/wallets/:wallet_id/piggy_banks/:id/remove-money", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.RemoveMoney)
+	// Alias routes for frontend compatibility
+	protected.Post("/wallets/:wallet_id/piggy_banks/:id/add", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.AddMoney)
+	protected.Post("/wallets/:wallet_id/piggy_banks/:id/remove", auth.RBACMiddleware(auth.RoleManagePiggyBanks), cfg.PiggyHandler.RemoveMoney)
 
 	// Rule groups — read: no RBAC, write: manage_rules
 	protected.Get("/rule-groups", cfg.RuleGroupHandler.Index)
@@ -258,10 +277,10 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Post("/preferences", cfg.PreferenceHandler.Set)
 	protected.Delete("/preferences/:name", cfg.PreferenceHandler.Delete)
 
-	// Configurations (system-level) — read: view_memberships, write: owner
+	// Configurations (system-level) — read: view_memberships, write: admin only
 	protected.Get("/configurations", cfg.ConfigurationHandler.Index)
 	protected.Get("/configurations/:name", cfg.ConfigurationHandler.Show)
-	protected.Post("/configurations", auth.RBACMiddleware(auth.RoleOwner), cfg.ConfigurationHandler.Set)
+	protected.Post("/configurations", auth.AdminMiddleware(), cfg.ConfigurationHandler.Set)
 
 	// Object groups — read: no RBAC, write: manage_meta
 	protected.Get("/object-groups", cfg.ObjectGroupHandler.Index)
@@ -290,7 +309,7 @@ func New(cfg RouterConfig) *fiber.App {
 	// Export — read: no RBAC
 	protected.Get("/export/csv", cfg.ExportHandler.CSV)
 	protected.Get("/export/ofx", cfg.ExportHandler.OFX)
-	protected.Post("/export/reconcile", cfg.ExportHandler.Reconcile)
+	protected.Post("/export/reconcile", auth.RBACMiddleware(auth.RoleManageTransactions), cfg.ExportHandler.Reconcile)
 
 	// Analytics — read: view_reports
 	protected.Get("/analytics/spending-by-category", auth.RBACMiddleware(auth.RoleViewReports), cfg.AnalyticsHandler.SpendingByCategory)
@@ -312,6 +331,11 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Post("/admin/users", auth.AdminMiddleware(), cfg.AdminHandler.CreateUser)
 	protected.Get("/admin/feature-flags", auth.AdminMiddleware(), cfg.AdminHandler.FeatureFlags)
 	protected.Post("/admin/feature-flags", auth.AdminMiddleware(), cfg.AdminHandler.SetFeatureFlag)
+
+	// Prometheus metrics (requires authentication)
+	if !cfg.DisableMetrics {
+		protected.Get("/metrics", cfg.MetricsHandler.Prometheus)
+	}
 
 	return app
 }

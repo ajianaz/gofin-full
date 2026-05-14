@@ -3,11 +3,14 @@
 #
 # Quick start:
 #   cp .env.example .env
-#   # edit .env — set AUTH_JWT_SECRET, DB_PASSWORD, DOMAIN, ADMIN_EMAIL
+#   # REQUIRED: set AUTH_JWT_SECRET, DB_PASSWORD, DOMAIN, STATIC_CRON_TOKEN
+#   # RECOMMENDED: set ADMIN_EMAIL, ADMIN_PASSWORD
 #   docker compose -f deployments/docker/docker-compose.selfhost.yml up -d
 #
 # Requirements:
 #   - DOMAIN env var must be set (your public domain or IP)
+#   - AUTH_JWT_SECRET must be changed from default (at least 32 chars)
+#   - STATIC_CRON_TOKEN must be changed from default
 #   - Caddy auto-provisions HTTPS via Let's Encrypt
 #   - Backups stored in backup_data volume (mount to host for persistence)
 
@@ -60,11 +63,11 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       AUTH_PROVIDER: local
-      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-change-me-in-production-32chars!}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?AUTH_JWT_SECRET must be set (min 32 chars)}
       AUTH_JWT_EXPIRY_MINUTES: 60
       AUTH_REFRESH_EXPIRY_DAYS: 30
-      AUTH_ALLOW_REGISTRATION: "false"
-      STATIC_CRON_TOKEN: ${STATIC_CRON_TOKEN:-PLEASE_REPLACE_WITH_32_CHAR_CODE}
+      AUTH_ALLOW_REGISTRATION: "${AUTH_ALLOW_REGISTRATION:-false}"
+      STATIC_CRON_TOKEN: ${STATIC_CRON_TOKEN:?STATIC_CRON_TOKEN must be set}
       LOG_LEVEL: info
       LOG_FORMAT: json
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-20}

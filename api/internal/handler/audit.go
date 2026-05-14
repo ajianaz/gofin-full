@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -24,19 +27,16 @@ func (h *AuditHandler) Index(c *fiber.Ctx) error {
 	}
 
 	entityType := c.Query("entity_type", "")
-	entityIDStr := c.Query("entity_id", "")
 
-	// Parse entity_id as UUID for the query; pass zero if empty
-	var entityID int64
-	if entityIDStr != "" {
-		// The audit repository uses int64 for entity IDs
-		// For now, we just pass 0 if not parseable as int64
-		entityID = 0
+	var entityID uuid.UUID
+	if v := c.Query("entity_id"); v != "" {
+		entityID, _ = uuid.Parse(v)
 	}
 
-	logs, err := h.repo.List(c.Context(), 0, entityType, entityID, 100)
+	logs, err := h.repo.List(c.Context(), *groupID, entityType, entityID, 100)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list audit logs", err.Error())
+		log.Printf("handler: failed to list audit logs: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -46,6 +46,7 @@ func (h *AuditHandler) Index(c *fiber.Ctx) error {
 			"id":   log.ID,
 			"attributes": fiber.Map{
 				"user_id":     log.UserID,
+				"user_email":  log.UserEmail,
 				"action":      log.Action,
 				"entity_type": log.Entity,
 				"entity_id":   log.EntityID,

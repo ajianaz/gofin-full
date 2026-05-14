@@ -40,12 +40,6 @@ func main() {
 
 	// Production safety checks
 	if cfg.IsProduction() {
-		if cfg.AuthJWTSecret == "change-me-in-production-32chars!" {
-			log.Fatal().Msg("AUTH_JWT_SECRET must be changed from default in production")
-		}
-		if len(cfg.AuthJWTSecret) < 32 {
-			log.Fatal().Msg("AUTH_JWT_SECRET must be at least 32 characters")
-		}
 		if cfg.StaticCronToken == "PLEASE_REPLACE_WITH_32_CHAR_CODE" {
 			log.Fatal().Msg("STATIC_CRON_TOKEN must be changed from default in production")
 		}
@@ -72,6 +66,11 @@ func main() {
 	authProvider := auth.NewProvider(cfg)
 	authProvider.SetDB(db)
 	log.Info().Str("provider", authProvider.Name()).Msg("auth provider initialized")
+
+	// Warn if auth is disabled (all requests treated as superuser)
+	if authProvider.Name() == "disabled" {
+		log.Warn().Msg("⚠️  AUTH_PROVIDER=disabled: ALL authentication is bypassed. Every request is treated as superuser. Do NOT use in production!")
+	}
 
 	// Setup SSE hub for real-time notifications
 	sseHub := sse.NewHub(log)
@@ -113,8 +112,11 @@ func main() {
 	// Create handlers
 	healthHandler := handler.NewHealthHandler(db, rdb)
 	authHandler := handler.NewAuthHandler(jwtMgr, authProvider, cfg, userRepo, oauthStateRepo, refreshRepo)
+	if rdb != nil {
+		authHandler.SetRedis(rdb)
+	}
 	userHandler := handler.NewUserHandler(userRepo)
-	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db)
+	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr)
 	walletHandler := handler.NewWalletHandler(walletRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	tagHandler := handler.NewTagHandler(tagRepo)
@@ -136,7 +138,7 @@ func main() {
 	noteHandler := handler.NewNoteHandler(noteRepo)
 	locationHandler := handler.NewLocationHandler(locationRepo)
 	accountTypeHandler := handler.NewAccountTypeHandler(accountTypeRepo)
-	walletMemberHandler := handler.NewWalletMemberHandler(walletMemberRepo)
+	walletMemberHandler := handler.NewWalletMemberHandler(walletMemberRepo, userRepo)
 	notifService := service.NewNotificationService(notificationRepo, sseHub)
 	_ = notifService
 	_ = service.NewExchangeRateService(exchangeRateRepo)
@@ -151,50 +153,52 @@ func main() {
 
 	// Create router
 	app := router.New(router.RouterConfig{
-		AppURL:          cfg.AppURL,
-		AppEnv:          cfg.AppEnv,
-		HealthHandler:   healthHandler,
-		AuthHandler:     authHandler,
-		UserHandler:     userHandler,
-		GroupHandler:    groupHandler,
-		WalletHandler:   walletHandler,
-		CategoryHandler: categoryHandler,
-		TagHandler:      tagHandler,
-		TxHandler:       txHandler,
-		BudgetHandler:    budgetHandler,
-		PiggyHandler:     piggyHandler,
-		RuleGroupHandler: ruleGroupHandler,
-		RuleHandler:      ruleHandler,
-		RecurrenceHandler: recurrenceHandler,
-		CurrencyHandler: currencyHandler,
-		BillHandler: billHandler,
-		ExchangeRateHandler: exchangeRateHandler,
-		WebhookHandler: webhookHandler,
-		AttachmentHandler: attachmentHandler,
-		NotificationHandler: notificationHandler,
-		PreferenceHandler: preferenceHandler,
+		AppURL:               cfg.AppURL,
+		AppEnv:               cfg.AppEnv,
+		CORSAllowedOrigins:   cfg.CORSAllowedOrigins,
+		HealthHandler:        healthHandler,
+		AuthHandler:          authHandler,
+		UserHandler:          userHandler,
+		GroupHandler:         groupHandler,
+		WalletHandler:        walletHandler,
+		CategoryHandler:      categoryHandler,
+		TagHandler:           tagHandler,
+		TxHandler:            txHandler,
+		BudgetHandler:        budgetHandler,
+		PiggyHandler:         piggyHandler,
+		RuleGroupHandler:     ruleGroupHandler,
+		RuleHandler:          ruleHandler,
+		RecurrenceHandler:    recurrenceHandler,
+		CurrencyHandler:      currencyHandler,
+		BillHandler:          billHandler,
+		ExchangeRateHandler:  exchangeRateHandler,
+		WebhookHandler:       webhookHandler,
+		AttachmentHandler:    attachmentHandler,
+		NotificationHandler:  notificationHandler,
+		PreferenceHandler:    preferenceHandler,
 		ConfigurationHandler: configurationHandler,
-		ObjectGroupHandler: objectGroupHandler,
-		NoteHandler: noteHandler,
-		LocationHandler: locationHandler,
-		AccountTypeHandler: accountTypeHandler,
-		WalletMemberHandler: walletMemberHandler,
-		ExportHandler: exportHandler,
-		AnalyticsHandler: analyticsHandler,
-		AuditHandler: auditHandler,
-	AdminHandler: adminHandler,
-			APIKeyHandler: apiKeyHandler,
-		APIDocHandler: apiDocHandler,
-		MetricsHandler: metricsHandler,
-		MemberRepo: walletMemberRepo,
-			KeyLookup: apiKeyRepo,
-		RoleLookup:      userRepo,
-		JWTManager:       jwtMgr,
-		SSEHub:           sseHub,
-		RateLimitMax:       cfg.RateLimitMax,
-		RateLimitWindowSec: cfg.RateLimitWindowSeconds,
-		DisableMetrics:     cfg.DisablePrometheus,
-		RedisClient:        rdb,
+		ObjectGroupHandler:   objectGroupHandler,
+		NoteHandler:          noteHandler,
+		LocationHandler:      locationHandler,
+		AccountTypeHandler:   accountTypeHandler,
+		WalletMemberHandler:  walletMemberHandler,
+		ExportHandler:        exportHandler,
+		AnalyticsHandler:     analyticsHandler,
+		AuditHandler:         auditHandler,
+		AdminHandler:         adminHandler,
+		APIKeyHandler:        apiKeyHandler,
+		APIDocHandler:        apiDocHandler,
+		MetricsHandler:       metricsHandler,
+		MemberRepo:           walletMemberRepo,
+		KeyLookup:            apiKeyRepo,
+		RoleLookup:           userRepo,
+		JWTManager:           jwtMgr,
+		SSEHub:               sseHub,
+		RateLimitMax:         cfg.RateLimitMax,
+		RateLimitWindowSec:   cfg.RateLimitWindowSeconds,
+		DisableMetrics:       cfg.DisablePrometheus,
+		RedisClient:          rdb,
+		MaxRequestBodyBytes:  cfg.MaxRequestBodyBytes,
 		CustomMiddleware: []fiber.Handler{
 			middleware.Logger(log),
 			middleware.Recovery(log),
@@ -231,7 +235,9 @@ func setupLogger(cfg *config.Config) zerolog.Logger {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
-	var output interface{ Write(p []byte) (n int, err error) } = zerolog.ConsoleWriter{Out: os.Stdout}
+	var output interface {
+		Write(p []byte) (n int, err error)
+	} = zerolog.ConsoleWriter{Out: os.Stdout}
 	if cfg.LogFormat == "json" {
 		output = os.Stdout
 	}

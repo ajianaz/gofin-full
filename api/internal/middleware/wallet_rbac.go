@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -32,7 +34,8 @@ func WalletRBAC(memberRepo *repository.WalletMemberRepository, requiredRole stri
 		// Check if user is the wallet owner
 		isOwner, err := memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
 		if err != nil {
-			return apperrors.NewWithDetail(500, "failed to check wallet ownership", err.Error())
+			log.Printf("WalletRBAC: failed to check wallet ownership: %v", err)
+			return apperrors.ErrInternal
 		}
 		if isOwner {
 			return c.Next()
@@ -41,7 +44,8 @@ func WalletRBAC(memberRepo *repository.WalletMemberRepository, requiredRole stri
 		// Check membership
 		role, err := memberRepo.GetWalletRole(c.Context(), walletID, user.ID)
 		if err != nil {
-			return apperrors.NewWithDetail(500, "failed to check wallet membership", err.Error())
+			log.Printf("WalletRBAC: failed to check wallet membership: %v", err)
+			return apperrors.ErrInternal
 		}
 		if role == "" {
 			return apperrors.New(403, "you do not have access to this wallet")

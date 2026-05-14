@@ -192,3 +192,41 @@ export interface NotificationSetting {
 	description: string;
 	enabled: boolean;
 }
+
+export interface Notification {
+	id: string;
+	channel: string;
+	type: string;
+	title: string;
+	message: string;
+	read: boolean;
+}
+
+export interface WalletMember {
+	id: string;
+	wallet_id: string;
+	user_id: string;
+	role: 'owner' | 'editor' | 'viewer';
+}
+
+export interface ApiKeyListItem {
+	id: string;
+	name: string;
+	key_prefix: string;
+	last_used: string;
+	created_at: string;
+}
+
+export interface ApiKeyCreateResponse {
+	id: string;
+	name: string;
+	key_prefix: string;
+	key: string;
+	created_at: string;
+}
+
+export interface PreferenceItem {
+	id: string;
+	name: string;
+	data: string;
+}

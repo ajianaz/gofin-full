@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import type { User, TokenResponse } from '$lib/types/index.js';
 import { authService } from '$lib/services/auth.js';
+import { api } from '$lib/services/client.js';
 
 function getStoredToken(key: string): string | null {
 	if (!browser) return null;
@@ -40,6 +41,30 @@ function createAuthStore() {
 		removeStoredToken('refresh_token');
 	}
 
+	async function setupGroup(): Promise<void> {
+		if (!refreshToken) return;
+		try {
+			const groupsRes = await api.get<{ data: { id: string; attributes: { title: string } }[] }>('/groups');
+			let groupId: string | undefined;
+
+			if (groupsRes.data.length === 0) {
+				const created = await api.post<{ data: { id: string } }>('/groups', { title: 'Default' });
+				groupId = created.data.id;
+			} else {
+				groupId = groupsRes.data[0].id;
+			}
+
+			if (groupId) {
+				const switchRes = await api.post<{ tokens?: TokenResponse }>('/groups/switch', { user_group_id: groupId });
+				if (switchRes?.tokens) {
+					setTokens(switchRes.tokens);
+				}
+			}
+		} catch (err) {
+			console.error('Failed to setup group:', err);
+		}
+	}
+
 	async function login(email: string, password: string) {
 		isLoading = true;
 		try {
@@ -66,7 +91,7 @@ function createAuthStore() {
 
 	async function logout() {
 		try {
-			await authService.logout();
+			await authService.logout(refreshToken || undefined);
 		} catch {
 			// ignore logout errors
 		}
@@ -100,11 +125,14 @@ function createAuthStore() {
 		get refreshToken() { return refreshToken; },
 		get isLoading() { return isLoading; },
 		get isAuthenticated() { return isAuthenticated; },
+		setTokens,
+		clearTokens,
 		login,
 		register,
 		logout,
 		fetchUser,
-		restore
+		restore,
+		setupGroup
 	};
 }
 

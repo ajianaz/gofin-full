@@ -50,11 +50,11 @@ func (r *AttachmentRepository) FindByID(ctx context.Context, id uuid.UUID) (*dom
 	return &a, nil
 }
 
-func (r *AttachmentRepository) ListByEntity(ctx context.Context, attachableType string, attachableID uuid.UUID) ([]domain.Attachment, error) {
+func (r *AttachmentRepository) ListByEntityAndUser(ctx context.Context, attachableType string, attachableID, userID uuid.UUID) ([]domain.Attachment, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, attachable_type, attachable_id, filename, mime_type, size, uploaded, created_at, updated_at
-		 FROM attachments WHERE attachable_type = $1 AND attachable_id = $2 AND deleted_at IS NULL ORDER BY created_at DESC`,
-		attachableType, attachableID)
+		 FROM attachments WHERE attachable_type = $1 AND attachable_id = $2 AND user_id = $3 AND deleted_at IS NULL ORDER BY created_at DESC`,
+		attachableType, attachableID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list attachments: %w", err)
 	}

@@ -1,15 +1,21 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown } from '@lucide/svelte';
-	import { mockTransactions } from '$lib/data/mock-transactions.js';
-	import { mockCategories } from '$lib/data/mock-categories.js';
-	import { mockWallets } from '$lib/data/mock-wallets.js';
+	import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from '@lucide/svelte';
+	import { transactionService, walletService, categoryService } from '$lib/services/index.js';
 	import { formatAmount, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import type { Transaction, Account, Category } from '$lib/types/domain.js';
 	const t = localeStore.t;
+
+	let isLoading = $state(true);
+	let errorMsg = $state('');
+	let items = $state<Transaction[]>([]);
+	let wallets = $state<Account[]>([]);
+	let categories = $state<Category[]>([]);
 
 	let searchQuery = $state('');
 	let typeFilter = $state('all');
@@ -20,8 +26,32 @@
 	const PER_PAGE = 5;
 	let currentPage = $state(1);
 
+	async function handleDelete(id: string) {
+		if (!confirm(t('common.delete') + '?')) return;
+		await transactionService.delete(id);
+		items = items.filter((t) => t.id !== id);
+	}
+
+	onMount(async () => {
+		try {
+			const [txRes, walletList, catList] = await Promise.all([
+				transactionService.list(),
+				walletService.list(),
+				categoryService.list()
+			]);
+			items = txRes.data;
+			wallets = walletList;
+			categories = catList;
+		} catch (e) {
+			errorMsg = t('common.error');
+			console.error('Failed to load transactions:', e);
+		} finally {
+			isLoading = false;
+		}
+	});
+
 	let filtered = $derived(() => {
-		let result = [...mockTransactions];
+		let result = [...items];
 		if (searchQuery) {
 			const q = searchQuery.toLowerCase();
 			result = result.filter((t) => t.description.toLowerCase().includes(q));
@@ -58,13 +88,17 @@
 		currentPage = 1;
 	});
 
-	function acctName(tx: (typeof mockTransactions)[number]): string {
+	function acctName(tx: Transaction): string {
 		return tx.source_account_name || tx.destination_account_name || '-';
 	}
 </script>
 
 <div class="flex flex-col gap-4">
-	<div class="flex flex-wrap items-center justify-between gap-3">
+	{#if isLoading}
+		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+	{:else if errorMsg}
+		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
+	{:else}
 		<div class="flex items-center gap-3">
 			<h2 class="text-base font-semibold text-foreground">{t('transactions.list.title')}</h2>
 			<span class="inline-flex items-center rounded-2xl bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
@@ -81,7 +115,6 @@
 				{t('transactions.list.add')}
 			</Button>
 		</div>
-	</div>
 
 	<div class="flex flex-wrap items-center gap-3">
 		<div class="relative">
@@ -102,7 +135,7 @@
 				class="cn-input h-9 w-44 appearance-none bg-background pr-8 text-sm"
 			>
 				<option value="all">{t('transactions.list.allWallets')}</option>
-				{#each mockWallets as w}
+				{#each wallets as w}
 					<option value={w.id}>{w.name}</option>
 				{/each}
 			</select>
@@ -114,7 +147,7 @@
 				class="cn-input h-9 w-44 appearance-none bg-background pr-8 text-sm"
 			>
 				<option value="all">{t('transactions.list.allCategories')}</option>
-				{#each mockCategories as cat}
+				{#each categories as cat}
 					<option value={cat.id}>{cat.name}</option>
 				{/each}
 			</select>
@@ -149,6 +182,7 @@
 							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colAmount')}</th>
 							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colCategory')}</th>
 							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colWallet')}</th>
+							<th class="w-[50px] p-3"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -161,7 +195,14 @@
 								</td>
 								<td class="p-3 text-muted-foreground">{tx.category_name || '-'}</td>
 								<td class="p-3 text-muted-foreground">{acctName(tx)}</td>
+								<td class="p-3">
+									<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(tx.id)}>
+										<Trash2 class="size-4" />
+									</button>
+								</td>
 							</tr>
+						{:else}
+							<tr><td colspan="6" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td></tr>
 						{/each}
 					</tbody>
 				</table>
@@ -189,4 +230,5 @@
 			</div>
 		</CardContent>
 	</Card>
+	{/if}
 </div>

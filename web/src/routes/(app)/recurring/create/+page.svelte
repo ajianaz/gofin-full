@@ -1,15 +1,22 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { BackButton, FormCard } from '$lib/components/shared/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronDown } from '@lucide/svelte';
-	import { mockWallets } from '$lib/data/mock-wallets.js';
-	import { mockCategories } from '$lib/data/mock-categories.js';
+	import { recurringService, walletService, categoryService } from '$lib/services/index.js';
+	import type { Account } from '$lib/types/domain.js';
+	import type { Category } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
+
+	let isLoading = $state(false);
+	let errorMsg = $state('');
+	let wallets = $state<Account[]>([]);
+	let categories = $state<Category[]>([]);
 
 	let title = $state('');
 	let repeatFreq = $state('monthly');
@@ -20,12 +27,45 @@
 	let startDate = $state(new Date().toISOString().split('T')[0]);
 	let endDate = $state('');
 	let active = $state(true);
+
+	onMount(async () => {
+		try {
+			wallets = await walletService.list();
+			categories = await categoryService.list();
+		} catch (e) { console.error(e); }
+	});
+
+	async function handleSubmit(e: Event) {
+		e.preventDefault();
+		isLoading = true;
+		errorMsg = '';
+		try {
+			await recurringService.create({
+				title,
+				first_date: startDate,
+				repeat_freq: repeatFreq,
+				transactions: [{
+					type: 'withdrawal',
+					description: title,
+					amount: String(amount),
+					source_id: sourceAccount,
+					destination_id: destAccount || sourceAccount,
+					category_id: categoryId || undefined,
+				}]
+			});
+			goto('/recurring');
+		} catch (err: any) {
+			errorMsg = err.detail || err.message || t('common.errorSave');
+		} finally {
+			isLoading = false;
+		}
+	}
 </script>
 
 <BackButton href="/recurring" />
 
 <FormCard title={t('recurring.create.title')}>
-	<form class="flex flex-col gap-6" onsubmit={(e) => { e.preventDefault(); goto('/recurring'); }}>
+	<form class="flex flex-col gap-6" onsubmit={handleSubmit}>
 		<div class="grid gap-6 md:grid-cols-2">
 			<div class="flex flex-col gap-4">
 				<div class="flex flex-col gap-2">
@@ -41,7 +81,7 @@
 							class="cn-input w-full appearance-none bg-background pr-8"
 						>
 							<option value="">{t('common.selectWallet')}</option>
-							{#each mockWallets as w}
+							{#each wallets as w}
 								<option value={w.id}>{w.name}</option>
 							{/each}
 						</select>
@@ -84,7 +124,7 @@
 							class="cn-input w-full appearance-none bg-background pr-8"
 						>
 							<option value="">{t('recurring.create.selectDestWallet')}</option>
-							{#each mockWallets as w}
+							{#each wallets as w}
 								<option value={w.id}>{w.name}</option>
 							{/each}
 						</select>
@@ -100,7 +140,7 @@
 							class="cn-input w-full appearance-none bg-background pr-8"
 						>
 							<option value="">{t('common.selectCategory')}</option>
-							{#each mockCategories as cat}
+							{#each categories as cat}
 								<option value={cat.id}>{cat.name}</option>
 							{/each}
 						</select>
@@ -118,7 +158,10 @@
 			<Label for="active">{t('recurring.create.active')}</Label>
 		</div>
 		<div class="flex gap-2 pt-2">
-			<Button type="submit" class="flex-1">{t('recurring.create.submit')}</Button>
+			{#if errorMsg}
+				<p class="text-sm text-destructive">{errorMsg}</p>
+			{/if}
+			<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? t('common.saving') : t('recurring.create.submit')}</Button>
 			<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/recurring')}>{t('common.cancel')}</Button>
 		</div>
 	</form>
