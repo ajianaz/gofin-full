@@ -49,14 +49,14 @@ describe('exportService', () => {
       expect(fetch).toHaveBeenCalledWith(
         '/api/v1/export/csv?start=2026-01-01&end=2026-01-31&wallet_id=w1',
         expect.objectContaining({
-          headers: {}
+          headers: { 'Content-Type': 'application/json' }
         })
       );
       expect(URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
     });
 
     it('includes auth header when token exists', async () => {
-      localStorageMock.getItem.mockReturnValueOnce('my-token' as any);
+      localStorageMock.getItem.mockReturnValue('my-token' as any);
       const mockBlob = new Blob(['csv'], { type: 'text/csv' });
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,
@@ -68,7 +68,7 @@ describe('exportService', () => {
       expect(fetch).toHaveBeenCalledWith(
         '/api/v1/export/csv',
         expect.objectContaining({
-          headers: { Authorization: 'Bearer my-token' }
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer my-token' }
         })
       );
     });

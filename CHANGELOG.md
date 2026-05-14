@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Random password generation uses rejection sampling** — fixed modulo bias in OAuth auto-provisioned password generation
 
 ### Fixed
+- **Wallet owner can list wallet members** — `GET /wallets/:wallet_id/members` now checks `IsWalletOwner` before `GetWalletRole`, allowing wallet owners to access members endpoint (was returning 404/403)
+- **Test passwords meet password policy** — integration tests updated to use compliant passwords (`SecurePass1!`) matching the new 3-of-4 character type requirement
+- **Redis default port assertion corrected** — unit test updated to expect port 6380 (security hardening changed default from 6379)
+- **Export test mocks match implementation** — vitest tests for `downloadCSV` updated: `Content-Type` header now expected, `localStorage.getItem` mock changed from `mockReturnValueOnce` to `mockReturnValue` to cover dual-call pattern
 - **Audit log response includes user_email** — `GET /audit-logs` now joins with users table to return `user_email` alongside `user_id`; audit repository types fixed from int64 to UUID to match database schema
 - **Admin user list returns name, role, is_active** — `GET /admin/users` now includes `name` (email fallback), `role` (global role lookup), and `is_active` (NOT blocked) fields
 - **Export handlers respect query parameters** — CSV and OFX export now parse `start`, `end`, and `wallet_id` query parameters to filter exported transactions

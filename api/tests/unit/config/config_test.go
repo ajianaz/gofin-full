@@ -125,7 +125,7 @@ func TestLoad_FromEnvVars(t *testing.T) {
 	assert.Equal(t, "db-host", cfg.DBHost)
 	assert.Equal(t, 5433, cfg.DBPort)
 	assert.Equal(t, "redis-host", cfg.RedisHost)
-	assert.Equal(t, "redis-host:6379", cfg.RedisAddr())
+	assert.Equal(t, "redis-host:6380", cfg.RedisAddr())
 	assert.Equal(t, "console", cfg.LogFormat)
 	assert.Equal(t, 50, cfg.RateLimitMax)
 	assert.Equal(t, "http://localhost:3000,https://app.gofin.io", cfg.CORSAllowedOrigins)

@@ -27,9 +27,16 @@ func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
 	}
 
 	// Verify the requesting user is a member (or owner) of this wallet
-	role, err := h.memberRepo.GetWalletRole(c.Context(), walletID, user.ID)
-	if err != nil || role == "" {
-		return apperrors.New(403, "you do not have access to this wallet")
+	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
+	if err != nil {
+		return apperrors.NewWithDetail(500, "failed to check wallet ownership", err.Error())
+	}
+
+	if !isOwner {
+		role, err := h.memberRepo.GetWalletRole(c.Context(), walletID, user.ID)
+		if err != nil || role == "" {
+			return apperrors.New(403, "you do not have access to this wallet")
+		}
 	}
 
 	members, err := h.memberRepo.ListByWallet(c.Context(), walletID)
