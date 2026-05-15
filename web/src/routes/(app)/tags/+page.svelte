@@ -72,7 +72,7 @@
 				{/each}
 	{:else if errorMsg}
 						<TableRow>
-							<TableCell colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+							<TableCell colspan={4} class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
 						</TableRow>
 					{:else}
 					{#each items as tag}
@@ -87,7 +87,7 @@
 							</TableCell>
 						</TableRow>
 					{:else}
-						<TableRow><TableCell colspan="4"><EmptyState /></TableCell></TableRow>
+						<TableRow><TableCell colspan={4}><EmptyState /></TableCell></TableRow>
 					{/each}
 					{/if}
 				</TableBody>

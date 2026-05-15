@@ -61,11 +61,11 @@
 				{/each}
 	{:else if errorMsg}
 						<TableRow>
-							<TableCell colspan="2" class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+							<TableCell colspan={2} class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
 						</TableRow>
 					{:else if members.length === 0}
 						<TableRow>
-							<TableCell colspan="2"><EmptyState /></TableCell>
+							<TableCell colspan={2}><EmptyState /></TableCell>
 						</TableRow>
 					{:else}
 						{#each members as member}

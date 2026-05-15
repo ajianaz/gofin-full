@@ -123,7 +123,7 @@
 				{/each}
 	{:else if apiKeys.length === 0}
 							<TableRow>
-								<TableCell colspan="4"><EmptyState /></TableCell>
+								<TableCell colspan={4}><EmptyState /></TableCell>
 							</TableRow>
 						{:else}
 							{#each apiKeys as key (key.id)}

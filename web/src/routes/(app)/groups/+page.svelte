@@ -78,7 +78,7 @@
 				{/each}
 	{:else if errorMsg}
 						<TableRow>
-							<TableCell colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+							<TableCell colspan={4} class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
 						</TableRow>
 					{:else}
 						{#each groups as group}
@@ -98,7 +98,7 @@
 							</TableRow>
 						{:else}
 							<TableRow>
-								<TableCell colspan="4"><EmptyState /></TableCell>
+								<TableCell colspan={4}><EmptyState /></TableCell>
 							</TableRow>
 						{/each}
 					{/if}

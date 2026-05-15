@@ -220,7 +220,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							<TableRow><TableCell colspan="6"><EmptyState /></TableCell></TableRow>
+							<TableRow><TableCell colspan={6}><EmptyState /></TableCell></TableRow>
 						{/each}
 					</TableBody>
 				</Table>
