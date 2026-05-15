@@ -4,15 +4,16 @@ export default defineConfig({
   title: 'Gofin',
   description: 'Self-hosted personal finance tracker — Go API + SvelteKit',
   lang: 'en',
+  base: '/gofin-full/',
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/gofin-full/logo.svg' }],
     ['meta', { name: 'theme-color', content: '#0f172a' }],
     ['meta', { name: 'og:type', content: 'website' }],
     ['meta', { name: 'og:title', content: 'Gofin — Self-Hosted Finance Tracker' }],
     ['meta', { name: 'og:description', content: 'Track wallets, transactions, budgets, and more. Self-hosted with Docker.' }],
   ],
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/gofin-full/logo.svg',
     nav: [
       { text: 'Docs', link: '/getting-started', activeMatch: '/getting-started|/features|/architecture|/configuration|/rbac|/security' },
       { text: 'Deployment', link: '/deployment' },
