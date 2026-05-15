@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ArrowLeft } from '@lucide/svelte';
 	import { reportService } from '$lib/services/index.js';
@@ -68,30 +69,28 @@
 				{#if periodData.length === 0}
 					<p class="px-4 py-6 text-sm text-muted-foreground text-center">{t('common.noData')}</p>
 				{:else}
-					<div class="overflow-x-auto">
-						<table class="w-full text-sm">
-							<thead>
-								<tr class="border-b bg-muted/50">
-									<th class="text-left px-4 py-3 font-medium text-muted-foreground">{t('reports.spendingByPeriod.period')}</th>
-									<th class="text-right px-4 py-3 font-medium text-muted-foreground">{t('reports.spendingByPeriod.income')}</th>
-									<th class="text-right px-4 py-3 font-medium text-muted-foreground">{t('reports.spendingByPeriod.expense')}</th>
-									<th class="text-right px-4 py-3 font-medium text-muted-foreground">{t('reports.spendingByPeriod.diff')}</th>
-								</tr>
-							</thead>
-							<tbody>
+					<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>{t('reports.spendingByPeriod.period')}</TableHead>
+									<TableHead class="text-right">{t('reports.spendingByPeriod.income')}</TableHead>
+									<TableHead class="text-right">{t('reports.spendingByPeriod.expense')}</TableHead>
+									<TableHead class="text-right">{t('reports.spendingByPeriod.diff')}</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
 								{#each periodData as row}
-									<tr class="border-b last:border-b-0 hover:bg-muted/30">
-										<td class="px-4 py-3 font-medium text-foreground">{row.period}</td>
-										<td class="px-4 py-3 text-right text-green-600">{formatCurrency(row.income.toString())}</td>
-										<td class="px-4 py-3 text-right text-destructive">{formatCurrency(row.expense.toString())}</td>
-										<td class="px-4 py-3 text-right font-medium {row.diff >= 0 ? 'text-green-600' : 'text-destructive'}">
-											{row.diff >= 0 ? '+' : '-'}{formatCurrency(Math.abs(row.diff).toString())}
-										</td>
-									</tr>
+						<TableRow>
+							<TableCell class="px-4 py-3 font-medium text-foreground">{row.period}</TableCell>
+							<TableCell class="px-4 py-3 text-right text-green-600">{formatCurrency(row.income.toString())}</TableCell>
+							<TableCell class="px-4 py-3 text-right text-destructive">{formatCurrency(row.expense.toString())}</TableCell>
+							<TableCell class="px-4 py-3 text-right font-medium {row.diff >= 0 ? 'text-green-600' : 'text-destructive'}">
+								{row.diff >= 0 ? '+' : '-'}{formatCurrency(Math.abs(row.diff).toString())}
+							</TableCell>
+						</TableRow>
 								{/each}
-							</tbody>
-						</table>
-					</div>
+							</TableBody>
+						</Table>
 				{/if}
 			</CardContent>
 		</Card>

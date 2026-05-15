@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { BackButton } from '$lib/components/shared/index.js';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { currencyService } from '$lib/services/index.js';
 	import { formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -40,42 +41,38 @@
 	<CardContent class="p-0">
 		{#if isLoading}
 {#each Array(8) as _}
-				<tr class="border-b hover:bg-muted/30">
-					<td class="p-3 whitespace-nowrap"><Skeleton class="h-4 w-20" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-40" /></td>
-					<td class="p-3 whitespace-nowrap"><Skeleton class="h-4 w-16" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-24" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-24" /></td>
-					<td class="p-3"><Skeleton class="size-4" /></td>
-				</tr>
-			{/each}
+<TableRow>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell class="hidden md:table-cell"><Skeleton class="h-4 w-full" /></TableCell>
+				</TableRow>
+				{/each}
 	{:else if error}
 			<div class="p-8 text-center text-destructive">{error}</div>
 		{:else if rates.length === 0}
 			<EmptyState />
 		{:else}
-			<div class="overflow-x-auto">
-				<table class="w-full text-sm">
-					<thead>
-						<tr class="border-b bg-muted/50">
-							<th class="text-left p-3 font-medium text-muted-foreground">{t('currencies.exchangeRates.from')}</th>
-							<th class="text-left p-3 font-medium text-muted-foreground">{t('currencies.exchangeRates.to')}</th>
-							<th class="text-right p-3 font-medium text-muted-foreground">{t('currencies.exchangeRates.rate')}</th>
-							<th class="text-left p-3 font-medium text-muted-foreground">{t('currencies.exchangeRates.date')}</th>
-						</tr>
-					</thead>
-					<tbody>
+			<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>{t('currencies.exchangeRates.from')}</TableHead>
+							<TableHead>{t('currencies.exchangeRates.to')}</TableHead>
+							<TableHead class="text-right">{t('currencies.exchangeRates.rate')}</TableHead>
+							<TableHead class="hidden md:table-cell">{t('currencies.exchangeRates.date')}</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
 						{#each rates as rate}
-							<tr class="border-b hover:bg-muted/30">
-								<td class="p-3 font-mono font-medium text-foreground">{rate.from_code}</td>
-								<td class="p-3 font-mono font-medium text-foreground">{rate.to_code}</td>
-								<td class="p-3 text-right font-medium text-foreground">{rate.rate}</td>
-								<td class="p-3 text-muted-foreground">{formatDate(rate.date)}</td>
-							</tr>
+							<TableRow>
+								<TableCell class="font-mono font-medium text-foreground">{rate.from_code}</TableCell>
+								<TableCell class="font-mono font-medium text-foreground">{rate.to_code}</TableCell>
+								<TableCell class="text-right font-medium text-foreground">{rate.rate}</TableCell>
+								<TableCell class="hidden md:table-cell text-muted-foreground">{formatDate(rate.date)}</TableCell>
+							</TableRow>
 						{/each}
-					</tbody>
-				</table>
-			</div>
+					</TableBody>
+				</Table>
 		{/if}
 	</CardContent>
 </Card>

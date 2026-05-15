@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Plus, Copy, Trash2, AlertTriangle } from '@lucide/svelte';
 	import { apiKeyService } from '$lib/services/api-keys.js';
@@ -101,66 +102,36 @@
 
 	<Card>
 		<CardContent class="p-0">
-			<div class="overflow-x-auto">
-				<table class="w-full text-sm">
-					<thead>
-						<tr class="border-b bg-muted/50">
-							<th class="text-left px-4 py-3 font-medium text-muted-foreground">{t('settings.apiKeys.name')}</th>
-							<th class="text-left px-4 py-3 font-medium text-muted-foreground">{t('settings.apiKeys.key')}</th>
-							<th class="text-left px-4 py-3 font-medium text-muted-foreground w-40">{t('settings.apiKeys.created')}</th>
-							<th class="text-right px-4 py-3 font-medium text-muted-foreground w-48">{t('common.actions')}</th>
-						</tr>
-					</thead>
-					<tbody>
+			<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>{t('settings.apiKeys.name')}</TableHead>
+							<TableHead>{t('settings.apiKeys.key')}</TableHead>
+							<TableHead class="hidden md:table-cell w-40">{t('settings.apiKeys.created')}</TableHead>
+							<TableHead class="text-right w-48">{t('common.actions')}</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
 						{#if isLoading}
 				{#each Array(5) as _}
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
+<TableRow>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell class="hidden md:table-cell"><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+				</TableRow>
 				{/each}
 	{:else if apiKeys.length === 0}
-							<tr>
-								<td colspan="4"><EmptyState /></td>
-							</tr>
+							<TableRow>
+								<TableCell colspan="4"><EmptyState /></TableCell>
+							</TableRow>
 						{:else}
 							{#each apiKeys as key (key.id)}
-								<tr class="border-b last:border-b-0 hover:bg-muted/30">
-									<td class="px-4 py-3 font-medium text-foreground">{key.name}</td>
-									<td class="px-4 py-3 font-mono text-sm text-muted-foreground">{key.key_prefix}...</td>
-									<td class="px-4 py-3 text-muted-foreground">{formatDate(key.created_at)}</td>
-									<td class="px-4 py-3 text-right">
+								<TableRow>
+									<TableCell class="px-4 py-3 font-medium text-foreground">{key.name}</TableCell>
+									<TableCell class="px-4 py-3 font-mono text-sm text-muted-foreground">{key.key_prefix}...</TableCell>
+									<TableCell class="hidden md:table-cell px-4 py-3 text-muted-foreground">{formatDate(key.created_at)}</TableCell>
+									<TableCell class="px-4 py-3 text-right">
 										<div class="inline-flex items-center gap-2">
 											<Button variant="ghost" size="sm" onclick={() => handleCopy(key.key_prefix)}>
 												<Copy class="size-4" />
@@ -169,13 +140,12 @@
 												<Trash2 class="size-4" />
 											</Button>
 										</div>
-									</td>
-								</tr>
+									</TableCell>
+								</TableRow>
 							{/each}
 						{/if}
-					</tbody>
-				</table>
-			</div>
+					</TableBody>
+				</Table>
 		</CardContent>
 	</Card>
 	<ConfirmDialog
