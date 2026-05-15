@@ -9,6 +9,7 @@
 	import { onMount } from 'svelte';
 	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
 	const t = localeStore.t;
 
 	let name = $state('');
@@ -61,16 +62,16 @@
 				<div class="flex flex-col gap-2">
 					<Label for="account">{t('piggyBanks.create.relatedWallet')}</Label>
 					<div class="relative">
-						<select
-							id="account"
-							bind:value={accountId}
-							class="cn-input w-full appearance-none bg-background pr-8"
-						>
-							<option value="">{t('common.selectWallet')}</option>
-							{#each wallets as w}
-								<option value={w.id}>{w.name}</option>
-							{/each}
-						</select>
+						<Select bind:value={accountId} id="account">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		{#each wallets as w}
+<SelectItem value={w.id}>{w.name}</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>

@@ -8,6 +8,8 @@
 	import { authStore } from '$lib/stores/auth.svelte.js';
 	import type { UserGroup } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let groups = $state<UserGroup[]>([]);
@@ -66,10 +68,44 @@
 				</thead>
 				<tbody>
 					{#if isLoading}
-						<tr>
-							<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
-						</tr>
-					{:else if errorMsg}
+				{#each Array(5) as _}
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				{/each}
+	{:else if errorMsg}
 						<tr>
 							<td colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</td>
 						</tr>
@@ -91,7 +127,7 @@
 							</tr>
 						{:else}
 							<tr>
-								<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td>
+								<td colspan="4"><EmptyState /></td>
 							</tr>
 						{/each}
 					{/if}

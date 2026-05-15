@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
@@ -10,6 +9,8 @@
 	import { onMount } from 'svelte';
 	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import FormCard from '$lib/components/shared/FormCard.svelte';
 	const t = localeStore.t;
 
 	let name = $state('');
@@ -29,11 +30,7 @@
 	});</script>
 
 <div class="flex flex-col gap-4">
-	<Card>
-		<CardHeader>
-			<CardTitle>{t('bills.create.title')}</CardTitle>
-		</CardHeader>
-		<CardContent>
+	<FormCard title="{t('bills.create.title')}">
 			<form class="flex flex-col gap-6" onsubmit={async (e) => {
 					e.preventDefault();
 					isLoading = true;
@@ -70,16 +67,16 @@
 						<div class="flex flex-col gap-2">
 							<Label for="account">{t('bills.create.relatedWallet')}</Label>
 							<div class="relative">
-								<select
-									id="account"
-									bind:value={accountId}
-									class="cn-input w-full appearance-none bg-background pr-8"
-								>
-									<option value="">{t('common.selectWallet')}</option>
-									{#each wallets as w}
-										<option value={w.id}>{w.name}</option>
-									{/each}
-								</select>
+								<Select bind:value={accountId} id="account">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		{#each wallets as w}
+<SelectItem value={w.id}>{w.name}</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
@@ -90,16 +87,16 @@
 						<div class="flex flex-col gap-2">
 							<Label for="freq">{t('bills.create.frequency')}</Label>
 							<div class="relative">
-								<select
-									id="freq"
-									bind:value={repeatFreq}
-									class="cn-input w-full appearance-none bg-background pr-8"
-								>
-									<option value="weekly">{t('bills.create.freqWeekly')}</option>
-									<option value="monthly">{t('bills.create.freqMonthly')}</option>
-									<option value="quarterly">{t('bills.create.freqQuarterly')}</option>
-									<option value="yearly">{t('bills.create.freqYearly')}</option>
-								</select>
+								<Select bind:value={repeatFreq} id="freq">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="weekly">{t('bills.create.freqWeekly')}</SelectItem>
+		<SelectItem value="monthly">{t('bills.create.freqMonthly')}</SelectItem>
+		<SelectItem value="quarterly">{t('bills.create.freqQuarterly')}</SelectItem>
+		<SelectItem value="yearly">{t('bills.create.freqYearly')}</SelectItem>
+		</SelectContent>
+</Select>
 								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
@@ -117,6 +114,5 @@
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/bills')}>{t('common.cancel')}</Button>
 				</div>
 			</form>
-		</CardContent>
-	</Card>
+		</FormCard>
 </div>

@@ -6,6 +6,7 @@
 	import { notificationService } from '$lib/services/index.js';
 	import type { Notification } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let notifications = $state<Notification[]>([]);
@@ -61,7 +62,7 @@
 	{:else if errorMsg}
 		<p class="py-8 text-center text-sm text-destructive">{errorMsg}</p>
 	{:else if notifications.length === 0}
-		<p class="py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+		<EmptyState />
 	{:else}
 		<div class="flex flex-col gap-3">
 			{#each notifications as notif}

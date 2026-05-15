@@ -9,14 +9,18 @@
 	import type { Budget } from '$lib/types/domain.js';
 	import { formatCurrency } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { ConfirmDialog } from '$lib/components/shared/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let items = $state<Budget[]>([]);
 	let isLoading = $state(true);
 	let errorMsg = $state('');
+	let deleteTarget = $state<string | null>(null);
+	let deleteOpen = $derived(deleteTarget !== null);
 
 	async function handleDelete(id: string) {
-		if (!confirm(t('common.delete') + '?')) return;
 		await budgetService.delete(id);
 		items = items.filter((b) => b.id !== id);
 	}
@@ -49,8 +53,20 @@
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{#if isLoading}
-			<p class="col-span-full py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</p>
-		{:else if errorMsg}
+{#each Array(6) as _}
+				<div class="rounded-lg border bg-card p-5">
+					<div class="flex items-center justify-between mb-4">
+						<div class="flex items-center gap-2">
+							<Skeleton class="size-[18px] rounded" />
+							<Skeleton class="h-5 w-24" />
+						</div>
+						<Skeleton class="size-4 rounded" />
+					</div>
+					<Skeleton class="mb-1 h-7 w-32" />
+					<Skeleton class="h-3 w-20" />
+				</div>
+			{/each}
+	{:else if errorMsg}
 			<p class="col-span-full text-sm text-destructive py-8 text-center">{errorMsg}</p>
 		{:else}
 			{#each items as budget}
@@ -58,11 +74,11 @@
 				? (parseFloat(budget.spend_amount) / parseFloat(budget.budget_amount)) * 100
 				: 0}
 			{@const remaining = parseFloat(budget.budget_amount) - parseFloat(budget.spend_amount)}
-			<Card class="hover:shadow-md transition-shadow">
+			<Card>
 				<CardContent class="p-5">
 					<div class="flex items-center justify-between mb-3">
 						<p class="text-base font-semibold text-foreground">{budget.name}</p>
-						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(budget.id)}>
+						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = budget.id)}>
 							<Trash2 class="size-4" />
 						</button>
 					</div>
@@ -87,8 +103,19 @@
 				</CardContent>
 			</Card>
 			{:else}
-				<p class="col-span-full py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+				<EmptyState />
 			{/each}
 		{/if}
 	</div>
+	<ConfirmDialog
+		bind:open={deleteOpen}
+		title={t('common.delete')}
+		description={t('common.deleteConfirm')}
+		onConfirm={async () => {
+			if (deleteTarget) {
+				await handleDelete(deleteTarget);
+				deleteTarget = null;
+			}
+		}}
+	/>
 </div>

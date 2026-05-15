@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronDown } from '@lucide/svelte';
 	import { budgetService } from '$lib/services/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import FormCard from '$lib/components/shared/FormCard.svelte';
 	const t = localeStore.t;
 
 	let name = $state('');
@@ -20,11 +21,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<Card>
-		<CardHeader>
-			<CardTitle>{t('budgets.create.title')}</CardTitle>
-		</CardHeader>
-		<CardContent>
+	<FormCard title="{t('budgets.create.title')}">
 			<form class="flex flex-col gap-4" onsubmit={async (e) => {
 					e.preventDefault();
 					isLoading = true;
@@ -51,17 +48,17 @@
 				<div class="grid gap-2">
 					<Label for="auto-type">{t('budgets.create.autoBudgetType')}</Label>
 					<div class="relative">
-						<select
-							id="auto-type"
-							bind:value={autoBudgetType}
-							class="cn-input w-full appearance-none bg-background pr-8"
-						>
-							<option value="none">{t('budgets.create.autoBudgetNone')}</option>
-							<option value="reset">{t('budgets.create.autoBudgetReset')}</option>
-							<option value="rollover">{t('budgets.create.autoBudgetRollover')}</option>
-							<option value="fixed">{t('budgets.create.autoBudgetFixed')}</option>
-							<option value="adjust">{t('budgets.create.autoBudgetAdjust')}</option>
-						</select>
+						<Select bind:value={autoBudgetType} id="auto-type">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="none">{t('budgets.create.autoBudgetNone')}</SelectItem>
+		<SelectItem value="reset">{t('budgets.create.autoBudgetReset')}</SelectItem>
+		<SelectItem value="rollover">{t('budgets.create.autoBudgetRollover')}</SelectItem>
+		<SelectItem value="fixed">{t('budgets.create.autoBudgetFixed')}</SelectItem>
+		<SelectItem value="adjust">{t('budgets.create.autoBudgetAdjust')}</SelectItem>
+		</SelectContent>
+</Select>
 						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
@@ -74,17 +71,17 @@
 				<div class="grid gap-2">
 					<Label for="period">{t('budgets.create.period')}</Label>
 					<div class="relative">
-						<select
-							id="period"
-							bind:value={period}
-							class="cn-input w-full appearance-none bg-background pr-8"
-						>
-							<option value="daily">{t('budgets.create.periodDaily')}</option>
-							<option value="weekly">{t('budgets.create.periodWeekly')}</option>
-							<option value="monthly">{t('budgets.create.periodMonthly')}</option>
-							<option value="quarterly">{t('budgets.create.periodQuarterly')}</option>
-							<option value="yearly">{t('budgets.create.periodYearly')}</option>
-						</select>
+						<Select bind:value={period} id="period">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="daily">{t('budgets.create.periodDaily')}</SelectItem>
+		<SelectItem value="weekly">{t('budgets.create.periodWeekly')}</SelectItem>
+		<SelectItem value="monthly">{t('budgets.create.periodMonthly')}</SelectItem>
+		<SelectItem value="quarterly">{t('budgets.create.periodQuarterly')}</SelectItem>
+		<SelectItem value="yearly">{t('budgets.create.periodYearly')}</SelectItem>
+		</SelectContent>
+</Select>
 						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
@@ -97,6 +94,5 @@
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/budgets')}>{t('common.cancel')}</Button>
 				</div>
 			</form>
-		</CardContent>
-	</Card>
+		</FormCard>
 </div>

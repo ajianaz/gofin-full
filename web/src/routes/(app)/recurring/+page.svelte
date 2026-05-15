@@ -9,14 +9,18 @@
 	import { formatCurrency, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { RecurringTransaction } from '$lib/types/domain.js';
+	import { ConfirmDialog } from '$lib/components/shared/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let isLoading = $state(true);
 	let errorMsg = $state('');
+	let deleteTarget = $state<string | null>(null);
+	let deleteOpen = $derived(deleteTarget !== null);
 	let items = $state<RecurringTransaction[]>([]);
 
 	async function handleDelete(id: string) {
-		if (!confirm(t('common.delete') + '?')) return;
 		await recurringService.delete(id);
 		items = items.filter((r) => r.id !== id);
 	}
@@ -43,7 +47,22 @@
 
 <div class="flex flex-col gap-4">
 	{#if isLoading}
-		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+<Card>
+		<CardContent class="p-0">
+			{#each Array(5) as _}
+				<div class="flex items-center gap-4 px-5 py-4 border-b">
+					<div class="flex size-10 shrink-0 items-center justify-center rounded-lg"><Skeleton class="size-5 rounded" /></div>
+					<div class="flex flex-col gap-2 min-w-0 flex-1">
+						<Skeleton class="h-4 w-40" />
+						<Skeleton class="h-3 w-24" />
+					</div>
+					<div class="ml-auto text-right">
+						<Skeleton class="h-4 w-20" />
+					</div>
+				</div>
+			{/each}
+		</CardContent>
+	</Card>
 	{:else if errorMsg}
 		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
 	{:else}
@@ -79,15 +98,26 @@
 						{:else}
 							<Badge variant="outline" class="text-xs">{t('recurring.list.inactive')}</Badge>
 						{/if}
-						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(rec.id)}>
+						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = rec.id)}>
 							<Trash2 class="size-4" />
 						</button>
 					</div>
 				</div>
 			{:else}
-				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+				<EmptyState />
 			{/each}
 		</CardContent>
 	</Card>
 	{/if}
+	<ConfirmDialog
+		bind:open={deleteOpen}
+		title={t('common.delete')}
+		description={t('common.deleteConfirm')}
+		onConfirm={async () => {
+			if (deleteTarget) {
+				await handleDelete(deleteTarget);
+				deleteTarget = null;
+			}
+		}}
+	/>
 </div>

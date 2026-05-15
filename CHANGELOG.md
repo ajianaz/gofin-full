@@ -6,7 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-### Added
+### Changed
+- **ConfirmDialog replaces all `window.confirm()` calls** — 10 list pages (bills, budgets, categories, piggy-banks, recurring, rules, api-keys, tags, transactions, wallets) now use shadcn AlertDialog-based `ConfirmDialog` for delete confirmation, providing consistent UX and non-blocking UI
+- **Skeleton loading states on all list pages** — 20 pages now show animated skeleton placeholders instead of "Loading..." text: 8 table pages (categories, tags, api-keys, users, audit-log, groups, currencies, wallet members), 2 card grid pages (wallets, budgets), 3 list card pages (bills, piggy-banks, recurring), 1 transaction table page, 2 rule card pages, 1 dashboard page, 2 settings pages (preferences, profile), 1 exchange-rates page
+- **All raw `<select>` elements migrated to shadcn Select** — 26 selects across 12 pages now use `Select/SelectTrigger/SelectContent/SelectItem` components for consistent styling, keyboard navigation, and accessibility
+- **EmptyState component adopted across all list pages** — 17 pages now use shared `EmptyState` component instead of inline `<p>` or `<td>` text for "no data" display
+- **Non-clickable cards no longer show hover:shadow-md** — removed misleading shadow hover effect from wallet, budget, and rule cards that aren't interactive
+- **Create forms standardized to FormCard** — 4 pages (transactions, budgets, bills, wallets create) now use shared `FormCard` component for consistent form layout
+- **i18n key `common.deleteConfirm` added** — Indonesian and English locales now include confirmation dialog description text
+
+### Removed
+- **Card imports removed from FormCard-adopted pages** — bills/create, budgets/create, transactions/create, wallets/create no longer import raw Card components (using FormCard instead)
+- **Manual ChevronDown overlays removed** — select elements that had custom chevron icons now rely on shadcn Select's built-in chevron
 - **VitePress documentation site** — comprehensive docs with GitHub Pages deployment (Getting Started, Features, Architecture, Configuration, Deployment, Development, RBAC, Security, API Reference)
 - **Architecture diagram** — interactive dark-themed SVG diagram showing Docker stack, API layers, auth providers, and data flow
 - **GitHub Actions workflow** — auto-deploy docs to GitHub Pages on push to main (`.github/workflows/docs.yml`)

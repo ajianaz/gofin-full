@@ -6,6 +6,8 @@
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { onMount } from 'svelte';
 	import type { ExchangeRate } from '$lib/types/domain.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 
 	const t = localeStore.t;
 
@@ -37,11 +39,20 @@
 	</CardHeader>
 	<CardContent class="p-0">
 		{#if isLoading}
-			<div class="p-8 text-center text-muted-foreground">{t('common.loading')}</div>
-		{:else if error}
+{#each Array(8) as _}
+				<tr class="border-b hover:bg-muted/30">
+					<td class="p-3 whitespace-nowrap"><Skeleton class="h-4 w-20" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-40" /></td>
+					<td class="p-3 whitespace-nowrap"><Skeleton class="h-4 w-16" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-24" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-24" /></td>
+					<td class="p-3"><Skeleton class="size-4" /></td>
+				</tr>
+			{/each}
+	{:else if error}
 			<div class="p-8 text-center text-destructive">{error}</div>
 		{:else if rates.length === 0}
-			<div class="p-8 text-center text-muted-foreground">{t('common.noData')}</div>
+			<EmptyState />
 		{:else}
 			<div class="overflow-x-auto">
 				<table class="w-full text-sm">

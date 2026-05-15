@@ -2,7 +2,6 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { ChevronDown } from '@lucide/svelte';
@@ -11,6 +10,8 @@
 	import type { Category } from '$lib/types/domain.js';
 	import type { Tag } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import FormCard from '$lib/components/shared/FormCard.svelte';
 	const t = localeStore.t;
 
 	let isLoading = $state(false);
@@ -61,26 +62,22 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<Card>
-		<CardHeader>
-			<CardTitle>{t('transactions.create.title')}</CardTitle>
-		</CardHeader>
-		<CardContent>
+	<FormCard title="{t('transactions.create.title')}">
 			<form class="flex flex-col gap-6" onsubmit={handleSubmit}>
 				<div class="grid gap-6 md:grid-cols-2">
 					<div class="flex flex-col gap-4">
 						<div class="flex flex-col gap-2">
 							<Label for="type">{t('transactions.create.type')}</Label>
 							<div class="relative">
-								<select
-									id="type"
-									bind:value={type}
-									class="cn-input w-full appearance-none bg-background pr-8"
-								>
-									<option value="withdrawal">{t('transactions.create.expense')}</option>
-									<option value="deposit">{t('transactions.create.income')}</option>
-									<option value="transfer">{t('transactions.create.transfer')}</option>
-								</select>
+								<Select bind:value={type} id="type">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="withdrawal">{t('transactions.create.expense')}</SelectItem>
+		<SelectItem value="deposit">{t('transactions.create.income')}</SelectItem>
+		<SelectItem value="transfer">{t('transactions.create.transfer')}</SelectItem>
+		</SelectContent>
+</Select>
 								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
@@ -93,16 +90,16 @@
 						<div class="flex flex-col gap-2">
 							<Label for="source">{t('transactions.create.sourceWallet')}</Label>
 							<div class="relative">
-								<select
-									id="source"
-									bind:value={sourceAccount}
-									class="cn-input w-full appearance-none bg-background pr-8"
-								>
-									<option value="">{t('common.selectWallet')}</option>
-									{#each wallets as w}
-										<option value={w.id}>{w.name} ({w.currency_code})</option>
-									{/each}
-								</select>
+								<Select bind:value={sourceAccount} id="source">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		{#each wallets as w}
+<SelectItem value={w.id}>{w.name} ({w.currency_code})</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
@@ -111,16 +108,16 @@
 							<div class="flex flex-col gap-2">
 								<Label for="dest">{t('transactions.create.destWallet')}</Label>
 								<div class="relative">
-									<select
-										id="dest"
-										bind:value={destAccount}
-										class="cn-input w-full appearance-none bg-background pr-8"
-									>
-										<option value="">{t('common.selectWallet')}</option>
-										{#each wallets as w}
-											<option value={w.id}>{w.name} ({w.currency_code})</option>
-										{/each}
-									</select>
+									<Select bind:value={destAccount} id="dest">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		{#each wallets as w}
+<SelectItem value={w.id}>{w.name} ({w.currency_code})</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 									<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 								</div>
 							</div>
@@ -129,16 +126,16 @@
 						<div class="flex flex-col gap-2">
 							<Label for="category">{t('transactions.create.category')}</Label>
 							<div class="relative">
-								<select
-									id="category"
-									bind:value={category}
-									class="cn-input w-full appearance-none bg-background pr-8"
-								>
-									<option value="">{t('common.selectCategory')}</option>
-									{#each categories as cat}
-										<option value={cat.id}>{cat.name}</option>
-									{/each}
-								</select>
+								<Select bind:value={category} id="category">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="">{t('common.selectCategory')}</SelectItem>
+		{#each categories as cat}
+<SelectItem value={cat.id}>{cat.name}</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
@@ -162,18 +159,16 @@
 
 						<div class="flex flex-col gap-2">
 							<Label for="tags">{t('transactions.create.tag')}</Label>
-							<div class="relative">
-								<select
-									id="tags"
-									class="cn-input w-full appearance-none bg-background pr-8"
-								>
-									<option value="">{t('transactions.create.selectTag')}</option>
+							<Select value="">
+								<SelectTrigger class="w-full">
+									{t('transactions.create.selectTag')}
+								</SelectTrigger>
+								<SelectContent>
 									{#each tags as tag}
-										<option value={tag.tag}>{tag.tag}</option>
+										<SelectItem value={tag.tag}>{tag.tag}</SelectItem>
 									{/each}
-								</select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-							</div>
+								</SelectContent>
+								</Select>
 						</div>
 					</div>
 				</div>
@@ -186,6 +181,5 @@
 					<Button type="button" variant="outline" class="flex-1" onclick={() => goto('/transactions')}>{t('common.cancel')}</Button>
 				</div>
 			</form>
-		</CardContent>
-	</Card>
+		</FormCard>
 </div>
