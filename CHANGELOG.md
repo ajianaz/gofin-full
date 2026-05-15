@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **TestLoad_FromEnvVars expected wrong Redis port** — Test asserted `redis-host:6380` but `REDIS_PORT` was not set in that test case, so default `6379` was used. Fixed assertion to match actual default.
+- **TableCell colspan type mismatch (16 svelte-check errors)** — `colspan="N"` passed string to shadcn TableCell which expects `number`. Changed all 16 occurrences to `colspan={N}` across 9 files.
+- **E2E test helper type mismatch (10 svelte-check errors)** — `expectCreated()` manually typed Playwright `Response.body()` as `Promise<string>` but Playwright returns `Promise<Buffer>`. Fixed by using native `Response` type.
+
 ### Documentation
 - **Security docs updated** — Login lockout now documents in-memory fallback when Redis unavailable, rate limiting fallback documented, bcrypt cost corrected from 12 to 10 (matches `bcrypt.DefaultCost`)
 - **Development docs updated** — `npm install` → `bun install`, component library reflects shadcn as primary, branch base corrected to `develop`

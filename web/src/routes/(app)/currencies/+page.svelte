@@ -53,7 +53,7 @@
 				{/each}
 	{:else if errorMsg}
 						<TableRow>
-							<TableCell colspan="5" class="py-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+							<TableCell colspan={5} class="py-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
 						</TableRow>
 					{:else}
 						{#each items as currency}
@@ -66,7 +66,7 @@
 							</TableRow>
 						{:else}
 							<TableRow>
-								<TableCell colspan="5"><EmptyState /></TableCell>
+								<TableCell colspan={5}><EmptyState /></TableCell>
 							</TableRow>
 						{/each}
 					{/if}

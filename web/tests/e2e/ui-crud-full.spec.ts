@@ -1,11 +1,11 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page, type Response } from '@playwright/test';
 
 const BASE = 'https://localhost';
 const TIMESTAMP = Date.now();
 const EMAIL = `e2e-${TIMESTAMP}@example.com`;
 const PASS = 'Password1234!';
 
-async function expectCreated(response: { status(): number; body(): Promise<string> }, label: string) {
+async function expectCreated(response: Response, label: string) {
 	const status = response.status();
 	if (status >= 400) {
 		const body = await response.body().catch(() => new Uint8Array(0));
