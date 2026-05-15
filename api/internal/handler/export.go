@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"bytes"
+"bytes"
 	"time"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -10,8 +11,7 @@ import (
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	"github.com/ajianaz/gofin-full/api/internal/service"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type ExportHandler struct {
 	exportService *service.ExportService
@@ -32,7 +32,8 @@ func (h *ExportHandler) CSV(c *fiber.Ctx) error {
 
 	buf := &bytes.Buffer{}
 	if err := h.exportService.ExportTransactionsCSV(c.Context(), *groupID, buf, filter); err != nil {
-		return apperrors.NewWithDetail(500, "failed to export CSV", err.Error())
+		log.Printf("handler/CSV: failed to export CSV: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	c.Set("Content-Type", "text/csv")
@@ -51,7 +52,8 @@ func (h *ExportHandler) OFX(c *fiber.Ctx) error {
 
 	buf := &bytes.Buffer{}
 	if err := h.exportService.ExportTransactionsOFX(c.Context(), *groupID, buf, filter); err != nil {
-		return apperrors.NewWithDetail(500, "failed to export OFX", err.Error())
+		log.Printf("handler/CSV: failed to export OFX: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	c.Set("Content-Type", "application/x-ofx")
@@ -73,7 +75,8 @@ func (h *ExportHandler) Reconcile(c *fiber.Ctx) error {
 
 	result, err := h.exportService.Reconcile(c.Context(), *groupID, req)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to reconcile", err.Error())
+		log.Printf("handler/CSV: failed to reconcile: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

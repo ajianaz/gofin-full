@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type PreferenceHandler struct {
 	repo *repository.PreferenceRepository
@@ -22,7 +22,8 @@ func (h *PreferenceHandler) Index(c *fiber.Ctx) error {
 
 	prefs, err := h.repo.List(c.Context(), user.ID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list preferences", err.Error())
+		log.Printf("handler/Index: failed to list preferences: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -77,7 +78,8 @@ func (h *PreferenceHandler) Set(c *fiber.Ctx) error {
 
 	p, err := h.repo.Set(c.Context(), user.ID, req.Name, req.Data)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to set preference", err.Error())
+		log.Printf("handler/Index: failed to set preference: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

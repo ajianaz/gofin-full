@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -101,14 +102,98 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	return c.JSON(tokens)
 }
 
-// isAccountLocked checks if an email+IP combination is locked due to too many failed login attempts.
-// Uses email+IP as key to prevent account lockout DoS attacks.
-func (h *AuthHandler) isAccountLocked(ctx context.Context, email, clientIP string) (bool, int) {
-	if h.rdb == nil {
-		return false, 0
+// loginAttemptEntry tracks in-memory login attempt state per key.
+type loginAttemptEntry struct {
+	timestamps []int64
+	mu         sync.Mutex
+}
+
+// loginAttemptStore is a global in-memory store for login attempt tracking,
+// used as fallback when Redis is unavailable.
+var loginAttemptStore sync.Map
+
+// init starts a goroutine to periodically evict stale login attempt entries.
+func init() {
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			now := time.Now().UnixMilli()
+			windowStart := now - loginAttemptWindow.Milliseconds()
+			loginAttemptStore.Range(func(key, val interface{}) bool {
+				entry := val.(*loginAttemptEntry)
+				entry.mu.Lock()
+				valid := entry.timestamps[:0]
+				for _, ts := range entry.timestamps {
+					if ts > windowStart {
+						valid = append(valid, ts)
+					}
+				}
+				stale := len(valid) == 0 && len(entry.timestamps) > 0
+				entry.timestamps = valid
+				entry.mu.Unlock()
+				if stale {
+					loginAttemptStore.Delete(key)
+				}
+				return true
+			})
+		}
+	}()
+}
+
+// memLoginAttemptCheck performs an in-memory sliding window login attempt check.
+// Returns (locked, retryMinutes).
+func memLoginAttemptCheck(key string) (bool, int) {
+	now := time.Now().UnixMilli()
+	windowStart := now - loginAttemptWindow.Milliseconds()
+
+	val, _ := loginAttemptStore.LoadOrStore(key, &loginAttemptEntry{})
+	entry := val.(*loginAttemptEntry)
+
+	entry.mu.Lock()
+	defer entry.mu.Unlock()
+
+	// Remove expired timestamps
+	valid := entry.timestamps[:0]
+	for _, ts := range entry.timestamps {
+		if ts > windowStart {
+			valid = append(valid, ts)
+		}
+	}
+	entry.timestamps = valid
+
+	if len(entry.timestamps) >= loginMaxAttempts {
+		// Calculate retry from oldest attempt in window
+		oldest := entry.timestamps[0]
+		retryMs := (oldest + loginAttemptWindow.Milliseconds()) - now
+		retryMinutes := int(retryMs / 60000)
+		if retryMinutes < 1 {
+			retryMinutes = 1
+		}
+		return true, retryMinutes
 	}
 
+	entry.timestamps = append(entry.timestamps, now)
+	return false, 0
+}
+
+// memClearLoginAttempts clears the in-memory login attempt counter for a key.
+func memClearLoginAttempts(key string) {
+	loginAttemptStore.Delete(key)
+}
+
+// isAccountLocked checks if an email+IP combination is locked due to too many failed login attempts.
+// Uses email+IP as key to prevent account lockout DoS attacks.
+// Falls back to in-memory tracking when Redis is unavailable.
+func (h *AuthHandler) isAccountLocked(ctx context.Context, email, clientIP string) (bool, int) {
 	key := loginAttemptsKeyPrefix + email + ":" + clientIP
+
+	if h.rdb == nil {
+		// In-memory fallback when Redis is unavailable
+		locked, retryMinutes := memLoginAttemptCheck(key)
+		return locked, retryMinutes
+	}
+
 	val, err := h.rdb.Get(ctx, key).Result()
 	if err != nil {
 		return false, 0
@@ -133,11 +218,13 @@ func (h *AuthHandler) isAccountLocked(ctx context.Context, email, clientIP strin
 
 // recordFailedLogin increments the failed login counter for an email+IP combination.
 func (h *AuthHandler) recordFailedLogin(ctx context.Context, email, clientIP string) {
+	key := loginAttemptsKeyPrefix + email + ":" + clientIP
+
 	if h.rdb == nil {
+		// In-memory fallback — attempt was already recorded by isAccountLocked
 		return
 	}
 
-	key := loginAttemptsKeyPrefix + email + ":" + clientIP
 	pipe := h.rdb.Pipeline()
 	pipe.Incr(ctx, key)
 	pipe.Expire(ctx, key, loginLockoutDuration)
@@ -148,11 +235,14 @@ func (h *AuthHandler) recordFailedLogin(ctx context.Context, email, clientIP str
 
 // clearFailedLogins removes the failed login counter for an email+IP after successful login.
 func (h *AuthHandler) clearFailedLogins(ctx context.Context, email, clientIP string) {
+	key := loginAttemptsKeyPrefix + email + ":" + clientIP
+
 	if h.rdb == nil {
+		memClearLoginAttempts(key)
 		return
 	}
 
-	if err := h.rdb.Del(ctx, loginAttemptsKeyPrefix+email+":"+clientIP).Err(); err != nil {
+	if err := h.rdb.Del(ctx, key).Err(); err != nil {
 		log.Printf("login attempt tracking: redis error on clear: %v", err)
 	}
 }

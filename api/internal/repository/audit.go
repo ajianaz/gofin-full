@@ -43,12 +43,12 @@ func (r *AuditRepository) Log(ctx context.Context, userID, groupID uuid.UUID, ac
 func (r *AuditRepository) List(ctx context.Context, groupID uuid.UUID, entityType string, entityID uuid.UUID, limit int) ([]AuditLog, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT a.id, a.user_id, a.user_group_id, a.action, a.entity_type, a.entity_id,
-		        a.old_value, a.new_value, a.ip_address, a.created_at,
-		        COALESCE(u.email, '') as user_email
-			 FROM audit_logs a
-			 LEFT JOIN users u ON u.id = a.user_id
-			 WHERE a.user_group_id = $1 AND ($2 = '' OR a.entity_type = $2) AND ($3 = uuid_nil() OR a.entity_id = $3)
-			 ORDER BY a.created_at DESC LIMIT $4`,
+	        a.old_value, a.new_value, a.ip_address, a.created_at,
+	        COALESCE(u.email, '') as user_email
+		 FROM audit_logs a
+		 LEFT JOIN users u ON u.id = a.user_id
+		 WHERE a.user_group_id = $1 AND ($2 = '' OR a.entity_type = $2) AND ($3 = '00000000-0000-0000-0000-000000000000'::uuid OR a.entity_id = $3)
+		 ORDER BY a.created_at DESC LIMIT $4`,
 		groupID, entityType, entityID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list audit logs: %w", err)

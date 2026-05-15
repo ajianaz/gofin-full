@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Change Password no longer wipes email** — `Update()` method was called with empty string `""` for email when only updating password, causing the user's email to be set to empty string. Added dedicated `UpdatePassword()` method that only updates the password column.
+- **Analytics SpendingByCategory SQL type mismatch** — `COALESCE(c.id, 0)` failed because `c.id` is UUID and `0` is integer. Fixed to use proper nil UUID literal `'00000000-0000-0000-0000-000000000000'::uuid`.
+- **Audit Logs query uses non-existent `uuid_nil()` function** — PostgreSQL doesn't have a `uuid_nil()` function. Replaced with nil UUID literal for entity filtering.
+- **Login lockout disabled when Redis unavailable** — `isAccountLocked()` returned `false` immediately when Redis was nil, completely bypassing login attempt tracking. Added in-memory sliding window fallback using `sync.Map` with periodic eviction goroutine.
+- **44 internal error details leaked to API clients** — `NewWithDetail(500, "msg", err.Error())` exposed database errors, SQL details, and internal stack traces to API responses. Replaced with generic `ErrInternal` responses; error details now logged server-side via `log.Printf()`.
+
 ### Changed
 - **All raw `<table>` elements migrated to shadcn Table** — 11 pages (categories, tags, api-keys, users, audit-log, groups, currencies, exchange-rates, spending-by-period, transactions, wallet members) now use `Table/TableHeader/TableBody/TableRow/TableHead/TableCell` components for consistent styling via `cn-table-*` CSS utilities
 - **Responsive column hiding on mobile** — 8 table pages now hide less-critical columns on small screens using `hidden md:table-cell`: audit-log (changes), users (joined date), categories (transaction count), currencies (decimal places, status), exchange-rates (date), api-keys (created date), tags (date), transactions (category, wallet)

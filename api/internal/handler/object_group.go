@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type ObjectGroupHandler struct {
 	repo *repository.ObjectGroupRepository
@@ -26,7 +26,8 @@ func (h *ObjectGroupHandler) Index(c *fiber.Ctx) error {
 
 	groups, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list object groups", err.Error())
+		log.Printf("handler/Index: failed to list object groups: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -90,7 +91,8 @@ func (h *ObjectGroupHandler) Store(c *fiber.Ctx) error {
 
 	g, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.Order)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create object group", err.Error())
+		log.Printf("handler/Index: failed to create object group: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{

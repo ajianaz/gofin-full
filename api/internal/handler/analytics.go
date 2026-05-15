@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -30,7 +31,8 @@ func (h *AnalyticsHandler) SpendingByCategory(c *fiber.Ctx) error {
 
 	results, err := h.repo.SpendingByCategory(c.Context(), *groupID, start, end)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to get spending by category", err.Error())
+		log.Printf("handler/SpendingByCategory: failed to get spending by category: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -59,7 +61,8 @@ func (h *AnalyticsHandler) SpendingByPeriod(c *fiber.Ctx) error {
 
 	results, err := h.repo.SpendingByPeriod(c.Context(), *groupID, start, end)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to get spending by period", err.Error())
+		log.Printf("handler/SpendingByCategory: failed to get spending by period: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -87,7 +90,8 @@ func (h *AnalyticsHandler) NetWorth(c *fiber.Ctx) error {
 
 	summary, err := h.repo.GetNetWorth(c.Context(), *groupID, start, end)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to get net worth", err.Error())
+		log.Printf("handler/SpendingByCategory: failed to get net worth: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

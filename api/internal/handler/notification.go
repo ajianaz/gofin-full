@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type NotificationHandler struct {
 	repo *repository.NotificationRepository
@@ -22,7 +22,8 @@ func (h *NotificationHandler) Index(c *fiber.Ctx) error {
 
 	notifications, err := h.repo.List(c.Context(), user.ID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list notifications", err.Error())
+		log.Printf("handler/Index: failed to list notifications: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -47,7 +48,8 @@ func (h *NotificationHandler) Unread(c *fiber.Ctx) error {
 
 	notifications, err := h.repo.ListUnread(c.Context(), user.ID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list unread notifications", err.Error())
+		log.Printf("handler/Index: failed to list unread notifications: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -90,7 +92,8 @@ func (h *NotificationHandler) MarkAllRead(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 
 	if err := h.repo.MarkAllRead(c.Context(), user.ID); err != nil {
-		return apperrors.NewWithDetail(500, "failed to mark all notifications as read", err.Error())
+		log.Printf("handler/Index: failed to mark all notifications as read: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

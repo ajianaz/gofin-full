@@ -28,17 +28,18 @@ type CategorySpending struct {
 
 // SpendingByCategory returns spending totals grouped by category for a period.
 func (r *AnalyticsRepository) SpendingByCategory(ctx context.Context, groupID uuid.UUID, start, end time.Time) ([]CategorySpending, error) {
+	uncategorizedID := uuid.MustParse("00000000-0000-0000-0000-000000000000")
 	rows, err := r.db.Query(ctx,
-		`SELECT COALESCE(c.id, 0), COALESCE(c.name, 'Uncategorized'),
-		        COUNT(DISTINCT tj.id), COALESCE(SUM(ABS(t.amount)), 0)
-		 FROM transaction_journals tj
-		 JOIN transactions t ON t.transaction_journal_id = tj.id
-		 LEFT JOIN category_transaction ct ON ct.transaction_journal_id = tj.id
-		 LEFT JOIN categories c ON c.id = ct.category_id
-		 WHERE tj.user_group_id = $1 AND tj.date >= $2 AND tj.date <= $3
-		 GROUP BY c.id, c.name
-		 ORDER BY SUM(ABS(t.amount)) DESC`,
-		groupID, start, end)
+		`SELECT COALESCE(c.id, $4), COALESCE(c.name, 'Uncategorized'),
+	        COUNT(DISTINCT tj.id), COALESCE(SUM(ABS(t.amount)), 0)
+	 FROM transaction_journals tj
+	 JOIN transactions t ON t.transaction_journal_id = tj.id
+	 LEFT JOIN category_transaction ct ON ct.transaction_journal_id = tj.id
+	 LEFT JOIN categories c ON c.id = ct.category_id
+	 WHERE tj.user_group_id = $1 AND tj.date >= $2 AND tj.date <= $3
+	 GROUP BY c.id, c.name
+	 ORDER BY SUM(ABS(t.amount)) DESC`,
+		groupID, start, end, uncategorizedID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get spending by category: %w", err)
 	}

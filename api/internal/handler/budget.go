@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type BudgetHandler struct {
 	repo *repository.BudgetRepository
@@ -26,7 +26,8 @@ func (h *BudgetHandler) Index(c *fiber.Ctx) error {
 
 	budgets, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list budgets", err.Error())
+		log.Printf("handler/Index: failed to list budgets: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -91,7 +92,8 @@ func (h *BudgetHandler) Store(c *fiber.Ctx) error {
 
 	b, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Name, req.Order)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create budget", err.Error())
+		log.Printf("handler/Index: failed to create budget: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{

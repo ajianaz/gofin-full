@@ -1,7 +1,8 @@
 package handler
 
 import (
-	"time"
+"time"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -9,8 +10,7 @@ import (
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type ExchangeRateHandler struct {
 	repo *repository.ExchangeRateRepository
@@ -29,7 +29,8 @@ func (h *ExchangeRateHandler) Index(c *fiber.Ctx) error {
 
 	rates, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list exchange rates", err.Error())
+		log.Printf("handler/Index: failed to list exchange rates: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -80,7 +81,8 @@ func (h *ExchangeRateHandler) Store(c *fiber.Ctx) error {
 
 	er, err := h.repo.Create(c.Context(), user.ID, *groupID, req.FromCurrencyID, req.ToCurrencyID, rate, date)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create exchange rate", err.Error())
+		log.Printf("handler/Index: failed to create exchange rate: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{
@@ -118,7 +120,8 @@ func (h *ExchangeRateHandler) Show(c *fiber.Ctx) error {
 
 	rate, err := h.repo.FindRate(c.Context(), *groupID, from, to, date)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to find exchange rate", err.Error())
+		log.Printf("handler/Index: failed to find exchange rate: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{
