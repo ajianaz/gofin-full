@@ -8,14 +8,18 @@
 	import { categoryService } from '$lib/services/index.js';
 	import type { Category } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { ConfirmDialog } from '$lib/components/shared/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let items = $state<Category[]>([]);
 	let isLoading = $state(true);
 	let errorMsg = $state('');
+	let deleteTarget = $state<string | null>(null);
+	let deleteOpen = $derived(deleteTarget !== null);
 
 	async function handleDelete(id: string) {
-		if (!confirm(t('common.delete') + '?')) return;
 		await categoryService.delete(id);
 		items = items.filter((c) => c.id !== id);
 	}
@@ -57,10 +61,44 @@
 				</thead>
 				<tbody>
 					{#if isLoading}
-					<tr>
-						<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
-					</tr>
-					{:else if errorMsg}
+				{#each Array(5) as _}
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				{/each}
+	{:else if errorMsg}
 					<tr>
 						<td colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</td>
 					</tr>
@@ -75,17 +113,28 @@
 							</td>
 							<td class="p-3 text-muted-foreground">{cat.transaction_count}</td>
 							<td class="p-3">
-								<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(cat.id)}>
+								<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = cat.id)}>
 									<Trash2 class="size-4" />
 								</button>
 							</td>
 						</tr>
 					{:else}
-						<tr><td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td></tr>
+						<tr><td colspan="4"><EmptyState /></td></tr>
 					{/each}
 					{/if}
 				</tbody>
 			</table>
-		</div>
+	<ConfirmDialog
+		bind:open={deleteOpen}
+		title={t('common.delete')}
+		description={t('common.deleteConfirm')}
+		onConfirm={async () => {
+			if (deleteTarget) {
+				await handleDelete(deleteTarget);
+				deleteTarget = null;
+			}
+		}}
+	/>
+</div>
 	</CardContent>
 </Card>

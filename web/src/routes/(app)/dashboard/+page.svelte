@@ -8,6 +8,7 @@
 	import { formatCurrency, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { Account, Transaction, Budget } from '$lib/types/domain.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 
 	const t = localeStore.t;
 
@@ -44,10 +45,28 @@
 <PageHeader title={t('dashboard.title')} />
 
 {#if isLoading}
-	<div class="flex items-center justify-center py-20">
-		<p class="text-muted-foreground">{t('common.loading')}</p>
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+		{#each Array(4) as _}
+			<Card>
+				<CardContent class="p-5">
+					<Skeleton class="mb-2 h-4 w-24" />
+					<Skeleton class="h-8 w-32" />
+				</CardContent>
+			</Card>
+		{/each}
 	</div>
-{:else}
+	<Card class="mt-4">
+		<CardContent class="p-5">
+			<Skeleton class="mb-4 h-5 w-40" />
+				{#each Array(5) as _}
+					<div class="flex items-center justify-between py-2 border-b last:border-b-0">
+						<Skeleton class="h-4 w-32" />
+						<Skeleton class="h-4 w-20" />
+					</div>
+			{/each}
+		</CardContent>
+	</Card>
+	{:else}
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
 		<StatCard title={t('dashboard.totalBalance')} value={formatCurrency(totalBalance.toString())} icon={Wallet} trend={{ value: '+12%', positive: true }} />
 		<StatCard title={t('dashboard.income')} value={formatCurrency(totalIncome.toString())} icon={TrendingUp} trend={{ value: '+5%', positive: true }} />

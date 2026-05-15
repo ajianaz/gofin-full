@@ -9,15 +9,20 @@
 	import type { Bill } from '$lib/types/domain.js';
 	import { formatCurrency, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { ConfirmDialog } from '$lib/components/shared/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let items = $state<Bill[]>([]);
 	let isLoading = $state(true);
 	let errorMsg = $state('');
 	let accountFilter = $state('all');
+	let deleteTarget = $state<string | null>(null);
+	let deleteOpen = $derived(deleteTarget !== null);
 
 	async function handleDelete(id: string) {
-		if (!confirm(t('common.delete') + '?')) return;
 		await billService.delete(id);
 		items = items.filter((b) => b.id !== id);
 	}
@@ -48,13 +53,14 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<div class="relative">
-				<select
-					bind:value={accountFilter}
-					class="cn-input h-9 w-44 appearance-none bg-background pr-8 text-sm"
-				>
-					<option value="all">{t('bills.list.allWallets')}</option>
-					<option value="active">{t('bills.list.activeOnly')}</option>
-				</select>
+				<Select bind:value={accountFilter}>
+		<SelectTrigger class="w-44">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="all">{t('bills.list.allWallets')}</SelectItem>
+		<SelectItem value="active">{t('bills.list.activeOnly')}</SelectItem>
+		</SelectContent>
+</Select>
 				<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 			</div>
 			<Button size="sm" onclick={() => goto('/bills/create')}>
@@ -68,8 +74,23 @@
 		<CardContent class="p-0">
 			<p class="px-5 pt-4 text-[13px] font-normal text-muted-foreground">{t('bills.list.activeList')}</p>
 			{#if isLoading}
-				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</p>
-			{:else if errorMsg}
+<Card>
+		<CardContent class="p-0">
+			{#each Array(5) as _}
+				<div class="flex items-center gap-4 px-5 py-4 border-b">
+					<div class="flex size-10 shrink-0 items-center justify-center rounded-lg"><Skeleton class="size-5 rounded" /></div>
+					<div class="flex flex-col gap-2 min-w-0 flex-1">
+						<Skeleton class="h-4 w-40" />
+						<Skeleton class="h-3 w-24" />
+					</div>
+					<div class="ml-auto text-right">
+						<Skeleton class="h-4 w-20" />
+					</div>
+				</div>
+			{/each}
+		</CardContent>
+	</Card>
+	{:else if errorMsg}
 				<p class="px-5 py-8 text-center text-sm text-destructive">{errorMsg}</p>
 			{:else}
 				{#each filtered as bill}
@@ -91,15 +112,26 @@
 							{:else}
 								<Badge variant="outline" class="text-xs">{t('bills.list.inactive')}</Badge>
 							{/if}
-							<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(bill.id)}>
+							<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = bill.id)}>
 								<Trash2 class="size-4" />
 							</button>
 						</div>
 					</div>
 				{:else}
-					<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+					<EmptyState />
 				{/each}
 			{/if}
 		</CardContent>
 	</Card>
+	<ConfirmDialog
+		bind:open={deleteOpen}
+		title={t('common.delete')}
+		description={t('common.deleteConfirm')}
+		onConfirm={async () => {
+			if (deleteTarget) {
+				await handleDelete(deleteTarget);
+				deleteTarget = null;
+			}
+		}}
+	/>
 </div>

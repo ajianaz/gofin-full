@@ -8,6 +8,7 @@
 	import { ruleService } from '$lib/services/rules.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { RuleGroup, Rule } from '$lib/types/domain.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	const t = localeStore.t;
 
 	let groupId = $derived($page.params.groupId);
@@ -31,7 +32,17 @@
 
 <div class="flex flex-col gap-4">
 	{#if isLoading}
-		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+{#each Array(4) as _}
+			<Card>
+				<CardContent class="p-5">
+					<div class="flex items-center justify-between mb-2">
+						<Skeleton class="h-5 w-40" />
+						<Skeleton class="h-6 w-12 rounded-full" />
+					</div>
+					<Skeleton class="h-4 w-full" />
+				</CardContent>
+			</Card>
+			{/each}
 	{:else if errorMsg}
 		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
 	{:else}

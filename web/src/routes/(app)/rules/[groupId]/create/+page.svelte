@@ -8,6 +8,7 @@
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronDown } from '@lucide/svelte';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
 	const t = localeStore.t;
 
 	let groupId = $derived($page.params.groupId);
@@ -50,24 +51,32 @@
 						<div class="flex flex-col gap-2">
 							<Label for="trigger-type">{t('rules.createRule.triggerType')}</Label>
 							<div class="relative">
-								<select id="trigger-type" bind:value={triggerType} class="cn-input w-full appearance-none bg-background pr-8">
-									<option value="description_contains">{t('rules.createRule.triggerDescContains')}</option>
-									<option value="amount_less_than">{t('rules.createRule.triggerAmountLess')}</option>
-									<option value="amount_greater_than">{t('rules.createRule.triggerAmountGreater')}</option>
-									<option value="deposit">{t('rules.createRule.triggerDeposit')}</option>
-								</select>
+								<Select bind:value={triggerType} id="trigger-type">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="description_contains">{t('rules.createRule.triggerDescContains')}</SelectItem>
+		<SelectItem value="amount_less_than">{t('rules.createRule.triggerAmountLess')}</SelectItem>
+		<SelectItem value="amount_greater_than">{t('rules.createRule.triggerAmountGreater')}</SelectItem>
+		<SelectItem value="deposit">{t('rules.createRule.triggerDeposit')}</SelectItem>
+		</SelectContent>
+</Select>
 								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
 						<div class="flex flex-col gap-2">
 							<Label for="trigger-op">{t('rules.createRule.operator')}</Label>
 							<div class="relative">
-								<select id="trigger-op" bind:value={triggerOperator} class="cn-input w-full appearance-none bg-background pr-8">
-									<option value="contains">{t('rules.createRule.opContains')}</option>
-									<option value="equals">{t('rules.createRule.opEquals')}</option>
-									<option value="starts_with">{t('rules.createRule.opStartsWith')}</option>
-									<option value="ends_with">{t('rules.createRule.opEndsWith')}</option>
-								</select>
+								<Select bind:value={triggerOperator} id="trigger-op">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="contains">{t('rules.createRule.opContains')}</SelectItem>
+		<SelectItem value="equals">{t('rules.createRule.opEquals')}</SelectItem>
+		<SelectItem value="starts_with">{t('rules.createRule.opStartsWith')}</SelectItem>
+		<SelectItem value="ends_with">{t('rules.createRule.opEndsWith')}</SelectItem>
+		</SelectContent>
+</Select>
 								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
@@ -85,12 +94,16 @@
 						<div class="flex flex-col gap-2">
 							<Label for="action-type">{t('rules.createRule.actionType')}</Label>
 							<div class="relative">
-								<select id="action-type" bind:value={actionType} class="cn-input w-full appearance-none bg-background pr-8">
-									<option value="set_category">{t('rules.createRule.actionSetCategory')}</option>
-									<option value="add_tag">{t('rules.createRule.actionAddTag')}</option>
-									<option value="move_to_account">{t('rules.createRule.actionMoveToAccount')}</option>
-									<option value="set_budget">{t('rules.createRule.actionSetBudget')}</option>
-								</select>
+								<Select bind:value={actionType} id="action-type">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="set_category">{t('rules.createRule.actionSetCategory')}</SelectItem>
+		<SelectItem value="add_tag">{t('rules.createRule.actionAddTag')}</SelectItem>
+		<SelectItem value="move_to_account">{t('rules.createRule.actionMoveToAccount')}</SelectItem>
+		<SelectItem value="set_budget">{t('rules.createRule.actionSetBudget')}</SelectItem>
+		</SelectContent>
+</Select>
 								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>

@@ -11,6 +11,7 @@
 	import type { Account } from '$lib/types/domain.js';
 	import type { Category } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
 	const t = localeStore.t;
 
 	let isLoading = $state(false);
@@ -75,16 +76,16 @@
 				<div class="flex flex-col gap-2">
 					<Label for="source">{t('recurring.create.sourceWallet')}</Label>
 					<div class="relative">
-						<select
-							id="source"
-							bind:value={sourceAccount}
-							class="cn-input w-full appearance-none bg-background pr-8"
-						>
-							<option value="">{t('common.selectWallet')}</option>
-							{#each wallets as w}
-								<option value={w.id}>{w.name}</option>
-							{/each}
-						</select>
+						<Select bind:value={sourceAccount} id="source">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		{#each wallets as w}
+<SelectItem value={w.id}>{w.name}</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
@@ -101,49 +102,49 @@
 				<div class="flex flex-col gap-2">
 					<Label for="repeat">{t('recurring.create.repeatType')}</Label>
 					<div class="relative">
-						<select
-							id="repeat"
-							bind:value={repeatFreq}
-							class="cn-input w-full appearance-none bg-background pr-8"
-						>
-							<option value="daily">{t('recurring.list.freqDaily')}</option>
-							<option value="weekly">{t('recurring.list.freqWeekly')}</option>
-							<option value="monthly">{t('recurring.list.freqMonthly')}</option>
-							<option value="quarterly">{t('recurring.list.freqQuarterly')}</option>
-							<option value="yearly">{t('recurring.list.freqYearly')}</option>
-						</select>
+						<Select bind:value={repeatFreq} id="repeat">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="daily">{t('recurring.list.freqDaily')}</SelectItem>
+		<SelectItem value="weekly">{t('recurring.list.freqWeekly')}</SelectItem>
+		<SelectItem value="monthly">{t('recurring.list.freqMonthly')}</SelectItem>
+		<SelectItem value="quarterly">{t('recurring.list.freqQuarterly')}</SelectItem>
+		<SelectItem value="yearly">{t('recurring.list.freqYearly')}</SelectItem>
+		</SelectContent>
+</Select>
 						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
 					<Label for="dest">{t('recurring.create.destWallet')}</Label>
 					<div class="relative">
-						<select
-							id="dest"
-							bind:value={destAccount}
-							class="cn-input w-full appearance-none bg-background pr-8"
-						>
-							<option value="">{t('recurring.create.selectDestWallet')}</option>
-							{#each wallets as w}
-								<option value={w.id}>{w.name}</option>
-							{/each}
-						</select>
+						<Select bind:value={destAccount} id="dest">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="">{t('recurring.create.selectDestWallet')}</SelectItem>
+		{#each wallets as w}
+<SelectItem value={w.id}>{w.name}</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
 					<Label for="category">{t('recurring.create.category')}</Label>
 					<div class="relative">
-						<select
-							id="category"
-							bind:value={categoryId}
-							class="cn-input w-full appearance-none bg-background pr-8"
-						>
-							<option value="">{t('common.selectCategory')}</option>
-							{#each categories as cat}
-								<option value={cat.id}>{cat.name}</option>
-							{/each}
-						</select>
+						<Select bind:value={categoryId} id="category">
+		<SelectTrigger class="w-full">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="">{t('common.selectCategory')}</SelectItem>
+		{#each categories as cat}
+<SelectItem value={cat.id}>{cat.name}</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>

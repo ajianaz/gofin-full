@@ -9,6 +9,10 @@
 	import { formatAmount, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { Transaction, Account, Category } from '$lib/types/domain.js';
+	import { ConfirmDialog } from '$lib/components/shared/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let isLoading = $state(true);
@@ -25,9 +29,10 @@
 
 	const PER_PAGE = 5;
 	let currentPage = $state(1);
+	let deleteTarget = $state<string | null>(null);
+	let deleteOpen = $derived(deleteTarget !== null);
 
 	async function handleDelete(id: string) {
-		if (!confirm(t('common.delete') + '?')) return;
 		await transactionService.delete(id);
 		items = items.filter((t) => t.id !== id);
 	}
@@ -95,7 +100,16 @@
 
 <div class="flex flex-col gap-4">
 	{#if isLoading}
-		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+{#each Array(8) as _}
+				<tr class="border-b hover:bg-muted/30">
+					<td class="p-3 whitespace-nowrap"><Skeleton class="h-4 w-20" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-40" /></td>
+					<td class="p-3 whitespace-nowrap"><Skeleton class="h-4 w-16" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-24" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-24" /></td>
+					<td class="p-3"><Skeleton class="size-4" /></td>
+				</tr>
+			{/each}
 	{:else if errorMsg}
 		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
 	{:else}
@@ -118,52 +132,56 @@
 
 	<div class="flex flex-wrap items-center gap-3">
 		<div class="relative">
-			<select
-				bind:value={typeFilter}
-				class="cn-input h-9 w-40 appearance-none bg-background pr-8 text-sm"
-			>
-				<option value="all">{t('transactions.list.allTypes')}</option>
-				<option value="withdrawal">{t('transactions.list.expense')}</option>
-				<option value="deposit">{t('transactions.list.income')}</option>
-				<option value="transfer">{t('transactions.list.transfer')}</option>
-			</select>
+			<Select bind:value={typeFilter}>
+		<SelectTrigger class="w-40">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="all">{t('transactions.list.allTypes')}</SelectItem>
+		<SelectItem value="withdrawal">{t('transactions.list.expense')}</SelectItem>
+		<SelectItem value="deposit">{t('transactions.list.income')}</SelectItem>
+		<SelectItem value="transfer">{t('transactions.list.transfer')}</SelectItem>
+		</SelectContent>
+</Select>
 			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 		</div>
 		<div class="relative">
-			<select
-				bind:value={accountFilter}
-				class="cn-input h-9 w-44 appearance-none bg-background pr-8 text-sm"
-			>
-				<option value="all">{t('transactions.list.allWallets')}</option>
-				{#each wallets as w}
-					<option value={w.id}>{w.name}</option>
-				{/each}
-			</select>
+			<Select bind:value={accountFilter}>
+		<SelectTrigger class="w-44">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="all">{t('transactions.list.allWallets')}</SelectItem>
+		{#each wallets as w}
+<SelectItem value={w.id}>{w.name}</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 		</div>
 		<div class="relative">
-			<select
-				bind:value={categoryFilter}
-				class="cn-input h-9 w-44 appearance-none bg-background pr-8 text-sm"
-			>
-				<option value="all">{t('transactions.list.allCategories')}</option>
-				{#each categories as cat}
-					<option value={cat.id}>{cat.name}</option>
-				{/each}
-			</select>
+			<Select bind:value={categoryFilter}>
+		<SelectTrigger class="w-44">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="all">{t('transactions.list.allCategories')}</SelectItem>
+		{#each categories as cat}
+<SelectItem value={cat.id}>{cat.name}</SelectItem>
+{/each}
+		</SelectContent>
+</Select>
 			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 		</div>
 		<div class="relative">
-			<select
-				bind:value={periodFilter}
-				class="cn-input h-9 w-44 appearance-none bg-background pr-8 text-sm"
-			>
-				<option value="this_month">{t('transactions.list.thisMonth')}</option>
-				<option value="last_month">{t('transactions.list.lastMonth')}</option>
-				<option value="this_week">{t('transactions.list.thisWeek')}</option>
-				<option value="this_year">{t('transactions.list.thisYear')}</option>
-				<option value="all">{t('transactions.list.allPeriods')}</option>
-			</select>
+			<Select bind:value={periodFilter}>
+		<SelectTrigger class="w-44">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="this_month">{t('transactions.list.thisMonth')}</SelectItem>
+		<SelectItem value="last_month">{t('transactions.list.lastMonth')}</SelectItem>
+		<SelectItem value="this_week">{t('transactions.list.thisWeek')}</SelectItem>
+		<SelectItem value="this_year">{t('transactions.list.thisYear')}</SelectItem>
+		<SelectItem value="all">{t('transactions.list.allPeriods')}</SelectItem>
+		</SelectContent>
+</Select>
 			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 		</div>
 	</div>
@@ -196,13 +214,13 @@
 								<td class="p-3 text-muted-foreground">{tx.category_name || '-'}</td>
 								<td class="p-3 text-muted-foreground">{acctName(tx)}</td>
 								<td class="p-3">
-									<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(tx.id)}>
+									<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = tx.id)}>
 										<Trash2 class="size-4" />
 									</button>
 								</td>
 							</tr>
 						{:else}
-							<tr><td colspan="6" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td></tr>
+							<tr><td colspan="6"><EmptyState /></td></tr>
 						{/each}
 					</tbody>
 				</table>
@@ -231,4 +249,15 @@
 		</CardContent>
 	</Card>
 	{/if}
+	<ConfirmDialog
+		bind:open={deleteOpen}
+		title={t('common.delete')}
+		description={t('common.deleteConfirm')}
+		onConfirm={async () => {
+			if (deleteTarget) {
+				await handleDelete(deleteTarget);
+				deleteTarget = null;
+			}
+		}}
+	/>
 </div>

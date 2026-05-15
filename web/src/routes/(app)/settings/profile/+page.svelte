@@ -7,6 +7,7 @@
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { authService } from '$lib/services/auth.js';
 	import type { User } from '$lib/types/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	const t = localeStore.t;
 
 	let user = $state<User | null>(null);
@@ -107,14 +108,17 @@
 </script>
 
 {#if isLoading}
-	<div class="flex flex-col gap-4">
-		<Card>
-			<CardContent class="py-8">
-				<div class="flex items-center justify-center text-muted-foreground">{t('common.loading')}</div>
-			</CardContent>
-		</Card>
-	</div>
-{:else}
+<Card>
+		<CardContent class="py-8">
+			{#each Array(4) as _}
+				<div class="flex flex-col gap-2 mb-4">
+					<Skeleton class="h-4 w-24" />
+					<Skeleton class="h-9 w-full rounded-md" />
+				</div>
+			{/each}
+		</CardContent>
+	</Card>
+	{:else}
 	<div class="flex flex-col gap-4">
 		<Card>
 			<CardHeader>

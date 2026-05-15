@@ -7,14 +7,18 @@
 	import { ruleService } from '$lib/services/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { RuleGroup } from '$lib/types/domain.js';
+	import { ConfirmDialog } from '$lib/components/shared/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let isLoading = $state(true);
 	let errorMsg = $state('');
+	let deleteTarget = $state<string | null>(null);
+	let deleteOpen = $derived(deleteTarget !== null);
 	let items = $state<RuleGroup[]>([]);
 
 	async function handleDelete(id: string) {
-		if (!confirm(t('common.delete') + '?')) return;
 		await ruleService.deleteGroup(id);
 		items = items.filter((g) => g.id !== id);
 	}
@@ -33,7 +37,17 @@
 
 <div class="flex flex-col gap-4">
 	{#if isLoading}
-		<p class="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+{#each Array(4) as _}
+			<Card>
+				<CardContent class="p-5">
+					<div class="flex items-center justify-between mb-2">
+						<Skeleton class="h-5 w-40" />
+						<Skeleton class="h-6 w-12 rounded-full" />
+					</div>
+					<Skeleton class="h-4 w-full" />
+				</CardContent>
+			</Card>
+			{/each}
 	{:else if errorMsg}
 		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
 	{:else}
@@ -84,9 +98,20 @@
 					</button>
 				</div>
 			{:else}
-				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+				<EmptyState />
 			{/each}
 		</CardContent>
 	</Card>
 	{/if}
+	<ConfirmDialog
+		bind:open={deleteOpen}
+		title={t('common.delete')}
+		description={t('common.deleteConfirm')}
+		onConfirm={async () => {
+			if (deleteTarget) {
+				await handleDelete(deleteTarget);
+				deleteTarget = null;
+			}
+		}}
+	/>
 </div>

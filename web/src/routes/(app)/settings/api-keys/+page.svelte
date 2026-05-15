@@ -7,12 +7,17 @@
 	import { formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { ApiKeyListItem } from '$lib/types/domain.js';
+	import { ConfirmDialog } from '$lib/components/shared/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let apiKeys = $state<ApiKeyListItem[]>([]);
 	let isLoading = $state(true);
 	let errorMsg = $state('');
 	let isCreating = $state(false);
+	let deleteTarget = $state<string | null>(null);
+	let deleteOpen = $derived(deleteTarget !== null);
 	let isDeleting = $state<string | null>(null);
 
 	async function loadApiKeys() {
@@ -46,18 +51,17 @@
 	}
 
 	async function handleDelete(id: string) {
-		if (!confirm(t('common.delete') + '?')) return;
-
+	
 		isDeleting = id;
 		try {
-			await apiKeyService.delete(id);
-			apiKeys = apiKeys.filter((k) => k.id !== id);
-			await loadApiKeys();
+		await apiKeyService.delete(id);
+		apiKeys = apiKeys.filter((k) => k.id !== id);
+		await loadApiKeys();
 		} catch (e) {
-			errorMsg = t('common.errorSave');
-			console.error(e);
+		errorMsg = t('common.errorSave');
+		console.error(e);
 		} finally {
-			isDeleting = null;
+		isDeleting = null;
 		}
 	}
 
@@ -109,12 +113,46 @@
 					</thead>
 					<tbody>
 						{#if isLoading}
+				{#each Array(5) as _}
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				{/each}
+	{:else if apiKeys.length === 0}
 							<tr>
-								<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
-							</tr>
-						{:else if apiKeys.length === 0}
-							<tr>
-								<td colspan="4" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td>
+								<td colspan="4"><EmptyState /></td>
 							</tr>
 						{:else}
 							{#each apiKeys as key (key.id)}
@@ -127,7 +165,7 @@
 											<Button variant="ghost" size="sm" onclick={() => handleCopy(key.key_prefix)}>
 												<Copy class="size-4" />
 											</Button>
-											<Button variant="ghost" size="sm" class="text-destructive" onclick={() => handleDelete(key.id)} disabled={isDeleting === key.id}>
+											<Button variant="ghost" size="sm" class="text-destructive" onclick={() => (deleteTarget = key.id)} disabled={isDeleting === key.id}>
 												<Trash2 class="size-4" />
 											</Button>
 										</div>
@@ -140,4 +178,15 @@
 			</div>
 		</CardContent>
 	</Card>
+	<ConfirmDialog
+		bind:open={deleteOpen}
+		title={t('common.delete')}
+		description={t('common.deleteConfirm')}
+		onConfirm={async () => {
+			if (deleteTarget) {
+				await handleDelete(deleteTarget);
+				deleteTarget = null;
+			}
+		}}
+	/>
 </div>

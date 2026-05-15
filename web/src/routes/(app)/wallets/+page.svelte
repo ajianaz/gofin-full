@@ -7,15 +7,20 @@
 	import { walletService } from '$lib/services/index.js';
 	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { ConfirmDialog } from '$lib/components/shared/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let items = $state<Account[]>([]);
 	let isLoading = $state(true);
 	let errorMsg = $state('');
 	let typeFilter = $state('all');
+	let deleteTarget = $state<string | null>(null);
+	let deleteOpen = $derived(deleteTarget !== null);
 
 	async function handleDelete(id: string) {
-		if (!confirm(t('common.delete') + '?')) return;
 		await walletService.delete(id);
 		items = items.filter((w) => w.id !== id);
 	}
@@ -72,16 +77,17 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<div class="relative">
-				<select
-					bind:value={typeFilter}
-					class="cn-input h-9 w-40 appearance-none bg-background pr-8 text-sm"
-				>
-					<option value="all">{t('wallets.list.allTypes')}</option>
-					<option value="asset">{t('wallets.list.bankAccount')}</option>
-					<option value="cash">{t('wallets.list.cash')}</option>
-					<option value="liability">{t('wallets.list.creditCard')}</option>
-					<option value="expense">{t('wallets.list.ewallet')}</option>
-				</select>
+				<Select bind:value={typeFilter}>
+		<SelectTrigger class="w-40">
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="all">{t('wallets.list.allTypes')}</SelectItem>
+		<SelectItem value="asset">{t('wallets.list.bankAccount')}</SelectItem>
+		<SelectItem value="cash">{t('wallets.list.cash')}</SelectItem>
+		<SelectItem value="liability">{t('wallets.list.creditCard')}</SelectItem>
+		<SelectItem value="expense">{t('wallets.list.ewallet')}</SelectItem>
+		</SelectContent>
+</Select>
 				<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 			</div>
 			<Button size="sm" onclick={() => goto('/wallets/create')}>
@@ -93,20 +99,32 @@
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{#if isLoading}
-			<p class="col-span-full py-8 text-center text-sm text-muted-foreground">{t('common.loading')}</p>
-		{:else if errorMsg}
+{#each Array(6) as _}
+				<div class="rounded-lg border bg-card p-5">
+					<div class="flex items-center justify-between mb-4">
+						<div class="flex items-center gap-2">
+							<Skeleton class="size-[18px] rounded" />
+							<Skeleton class="h-5 w-24" />
+						</div>
+						<Skeleton class="size-4 rounded" />
+					</div>
+					<Skeleton class="mb-1 h-7 w-32" />
+					<Skeleton class="h-3 w-20" />
+				</div>
+			{/each}
+	{:else if errorMsg}
 			<p class="col-span-full text-sm text-destructive py-8 text-center">{errorMsg}</p>
 		{:else}
 			{#each filtered as wallet}
 			{@const Icon = walletIcon(wallet)}
-			<Card class="hover:shadow-md transition-shadow">
+			<Card>
 				<CardContent class="p-5">
 					<div class="flex items-center justify-between mb-4">
 						<div class="flex items-center gap-2">
 							<Icon class="size-[18px] text-primary" />
 							<span class="text-base font-semibold text-foreground">{wallet.name}</span>
 						</div>
-						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => handleDelete(wallet.id)}>
+						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = wallet.id)}>
 							<Trash2 class="size-4" />
 						</button>
 					</div>
@@ -117,8 +135,19 @@
 				</CardContent>
 			</Card>
 			{:else}
-				<p class="col-span-full py-8 text-center text-sm text-muted-foreground">{t('common.noData')}</p>
+				<EmptyState />
 			{/each}
 		{/if}
 	</div>
+	<ConfirmDialog
+		bind:open={deleteOpen}
+		title={t('common.delete')}
+		description={t('common.deleteConfirm')}
+		onConfirm={async () => {
+			if (deleteTarget) {
+				await handleDelete(deleteTarget);
+				deleteTarget = null;
+			}
+		}}
+	/>
 </div>

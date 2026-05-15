@@ -8,6 +8,8 @@
 	import { preferenceService } from '$lib/services/index.js';
 	import type { PreferenceItem } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
 	const t = localeStore.t;
 
 	let preferences = $state<PreferenceItem[]>([]);
@@ -91,11 +93,16 @@
 	<h2 class="text-lg font-semibold text-foreground">{t('settings.preferences.title')}</h2>
 
 	{#if isLoading}
-		<Card>
-			<CardContent class="px-5 py-8 text-center text-sm text-muted-foreground">
-				Loading...
-			</CardContent>
-		</Card>
+<Card>
+		<CardContent class="py-8">
+			{#each Array(4) as _}
+				<div class="flex flex-col gap-2 mb-4">
+					<Skeleton class="h-4 w-24" />
+					<Skeleton class="h-9 w-full rounded-md" />
+				</div>
+			{/each}
+		</CardContent>
+	</Card>
 	{:else if errorMsg}
 		<Card>
 			<CardContent class="px-5 py-8 text-center text-sm text-destructive">
@@ -117,15 +124,18 @@
 							<Checkbox checked={value as boolean} onchange={() => handleCheckboxChange(pref)} />
 						{:else if config.type === 'select' && config.options}
 							<div class="relative">
-								<select
+								<Select
 									value={String(value)}
-									class="cn-input h-9 w-40 appearance-none bg-background pr-8 text-sm"
-								 onchange={(e) => handleSelectChange(pref, (e.target as HTMLSelectElement).value)}
+								onValueChange={(v) => handleSelectChange(pref, v)}
 								>
+								<SelectTrigger class="h-9 w-40">
+								</SelectTrigger>
+								<SelectContent>
 									{#each config.options as opt (opt)}
-										<option value={opt}>{opt}</option>
+										<SelectItem value={opt}>{opt}</SelectItem>
 									{/each}
-								</select>
+								</SelectContent>
+								</Select>
 								<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						{:else if config.type === 'number'}

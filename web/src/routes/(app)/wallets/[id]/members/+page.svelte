@@ -7,6 +7,8 @@
 	import { walletMemberService } from '$lib/services/wallet-members.js';
 	import type { WalletMember } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
 	let walletId = $derived($page.params.id!);
@@ -51,16 +53,40 @@
 				</thead>
 				<tbody>
 					{#if isLoading}
-						<tr>
-							<td colspan="2" class="p-8 text-center text-sm text-muted-foreground">{t('common.loading')}</td>
-						</tr>
-					{:else if errorMsg}
+				{#each Array(5) as _}
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				<tr class="border-b">
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
+				</tr>
+				{/each}
+	{:else if errorMsg}
 						<tr>
 							<td colspan="2" class="p-8 text-center text-sm text-destructive">{errorMsg}</td>
 						</tr>
 					{:else if members.length === 0}
 						<tr>
-							<td colspan="2" class="p-8 text-center text-sm text-muted-foreground">{t('common.noData')}</td>
+							<td colspan="2"><EmptyState /></td>
 						</tr>
 					{:else}
 						{#each members as member}
