@@ -19,7 +19,7 @@ Registration and password change enforce:
 |------------|-------|
 | Minimum length | 8 characters |
 | Character types | At least 3 of 4: uppercase, lowercase, digit, special |
-| Hashing | bcrypt (cost factor 12) |
+| Hashing | bcrypt (cost factor 10) |
 
 ### OAuth2 Providers
 
@@ -35,6 +35,7 @@ Failed login attempts are tracked per **email + IP combination** to prevent brut
 
 - Lockout after configurable failed attempts
 - Separate tracking per email/IP pair (prevents one attacker from locking out all users)
+- **Redis-backed** with automatic **in-memory fallback** when Redis is unavailable (sliding window with periodic cleanup)
 
 ## Request Security
 
@@ -51,7 +52,7 @@ Failed login attempts are tracked per **email + IP combination** to prevent brut
 | `RATE_LIMIT_MAX` | 100 (prod), 20 (selfhost) | Max requests per window |
 | `RATE_LIMIT_WINDOW_SECONDS` | 60 | Window duration in seconds |
 
-Rate limiting uses a sliding window algorithm backed by Redis.
+Rate limiting uses a sliding window algorithm backed by Redis, with automatic in-memory fallback when Redis is unavailable.
 
 ### Request Body Limit
 
