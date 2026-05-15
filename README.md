@@ -4,7 +4,7 @@
 
 [![Documentation](https://img.shields.io/badge/docs-VitePress-blue)](https://ajianaz.github.io/gofin-full/)
 [![Go](https://img.shields.io/badge/Go-1.25-00ADD8)](https://go.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green)](LICENSE)
 
 ## Quick Start
 
@@ -17,6 +17,14 @@ make docker-selfhost
 ```
 
 Open `https://your-domain` — Caddy handles HTTPS automatically.
+
+## Screenshots
+
+<!-- TODO: Add screenshots after first production deployment -->
+<!-- To add: run `make docker-selfhost`, navigate to pages, capture with browser -->
+<!-- Place in docs/public/ as dashboard.png, transactions.png, analytics.png -->
+
+> 📸 Screenshots coming soon. Run `make docker-selfhost` to try it locally!
 
 ## Features
 
@@ -35,7 +43,7 @@ Open `https://your-domain` — Caddy handles HTTPS automatically.
 | Layer | Technology |
 |-------|-----------|
 | Backend | Go 1.25, Fiber v2, PostgreSQL 17, Redis 7 |
-| Frontend | SvelteKit 5, Svelte 5, Tailwind CSS 4, shadcn-svelte |
+| Frontend | SvelteKit 5, Tailwind CSS 4, shadcn-svelte |
 | Auth | JWT, OAuth2 (Google, GitHub), Keycloak OIDC |
 | Deploy | Docker Compose, Caddy (auto-HTTPS) |
 
@@ -50,7 +58,7 @@ Open `https://your-domain` — Caddy handles HTTPS automatically.
 - [Deployment](https://ajianaz.github.io/gofin-full/deployment) — Production deployment guide
 - [Security](https://ajianaz.github.io/gofin-full/security) — Security features & hardening
 - [RBAC](https://ajianaz.github.io/gofin-full/rbac) — Permission system explained
-- [API Reference](https://ajianaz.github.io/gofin-full/api/) — OpenAPI 3.0 specification
+- [API Reference](https://ajianaz.github.io/gofin-full/api/) — OpenAPI 3.0 specification (135 endpoints)
 
 ## Project Structure
 
@@ -84,6 +92,10 @@ make test-integration
 
 See the [Development Guide](https://ajianaz.github.io/gofin-full/development) for full details.
 
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
 ## License
 
-[MIT](LICENSE)
+[Apache-2.0](LICENSE)

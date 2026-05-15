@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **CONTRIBUTING.md** — Contribution guidelines covering setup, code style, testing, commit conventions, and PR workflow
+
+### Changed
+- **README improvements** — Fixed license badge (Apache-2.0, not MIT), removed duplicate "Svelte 5" in tech stack, added endpoint count to API reference link, added contributing link, added screenshots placeholder section
+
 ### Fixed
 - **TestLoad_FromEnvVars expected wrong Redis port** — Test asserted `redis-host:6380` but `REDIS_PORT` was not set in that test case, so default `6379` was used. Fixed assertion to match actual default.
 - **TableCell colspan type mismatch (16 svelte-check errors)** — `colspan="N"` passed string to shadcn TableCell which expects `number`. Changed all 16 occurrences to `colspan={N}` across 9 files.
