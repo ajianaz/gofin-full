@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Documentation
 - **Security docs updated** — Login lockout now documents in-memory fallback when Redis unavailable, rate limiting fallback documented, bcrypt cost corrected from 12 to 10 (matches `bcrypt.DefaultCost`)
+- **Development docs updated** — `npm install` → `bun install`, component library reflects shadcn as primary, branch base corrected to `develop`
 
 ### Fixed
 - **Change Password no longer wipes email** — `Update()` method was called with empty string `""` for email when only updating password, causing the user's email to be set to empty string. Added dedicated `UpdatePassword()` method that only updates the password column.

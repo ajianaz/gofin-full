@@ -23,7 +23,7 @@ cd gofin-full
 cd api && go mod download && cd ..
 
 # Frontend dependencies
-cd web && npm install && cd ..
+cd web && bun install && cd ..
 ```
 
 ### 2. Start infrastructure
@@ -145,12 +145,10 @@ DB_HOST=localhost DB_DATABASE=gofin DB_USERNAME=gofin DB_PASSWORD=gofin \
 
 ### Component Library
 
-Two component libraries coexist:
-
 | Path | Usage |
 |------|-------|
-| `src/lib/components/ui/` | Custom components (brand pages, dark mode) |
-| `src/lib/components/ui/shadcn/` | shadcn-svelte components (admin pages) |
+| `src/lib/components/ui/shadcn/` | shadcn-svelte components — **primary** for all pages (Table, Dialog, Select, Button, etc.) |
+| `src/lib/components/ui/` | Custom components (EmptyState, ConfirmDialog, FormCard, dark mode) |
 
 ### Adding a Page
 
@@ -190,7 +188,7 @@ Each file exports an object with key-value pairs. The active locale is stored in
 
 ## Git Workflow
 
-1. Create a branch from `main`: `git checkout -b feat/my-feature`
+1. Create a branch from `develop`: `git checkout -b feat/my-feature`
 2. Make changes with atomic commits
 3. Run tests locally before pushing
 4. Create a Pull Request
