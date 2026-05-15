@@ -56,7 +56,8 @@ func (h *TransactionHandler) Index(c *fiber.Ctx) error {
 
 	groups, total, err := h.txRepo.ListGroups(c.Context(), *groupID, filter)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list transactions", err.Error())
+		log.Printf("handler/Index: failed to list transactions: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map

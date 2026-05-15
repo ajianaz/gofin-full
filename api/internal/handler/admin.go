@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"strings"
+"strings"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type AdminHandler struct {
 	userRepo   *repository.UserRepository
@@ -48,7 +48,8 @@ func (h *AdminHandler) ListUsers(c *fiber.Ctx) error {
 
 	users, err := h.userRepo.ListAll(c.Context())
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list users", err.Error())
+		log.Printf("handler/requireAdmin: failed to list users: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -175,7 +176,8 @@ func (h *AdminHandler) SetFeatureFlag(c *fiber.Ctx) error {
 
 	_, err := h.configRepo.Set(c.Context(), "feature_"+req.Flag, req.Value)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to set feature flag", err.Error())
+		log.Printf("handler/requireAdmin: failed to set feature flag: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

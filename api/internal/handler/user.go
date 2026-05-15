@@ -68,7 +68,7 @@ func (h *UserHandler) ChangePassword(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
-	if err := h.repo.Update(c.Context(), user.ID, "", hash); err != nil {
+	if err := h.repo.UpdatePassword(c.Context(), user.ID, hash); err != nil {
 		return apperrors.ErrInternal
 	}
 

@@ -1,15 +1,15 @@
 package handler
 
 import (
-	"time"
+"time"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type TagHandler struct {
 	repo *repository.TagRepository
@@ -28,7 +28,8 @@ func (h *TagHandler) Index(c *fiber.Ctx) error {
 
 	tags, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list tags", err.Error())
+		log.Printf("handler/Index: failed to list tags: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -86,7 +87,8 @@ func (h *TagHandler) Store(c *fiber.Ctx) error {
 
 	t, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Tag, req.Date)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create tag", err.Error())
+		log.Printf("handler/Index: failed to create tag: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{

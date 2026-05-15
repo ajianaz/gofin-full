@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type WalletMemberHandler struct {
 	memberRepo *repository.WalletMemberRepository
@@ -29,7 +29,8 @@ func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
 	// Verify the requesting user is a member (or owner) of this wallet
 	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to check wallet ownership", err.Error())
+		log.Printf("handler/Index: failed to check wallet ownership: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	if !isOwner {
@@ -41,7 +42,8 @@ func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
 
 	members, err := h.memberRepo.ListByWallet(c.Context(), walletID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list wallet members", err.Error())
+		log.Printf("handler/Index: failed to list wallet members: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -92,7 +94,8 @@ func (h *WalletMemberHandler) Store(c *fiber.Ctx) error {
 
 	m, err := h.memberRepo.AddMember(c.Context(), walletID, req.UserID, req.Role)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to add wallet member", err.Error())
+		log.Printf("handler/Index: failed to add wallet member: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{
@@ -163,7 +166,8 @@ func (h *WalletMemberHandler) Delete(c *fiber.Ctx) error {
 	}
 
 	if err := h.memberRepo.RemoveMember(c.Context(), walletID, userID); err != nil {
-		return apperrors.NewWithDetail(500, "failed to remove wallet member", err.Error())
+		log.Printf("handler/Index: failed to remove wallet member: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	_ = h.userRepo.IncrementTokenVersion(c.Context(), userID)

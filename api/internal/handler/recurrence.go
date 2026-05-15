@@ -1,7 +1,8 @@
 package handler
 
 import (
-	"time"
+"time"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -9,8 +10,7 @@ import (
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/domain"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type RecurrenceHandler struct {
 	repo *repository.RecurrenceRepository
@@ -29,7 +29,8 @@ func (h *RecurrenceHandler) Index(c *fiber.Ctx) error {
 
 	recurrences, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list recurrences", err.Error())
+		log.Printf("handler/Index: failed to list recurrences: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -101,7 +102,8 @@ func (h *RecurrenceHandler) Store(c *fiber.Ctx) error {
 
 	rec, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.FirstDate, req.RepeatFreq)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create recurrence", err.Error())
+		log.Printf("handler/Index: failed to create recurrence: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	// Add transaction templates

@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type ConfigurationHandler struct {
 	repo *repository.ConfigurationRepository
@@ -22,7 +22,8 @@ func (h *ConfigurationHandler) Index(c *fiber.Ctx) error {
 
 	configs, err := h.repo.List(c.Context())
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list configurations", err.Error())
+		log.Printf("handler/Index: failed to list configurations: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -77,7 +78,8 @@ func (h *ConfigurationHandler) Set(c *fiber.Ctx) error {
 
 	cfg, err := h.repo.Set(c.Context(), req.Name, req.Value)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to set configuration", err.Error())
+		log.Printf("handler/Index: failed to set configuration: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.JSON(fiber.Map{"data": fiber.Map{

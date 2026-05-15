@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type LocationHandler struct {
 	repo *repository.LocationRepository
@@ -86,7 +86,8 @@ func (h *LocationHandler) Store(c *fiber.Ctx) error {
 
 	loc, err := h.repo.Set(c.Context(), user.ID, *groupID, req.LocatableType, req.LocatableID, req.Latitude, req.Longitude, req.ZoomLevel)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to set location", err.Error())
+		log.Printf("handler/Show: failed to set location: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{

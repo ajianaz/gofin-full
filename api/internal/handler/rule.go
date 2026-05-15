@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/domain"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type RuleGroupHandler struct {
 	repo *repository.RuleGroupRepository
@@ -27,7 +27,8 @@ func (h *RuleGroupHandler) Index(c *fiber.Ctx) error {
 
 	groups, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list rule groups", err.Error())
+		log.Printf("handler/Index: failed to list rule groups: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -60,7 +61,8 @@ func (h *RuleGroupHandler) Store(c *fiber.Ctx) error {
 
 	g, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.Order)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create rule group", err.Error())
+		log.Printf("handler/Index: failed to create rule group: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{
@@ -159,7 +161,8 @@ func (h *RuleHandler) Index(c *fiber.Ctx) error {
 
 	rules, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list rules", err.Error())
+		log.Printf("handler/Index: failed to list rules: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -218,7 +221,8 @@ func (h *RuleHandler) Store(c *fiber.Ctx) error {
 
 	rule, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.Priority, req.RuleGroupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create rule", err.Error())
+		log.Printf("handler/Index: failed to create rule: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	if len(req.Triggers) > 0 {

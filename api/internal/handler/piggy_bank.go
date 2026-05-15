@@ -43,7 +43,8 @@ func (h *PiggyBankHandler) Index(c *fiber.Ctx) error {
 
 	pbs, err := h.repo.List(c.Context(), accountID, groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list piggy banks", err.Error())
+		log.Printf("handler/Index: failed to list piggy banks: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map
@@ -131,7 +132,8 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 
 	pb, err = h.repo.Create(c.Context(), pb, groupID)
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to create piggy bank", err.Error())
+		log.Printf("handler/Index: failed to create piggy bank: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{

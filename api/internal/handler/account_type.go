@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+"github.com/gofiber/fiber/v2"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-)
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type AccountTypeHandler struct {
 	repo *repository.AccountTypeRepository
@@ -21,7 +21,8 @@ func (h *AccountTypeHandler) Index(c *fiber.Ctx) error {
 
 	types, err := h.repo.List(c.Context())
 	if err != nil {
-		return apperrors.NewWithDetail(500, "failed to list wallet types", err.Error())
+		log.Printf("handler/Index: failed to list wallet types: %v", err)
+		return apperrors.ErrInternal
 	}
 
 	var data []fiber.Map

@@ -148,6 +148,15 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 	return &u, nil
 }
 
+// UpdatePassword updates only the user's password hash.
+func (r *UserRepository) UpdatePassword(ctx context.Context, id uuid.UUID, password string) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE users SET password = $1, updated_at = $2 WHERE id = $3 AND deleted_at IS NULL`,
+		password, time.Now().UTC(), id,
+	)
+	return err
+}
+
 // Update updates user fields.
 func (r *UserRepository) Update(ctx context.Context, id uuid.UUID, email, password string) error {
 	if password != "" {
