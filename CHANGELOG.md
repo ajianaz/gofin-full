@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Documentation
+- **Security docs updated** — Login lockout now documents in-memory fallback when Redis unavailable, rate limiting fallback documented, bcrypt cost corrected from 12 to 10 (matches `bcrypt.DefaultCost`)
+
 ### Fixed
 - **Change Password no longer wipes email** — `Update()` method was called with empty string `""` for email when only updating password, causing the user's email to be set to empty string. Added dedicated `UpdatePassword()` method that only updates the password column.
 - **Analytics SpendingByCategory SQL type mismatch** — `COALESCE(c.id, 0)` failed because `c.id` is UUID and `0` is integer. Fixed to use proper nil UUID literal `'00000000-0000-0000-0000-000000000000'::uuid`.
