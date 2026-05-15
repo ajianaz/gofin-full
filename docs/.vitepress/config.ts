@@ -6,14 +6,14 @@ export default defineConfig({
   lang: 'en',
   base: '/gofin-full/',
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/gofin-full/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
     ['meta', { name: 'theme-color', content: '#0f172a' }],
     ['meta', { name: 'og:type', content: 'website' }],
     ['meta', { name: 'og:title', content: 'Gofin — Self-Hosted Finance Tracker' }],
     ['meta', { name: 'og:description', content: 'Track wallets, transactions, budgets, and more. Self-hosted with Docker.' }],
   ],
   themeConfig: {
-    logo: '/gofin-full/logo.svg',
+    logo: '/logo.svg',
     nav: [
       { text: 'Docs', link: '/getting-started', activeMatch: '/getting-started|/features|/architecture|/configuration|/rbac|/security' },
       { text: 'Deployment', link: '/deployment' },
