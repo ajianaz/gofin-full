@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PageHeader, StatusBadge } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { adminService } from '$lib/services/index.js';
 	import { formatDate } from '$lib/utils/format.js';
@@ -45,84 +46,49 @@
 
 <Card>
 	<CardContent class="p-0">
-		<div class="overflow-x-auto">
-			<table class="w-full text-sm">
-				<thead>
-					<tr class="border-b bg-muted/50">
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('admin.users.email')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('admin.users.name')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('admin.users.role')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('common.status')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('admin.users.joined')}</th>
-					</tr>
-				</thead>
-				<tbody>
+		<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>{t('admin.users.email')}</TableHead>
+						<TableHead>{t('admin.users.name')}</TableHead>
+						<TableHead>{t('admin.users.role')}</TableHead>
+						<TableHead class="hidden md:table-cell">{t('common.status')}</TableHead>
+						<TableHead>{t('admin.users.joined')}</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
 					{#if isLoading}
 				{#each Array(5) as _}
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
+<TableRow>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell class="hidden md:table-cell"><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+				</TableRow>
 				{/each}
 	{:else if errorMsg}
-						<tr>
-							<td colspan="5" class="py-8 text-center text-sm text-destructive">{errorMsg}</td>
-						</tr>
+						<TableRow>
+							<TableCell colspan="5" class="py-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+						</TableRow>
 					{:else}
 						{#each users as user}
-							<tr class="border-b hover:bg-muted/30">
-								<td class="p-3 text-foreground">{user.email}</td>
-								<td class="p-3 font-medium text-foreground">{user.name}</td>
-								<td class="p-3">
+							<TableRow>
+								<TableCell class="text-foreground">{user.email}</TableCell>
+								<TableCell class="font-medium text-foreground">{user.name}</TableCell>
+								<TableCell>
 									<Badge variant="outline">{roleLabels[user.role] ?? user.role}</Badge>
-								</td>
-								<td class="p-3"><StatusBadge status={user.is_active ? 'active' : 'inactive'} /></td>
-								<td class="p-3 text-muted-foreground">{formatDate(user.created_at)}</td>
-							</tr>
+								</TableCell>
+								<TableCell class="hidden md:table-cell"><StatusBadge status={user.is_active ? 'active' : 'inactive'} /></TableCell>
+								<TableCell class="text-muted-foreground">{formatDate(user.created_at)}</TableCell>
+							</TableRow>
 						{:else}
-							<tr>
-								<td colspan="5"><EmptyState /></td>
-							</tr>
+							<TableRow>
+								<TableCell colspan="5"><EmptyState /></TableCell>
+							</TableRow>
 						{/each}
 					{/if}
-				</tbody>
-			</table>
-		</div>
+				</TableBody>
+			</Table>
 	</CardContent>
 </Card>

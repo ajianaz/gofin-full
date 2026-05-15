@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PageHeader, StatusBadge } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { currencyService } from '$lib/services/index.js';
 	import type { Currency } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -29,83 +30,48 @@
 
 <Card>
 	<CardContent class="p-0">
-		<div class="overflow-x-auto">
-			<table class="w-full text-sm">
-				<thead>
-					<tr class="border-b bg-muted/50">
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('currencies.code')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('currencies.name')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('currencies.symbol')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('currencies.decimalPlaces')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('common.status')}</th>
-					</tr>
-				</thead>
-				<tbody>
+		<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>{t('currencies.code')}</TableHead>
+						<TableHead>{t('currencies.name')}</TableHead>
+						<TableHead class="hidden md:table-cell">{t('currencies.symbol')}</TableHead>
+						<TableHead>{t('currencies.decimalPlaces')}</TableHead>
+						<TableHead class="hidden md:table-cell">{t('common.status')}</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
 					{#if isLoading}
 				{#each Array(5) as _}
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
+<TableRow>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell class="hidden md:table-cell"><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell class="hidden md:table-cell"><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+				</TableRow>
 				{/each}
 	{:else if errorMsg}
-						<tr>
-							<td colspan="5" class="py-8 text-center text-sm text-destructive">{errorMsg}</td>
-						</tr>
+						<TableRow>
+							<TableCell colspan="5" class="py-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+						</TableRow>
 					{:else}
 						{#each items as currency}
-							<tr class="border-b hover:bg-muted/30">
-								<td class="p-3 font-mono font-medium text-foreground">{currency.code}</td>
-								<td class="p-3 text-foreground">{currency.name}</td>
-								<td class="p-3 text-muted-foreground">{currency.symbol}</td>
-								<td class="p-3 text-muted-foreground">{currency.decimal_places}</td>
-								<td class="p-3"><StatusBadge status={currency.enabled ? 'active' : 'inactive'} /></td>
-							</tr>
+							<TableRow>
+								<TableCell class="font-mono font-medium text-foreground">{currency.code}</TableCell>
+								<TableCell class="text-foreground">{currency.name}</TableCell>
+								<TableCell class="hidden md:table-cell text-muted-foreground">{currency.symbol}</TableCell>
+								<TableCell class="text-muted-foreground">{currency.decimal_places}</TableCell>
+								<TableCell><StatusBadge status={currency.enabled ? 'active' : 'inactive'} /></TableCell>
+							</TableRow>
 						{:else}
-							<tr>
-								<td colspan="5"><EmptyState /></td>
-							</tr>
+							<TableRow>
+								<TableCell colspan="5"><EmptyState /></TableCell>
+							</TableRow>
 						{/each}
 					{/if}
-				</tbody>
-			</table>
-		</div>
+				</TableBody>
+			</Table>
 	</CardContent>
 </Card>
 

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PageHeader } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Plus, Trash2 } from '@lucide/svelte';
@@ -50,77 +51,47 @@
 
 <Card>
 	<CardContent class="p-0">
-		<div class="overflow-x-auto">
-			<table class="w-full text-sm">
-				<thead>
-					<tr class="border-b bg-muted/50">
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('tags.list.colTag')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('tags.list.colDescription')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('tags.list.colDate')}</th>
-						<th class="w-[50px] p-3"></th>
-					</tr>
-				</thead>
-				<tbody>
+		<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>{t('tags.list.colTag')}</TableHead>
+						<TableHead>{t('tags.list.colDescription')}</TableHead>
+						<TableHead class="hidden md:table-cell">{t('tags.list.colDate')}</TableHead>
+						<TableHead class="w-[50px]"></TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
 					{#if isLoading}
 				{#each Array(5) as _}
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
+<TableRow>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell class="hidden md:table-cell"><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+				</TableRow>
 				{/each}
 	{:else if errorMsg}
-						<tr>
-							<td colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</td>
-						</tr>
+						<TableRow>
+							<TableCell colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+						</TableRow>
 					{:else}
 					{#each items as tag}
-						<tr class="border-b hover:bg-muted/30">
-							<td class="p-3"><Badge variant="secondary">#{tag.tag}</Badge></td>
-							<td class="p-3 text-muted-foreground">{tag.description ?? '-'}</td>
-							<td class="p-3 text-muted-foreground">{formatDate(tag.date)}</td>
-							<td class="p-3">
+						<TableRow>
+							<TableCell><Badge variant="secondary">#{tag.tag}</Badge></TableCell>
+							<TableCell class="text-muted-foreground">{tag.description ?? '-'}</TableCell>
+							<TableCell class="hidden md:table-cell text-muted-foreground">{formatDate(tag.date)}</TableCell>
+							<TableCell>
 								<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = tag.id)}>
 									<Trash2 class="size-4" />
 								</button>
-							</td>
-						</tr>
+							</TableCell>
+						</TableRow>
 					{:else}
-						<tr><td colspan="4"><EmptyState /></td></tr>
+						<TableRow><TableCell colspan="4"><EmptyState /></TableCell></TableRow>
 					{/each}
 					{/if}
-				</tbody>
-			</table>
+				</TableBody>
+			</Table>
 	<ConfirmDialog
 		bind:open={deleteOpen}
 		title={t('common.delete')}
@@ -132,6 +103,5 @@
 			}
 		}}
 	/>
-</div>
 	</CardContent>
 </Card>

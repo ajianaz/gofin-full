@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { BackButton } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { walletMemberService } from '$lib/services/wallet-members.js';
 	import type { WalletMember } from '$lib/types/domain.js';
@@ -43,65 +44,42 @@
 
 <Card>
 	<CardContent class="p-0">
-		<div class="overflow-x-auto">
-			<table class="w-full text-sm">
-				<thead>
-					<tr class="border-b bg-muted/50">
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('wallets.members.role')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('wallets.members.name')}</th>
-					</tr>
-				</thead>
-				<tbody>
+		<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>{t('wallets.members.role')}</TableHead>
+						<TableHead>{t('wallets.members.name')}</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
 					{#if isLoading}
 				{#each Array(5) as _}
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
+<TableRow>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+				</TableRow>
 				{/each}
 	{:else if errorMsg}
-						<tr>
-							<td colspan="2" class="p-8 text-center text-sm text-destructive">{errorMsg}</td>
-						</tr>
+						<TableRow>
+							<TableCell colspan="2" class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+						</TableRow>
 					{:else if members.length === 0}
-						<tr>
-							<td colspan="2"><EmptyState /></td>
-						</tr>
+						<TableRow>
+							<TableCell colspan="2"><EmptyState /></TableCell>
+						</TableRow>
 					{:else}
 						{#each members as member}
-							<tr class="border-b hover:bg-muted/30">
-								<td class="p-3">
+							<TableRow>
+								<TableCell>
 									<Badge variant={roleVariant(member.role)}>
 										{member.role}
 									</Badge>
-								</td>
-								<td class="p-3 font-mono text-muted-foreground">{member.user_id}</td>
-							</tr>
+								</TableCell>
+								<TableCell class="font-mono text-muted-foreground">{member.user_id}</TableCell>
+							</TableRow>
 						{/each}
 					{/if}
-				</tbody>
-			</table>
-		</div>
+				</TableBody>
+			</Table>
 	</CardContent>
 </Card>

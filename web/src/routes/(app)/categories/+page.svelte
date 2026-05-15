@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PageHeader } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Plus, Trash2 } from '@lucide/svelte';
@@ -49,81 +50,51 @@
 
 <Card>
 	<CardContent class="p-0">
-		<div class="overflow-x-auto">
-			<table class="w-full text-sm">
-				<thead>
-					<tr class="border-b bg-muted/50">
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colName')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colType')}</th>
-						<th class="text-left p-3 font-medium text-muted-foreground">{t('categories.list.colTransactions')}</th>
-						<th class="w-[50px] p-3"></th>
-					</tr>
-				</thead>
-				<tbody>
+		<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>{t('categories.list.colName')}</TableHead>
+						<TableHead>{t('categories.list.colType')}</TableHead>
+						<TableHead class="hidden md:table-cell">{t('categories.list.colTransactions')}</TableHead>
+						<TableHead class="w-[50px]"></TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
 					{#if isLoading}
 				{#each Array(5) as _}
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
-				<tr class="border-b">
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-full" /></td>
-				</tr>
+<TableRow>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell class="hidden md:table-cell"><Skeleton class="h-4 w-full" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-full" /></TableCell>
+				</TableRow>
 				{/each}
 	{:else if errorMsg}
-					<tr>
-						<td colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</td>
-					</tr>
+					<TableRow>
+						<TableCell colspan="4" class="p-8 text-center text-sm text-destructive">{errorMsg}</TableCell>
+					</TableRow>
 					{:else}
 					{#each items as cat}
-						<tr class="border-b hover:bg-muted/30">
-							<td class="p-3 font-medium text-foreground">{cat.name}</td>
-							<td class="p-3">
+						<TableRow>
+							<TableCell class="font-medium text-foreground">{cat.name}</TableCell>
+							<TableCell>
 								<Badge variant={cat.type === 'income' ? 'default' : 'secondary'}>
 									{cat.type === 'expense' ? t('categories.list.expense') : cat.type === 'income' ? t('categories.list.income') : t('categories.list.transfer')}
 								</Badge>
-							</td>
-							<td class="p-3 text-muted-foreground">{cat.transaction_count}</td>
-							<td class="p-3">
+							</TableCell>
+							<TableCell class="hidden md:table-cell text-muted-foreground">{cat.transaction_count}</TableCell>
+							<TableCell>
 								<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = cat.id)}>
 									<Trash2 class="size-4" />
 								</button>
-							</td>
-						</tr>
+							</TableCell>
+						</TableRow>
 					{:else}
-						<tr><td colspan="4"><EmptyState /></td></tr>
+						<TableRow><TableCell colspan="4"><EmptyState /></TableCell></TableRow>
 					{/each}
 					{/if}
-				</tbody>
-			</table>
+				</TableBody>
+			</Table>
 	<ConfirmDialog
 		bind:open={deleteOpen}
 		title={t('common.delete')}
@@ -135,6 +106,5 @@
 			}
 		}}
 	/>
-</div>
 	</CardContent>
 </Card>

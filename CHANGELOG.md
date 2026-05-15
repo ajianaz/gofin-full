@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Changed
+- **All raw `<table>` elements migrated to shadcn Table** — 11 pages (categories, tags, api-keys, users, audit-log, groups, currencies, exchange-rates, spending-by-period, transactions, wallet members) now use `Table/TableHeader/TableBody/TableRow/TableHead/TableCell` components for consistent styling via `cn-table-*` CSS utilities
+- **Responsive column hiding on mobile** — 8 table pages now hide less-critical columns on small screens using `hidden md:table-cell`: audit-log (changes), users (joined date), categories (transaction count), currencies (decimal places, status), exchange-rates (date), api-keys (created date), tags (date), transactions (category, wallet)
+- **Skeleton row duplication bug fixed** — categories, audit-log, users, currencies, groups, api-keys, tags, wallet-members pages had duplicated skeleton rows rendering 25+ rows instead of 5; fixed to render correct count
+- **Redundant CSS classes cleaned from Table components** — removed hardcoded `font-medium`, `text-muted-foreground`, `p-3`, `text-left` from `<TableHead>` and `p-3` from `<TableCell>` (already handled by `cn-table-head` and `cn-table-cell` utilities)
+- **Stale `overflow-x-auto` wrappers removed** — shadcn `Table` component includes `cn-table-container` with built-in horizontal scroll, making manual wrappers redundant
 - **ConfirmDialog replaces all `window.confirm()` calls** — 10 list pages (bills, budgets, categories, piggy-banks, recurring, rules, api-keys, tags, transactions, wallets) now use shadcn AlertDialog-based `ConfirmDialog` for delete confirmation, providing consistent UX and non-blocking UI
 - **Skeleton loading states on all list pages** — 20 pages now show animated skeleton placeholders instead of "Loading..." text: 8 table pages (categories, tags, api-keys, users, audit-log, groups, currencies, wallet members), 2 card grid pages (wallets, budgets), 3 list card pages (bills, piggy-banks, recurring), 1 transaction table page, 2 rule card pages, 1 dashboard page, 2 settings pages (preferences, profile), 1 exchange-rates page
 - **All raw `<select>` elements migrated to shadcn Select** — 26 selects across 12 pages now use `Select/SelectTrigger/SelectContent/SelectItem` components for consistent styling, keyboard navigation, and accessibility

@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from '@lucide/svelte';
@@ -101,14 +102,14 @@
 <div class="flex flex-col gap-4">
 	{#if isLoading}
 {#each Array(8) as _}
-				<tr class="border-b hover:bg-muted/30">
-					<td class="p-3 whitespace-nowrap"><Skeleton class="h-4 w-20" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-40" /></td>
-					<td class="p-3 whitespace-nowrap"><Skeleton class="h-4 w-16" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-24" /></td>
-					<td class="p-3"><Skeleton class="h-4 w-24" /></td>
-					<td class="p-3"><Skeleton class="size-4" /></td>
-				</tr>
+				<TableRow>
+					<TableCell class="whitespace-nowrap"><Skeleton class="h-4 w-20" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-40" /></TableCell>
+					<TableCell class="whitespace-nowrap"><Skeleton class="h-4 w-16" /></TableCell>
+					<TableCell class="hidden md:table-cell"><Skeleton class="h-4 w-24" /></TableCell>
+					<TableCell><Skeleton class="h-4 w-24" /></TableCell>
+					<TableCell><Skeleton class="size-4" /></TableCell>
+				</TableRow>
 			{/each}
 	{:else if errorMsg}
 		<p class="text-sm text-destructive py-8 text-center">{errorMsg}</p>
@@ -191,40 +192,38 @@
 			<CardTitle class="text-base">{t('transactions.list.history')}</CardTitle>
 		</CardHeader>
 		<CardContent class="p-0">
-			<div class="overflow-x-auto">
-				<table class="w-full text-sm">
-					<thead>
-						<tr class="border-b bg-muted/50">
-							<th class="w-[120px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colDate')}</th>
-							<th class="p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colDescription')}</th>
-							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colAmount')}</th>
-							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colCategory')}</th>
-							<th class="w-[140px] p-3 text-left font-semibold text-muted-foreground">{t('transactions.list.colWallet')}</th>
-							<th class="w-[50px] p-3"></th>
-						</tr>
-					</thead>
-					<tbody>
+			<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead class="w-[120px]">{t('transactions.list.colDate')}</TableHead>
+							<TableHead>{t('transactions.list.colDescription')}</TableHead>
+							<TableHead class="w-[140px]">{t('transactions.list.colAmount')}</TableHead>
+							<TableHead class="hidden md:table-cell w-[140px]">{t('transactions.list.colCategory')}</TableHead>
+							<TableHead class="hidden md:table-cell w-[140px]">{t('transactions.list.colWallet')}</TableHead>
+							<TableHead class="w-[50px]"></TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
 						{#each paginated() as tx}
-							<tr class="border-b hover:bg-muted/30">
-								<td class="p-3 whitespace-nowrap text-foreground">{formatDate(tx.date)}</td>
-								<td class="p-3 text-foreground">{tx.description}</td>
-								<td class="p-3 whitespace-nowrap">
+							<TableRow>
+								<TableCell class="whitespace-nowrap text-foreground">{formatDate(tx.date)}</TableCell>
+								<TableCell class="text-foreground">{tx.description}</TableCell>
+								<TableCell class="whitespace-nowrap">
 									<span class="font-semibold {formatAmount(tx.amount).color}">{formatAmount(tx.amount).text}</span>
-								</td>
-								<td class="p-3 text-muted-foreground">{tx.category_name || '-'}</td>
-								<td class="p-3 text-muted-foreground">{acctName(tx)}</td>
-								<td class="p-3">
+								</TableCell>
+								<TableCell class="hidden md:table-cell text-muted-foreground">{tx.category_name || '-'}</TableCell>
+								<TableCell class="hidden md:table-cell text-muted-foreground">{acctName(tx)}</TableCell>
+								<TableCell>
 									<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = tx.id)}>
 										<Trash2 class="size-4" />
 									</button>
-								</td>
-							</tr>
+								</TableCell>
+							</TableRow>
 						{:else}
-							<tr><td colspan="6"><EmptyState /></td></tr>
+							<TableRow><TableCell colspan="6"><EmptyState /></TableCell></TableRow>
 						{/each}
-					</tbody>
-				</table>
-			</div>
+					</TableBody>
+				</Table>
 			<div class="flex items-center justify-between border-t px-4 py-3">
 				<span class="text-sm text-muted-foreground">{showingText()}</span>
 				<div class="flex items-center gap-1">
