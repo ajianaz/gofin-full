@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **VitePress documentation site** — comprehensive docs with GitHub Pages deployment (Getting Started, Features, Architecture, Configuration, Deployment, Development, RBAC, Security, API Reference)
+- **Architecture diagram** — interactive dark-themed SVG diagram showing Docker stack, API layers, auth providers, and data flow
+- **GitHub Actions workflow** — auto-deploy docs to GitHub Pages on push to main (`.github/workflows/docs.yml`)
+- **README overhaul** — clean project overview with badges, quick start, feature list, and docs links
+- **Legacy docs archived** — moved research, plans, refactor notes, and old ARCHITECTURE.md to `docs/legacy/`
+
 ### Security
 - **CORS no longer uses wildcard in non-production** — replaced `AllowOrigins: "*"` with localhost-only fallback (`localhost:5173`, `localhost:8080`); `CORS_ALLOWED_ORIGINS` env var now takes priority over all other settings
 - **Panic details hidden in production** — recovery middleware no longer exposes exception details to clients unless `APP_DEBUG=true`

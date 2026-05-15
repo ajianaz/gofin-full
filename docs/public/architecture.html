@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gofin Architecture Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'JetBrains Mono', monospace; background: #020617; min-height: 100vh; padding: 2rem; color: white; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { margin-bottom: 2rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .pulse-dot { width: 12px; height: 12px; background: #34d399; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
+    .subtitle { color: #94a3b8; font-size: 0.875rem; margin-left: 1.75rem; }
+    .diagram-container { background: rgba(15, 23, 42, 0.5); border-radius: 1rem; border: 1px solid #1e293b; padding: 1.5rem; overflow-x: auto; }
+    svg { width: 100%; min-width: 960px; display: block; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 2rem; }
+    .card { background: rgba(15, 23, 42, 0.5); border-radius: 0.75rem; border: 1px solid #1e293b; padding: 1.25rem; }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .card-dot.cyan { background: #22d3ee; }
+    .card-dot.emerald { background: #34d399; }
+    .card-dot.violet { background: #a78bfa; }
+    .card-dot.amber { background: #fbbf24; }
+    .card-dot.rose { background: #fb7185; }
+    .card h3 { font-size: 0.875rem; font-weight: 600; }
+    .card ul { list-style: none; color: #94a3b8; font-size: 0.75rem; }
+    .card li { margin-bottom: 0.375rem; }
+    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>Gofin Architecture</h1>
+      </div>
+      <p class="subtitle">Self-hosted personal finance tracker — Go API + SvelteKit + PostgreSQL + Redis</p>
+    </div>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 960 700">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+          </marker>
+          <marker id="arrowhead-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Docker Boundary -->
+        <rect x="25" y="25" width="910" height="650" rx="12" fill="rgba(251, 191, 36, 0.03)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="40" y="46" fill="#fbbf24" font-size="10" font-weight="600">Docker Compose — Self-Host</text>
+
+        <!-- ==================== ROW 1: Client + Caddy ==================== -->
+
+        <!-- Users/Browser -->
+        <rect x="60" y="80" width="120" height="55" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="120" y="103" fill="white" font-size="11" font-weight="600" text-anchor="middle">Browser</text>
+        <text x="120" y="120" fill="#94a3b8" font-size="9" text-anchor="middle">SvelteKit SPA</text>
+
+        <!-- Arrow: Browser → Caddy -->
+        <line x1="180" y1="107" x2="238" y2="107" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="209" y="100" fill="#94a3b8" font-size="8" text-anchor="middle">HTTPS</text>
+
+        <!-- Caddy -->
+        <rect x="240" y="75" width="140" height="65" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+        <rect x="240" y="75" width="140" height="65" rx="6" fill="rgba(251, 191, 36, 0.1)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="310" y="100" fill="white" font-size="11" font-weight="600" text-anchor="middle">Caddy</text>
+        <text x="310" y="117" fill="#94a3b8" font-size="9" text-anchor="middle">Reverse Proxy</text>
+        <text x="310" y="131" fill="#fbbf24" font-size="8" text-anchor="middle">Auto-HTTPS (Let's Encrypt)</text>
+
+        <!-- Arrow: Caddy → Web (static) -->
+        <path d="M 380 100 L 420 100" fill="none" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="400" y="93" fill="#94a3b8" font-size="8" text-anchor="middle">/*</text>
+
+        <!-- Arrow: Caddy → API -->
+        <path d="M 380 120 L 420 120" fill="none" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="400" y="133" fill="#94a3b8" font-size="8" text-anchor="middle">/api/*</text>
+
+        <!-- Web (Static) -->
+        <rect x="422" y="75" width="140" height="55" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+        <rect x="422" y="75" width="140" height="55" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="492" y="100" fill="white" font-size="11" font-weight="600" text-anchor="middle">Web</text>
+        <text x="492" y="117" fill="#94a3b8" font-size="9" text-anchor="middle">SvelteKit Static</text>
+
+        <!-- API Server -->
+        <rect x="422" y="150" width="140" height="65" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+        <rect x="422" y="150" width="140" height="65" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="492" y="173" fill="white" font-size="11" font-weight="600" text-anchor="middle">Go API</text>
+        <text x="492" y="190" fill="#94a3b8" font-size="9" text-anchor="middle">Fiber v2</text>
+        <text x="492" y="205" fill="#34d399" font-size="8" text-anchor="middle">135+ REST endpoints</text>
+
+        <!-- Arrow: Caddy → API (vertical) -->
+        <!-- Already handled above -->
+
+        <!-- ==================== ROW 2: Middleware chain (inside API) ==================== -->
+
+        <!-- Middleware boundary -->
+        <rect x="620" y="140" width="290" height="80" rx="6" fill="transparent" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="628" y="154" fill="#fb7185" font-size="8">Middleware Chain</text>
+
+        <rect x="630" y="158" width="80" height="50" rx="4" fill="rgba(136, 19, 55, 0.3)" stroke="#fb7185" stroke-width="1"/>
+        <text x="670" y="178" fill="white" font-size="9" font-weight="600" text-anchor="middle">Auth</text>
+        <text x="670" y="193" fill="#94a3b8" font-size="7" text-anchor="middle">JWT + RBAC</text>
+
+        <rect x="720" y="158" width="80" height="50" rx="4" fill="rgba(136, 19, 55, 0.3)" stroke="#fb7185" stroke-width="1"/>
+        <text x="760" y="178" fill="white" font-size="9" font-weight="600" text-anchor="middle">Rate Limit</text>
+        <text x="760" y="193" fill="#94a3b8" font-size="7" text-anchor="middle">Redis Sliding</text>
+
+        <rect x="810" y="158" width="90" height="50" rx="4" fill="rgba(136, 19, 55, 0.3)" stroke="#fb7185" stroke-width="1"/>
+        <text x="855" y="178" fill="white" font-size="9" font-weight="600" text-anchor="middle">Wallet RBAC</text>
+        <text x="855" y="193" fill="#94a3b8" font-size="7" text-anchor="middle">Owner/Editor</text>
+
+        <!-- Arrow: API → Middleware -->
+        <line x1="562" y1="182" x2="628" y2="182" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <!-- ==================== ROW 3: Auth providers ==================== -->
+
+        <!-- Auth Providers boundary -->
+        <rect x="60" y="240" width="320" height="80" rx="8" fill="transparent" stroke="#fb7185" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="70" y="258" fill="#fb7185" font-size="9" font-weight="600">OAuth2 / OIDC Providers</text>
+
+        <rect x="75" y="268" width="85" height="40" rx="4" fill="#0f172a" stroke="#fb7185" stroke-width="1"/>
+        <rect x="75" y="268" width="85" height="40" rx="4" fill="rgba(136, 19, 55, 0.3)" stroke="#fb7185" stroke-width="1"/>
+        <text x="117" y="287" fill="white" font-size="9" font-weight="600" text-anchor="middle">Google</text>
+        <text x="117" y="300" fill="#94a3b8" font-size="7" text-anchor="middle">OAuth 2.0</text>
+
+        <rect x="175" y="268" width="85" height="40" rx="4" fill="#0f172a" stroke="#fb7185" stroke-width="1"/>
+        <rect x="175" y="268" width="85" height="40" rx="4" fill="rgba(136, 19, 55, 0.3)" stroke="#fb7185" stroke-width="1"/>
+        <text x="217" y="287" fill="white" font-size="9" font-weight="600" text-anchor="middle">GitHub</text>
+        <text x="217" y="300" fill="#94a3b8" font-size="7" text-anchor="middle">OAuth 2.0</text>
+
+        <rect x="275" y="268" width="90" height="40" rx="4" fill="#0f172a" stroke="#fb7185" stroke-width="1"/>
+        <rect x="275" y="268" width="90" height="40" rx="4" fill="rgba(136, 19, 55, 0.3)" stroke="#fb7185" stroke-width="1"/>
+        <text x="320" y="287" fill="white" font-size="9" font-weight="600" text-anchor="middle">Keycloak</text>
+        <text x="320" y="300" fill="#94a3b8" font-size="7" text-anchor="middle">OIDC</text>
+
+        <!-- Arrow: Auth → API -->
+        <path d="M 320 268 L 320 240 Q 320 230 340 230 L 470 230 Q 492 230 492 215" fill="none" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="5,5" marker-end="url(#arrowhead-rose)"/>
+        <text x="410" y="224" fill="#fb7185" font-size="8" text-anchor="middle">JWT</text>
+
+        <!-- ==================== ROW 4: Data layer ==================== -->
+
+        <!-- PostgreSQL -->
+        <rect x="100" y="380" width="160" height="80" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+        <rect x="100" y="380" width="160" height="80" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="180" y="405" fill="white" font-size="12" font-weight="600" text-anchor="middle">PostgreSQL 17</text>
+        <text x="180" y="423" fill="#94a3b8" font-size="9" text-anchor="middle">Primary Database</text>
+        <text x="180" y="440" fill="#94a3b8" font-size="8" text-anchor="middle">• Wallets, Transactions</text>
+        <text x="180" y="452" fill="#94a3b8" font-size="8" text-anchor="middle">• Budgets, Users, RBAC</text>
+
+        <!-- Redis -->
+        <rect x="310" y="380" width="160" height="80" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+        <rect x="310" y="380" width="160" height="80" rx="6" fill="rgba(251, 146, 60, 0.15)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="390" y="405" fill="white" font-size="12" font-weight="600" text-anchor="middle">Redis 7</text>
+        <text x="390" y="423" fill="#94a3b8" font-size="9" text-anchor="middle">Cache & Sessions</text>
+        <text x="390" y="440" fill="#94a3b8" font-size="8" text-anchor="middle">• Rate Limiting</text>
+        <text x="390" y="452" fill="#94a3b8" font-size="8" text-anchor="middle">• SSE Hub, Sessions</text>
+
+        <!-- Backup -->
+        <rect x="520" y="380" width="160" height="80" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+        <rect x="520" y="380" width="160" height="80" rx="6" fill="rgba(251, 191, 36, 0.1)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="600" y="405" fill="white" font-size="12" font-weight="600" text-anchor="middle">Backup Cron</text>
+        <text x="600" y="423" fill="#94a3b8" font-size="9" text-anchor="middle">Daily @ 03:00 UTC</text>
+        <text x="600" y="440" fill="#94a3b8" font-size="8" text-anchor="middle">• pg_dump (gzip)</text>
+        <text x="600" y="452" fill="#94a3b8" font-size="8" text-anchor="middle">• 30-day retention</text>
+
+        <!-- Arrows: API → PG, Redis -->
+        <line x1="470" y1="215" x2="260" y2="378" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="350" y="295" fill="#a78bfa" font-size="8">pgx</text>
+
+        <line x1="492" y1="215" x2="400" y2="378" stroke="#fb923c" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="455" y="295" fill="#fb923c" font-size="8">go-redis</text>
+
+        <!-- Arrow: Backup → PG -->
+        <path d="M 520 420 L 262 420" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead)"/>
+        <text x="390" y="413" fill="#fbbf24" font-size="8" text-anchor="middle">pg_dump</text>
+
+        <!-- ==================== ROW 5: API Layer internals ==================== -->
+
+        <!-- API internal layers -->
+        <rect x="620" y="260" width="80" height="40" rx="4" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="660" y="283" fill="white" font-size="9" font-weight="600" text-anchor="middle">Handlers</text>
+
+        <rect x="710" y="260" width="80" height="40" rx="4" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="750" y="283" fill="white" font-size="9" font-weight="600" text-anchor="middle">Services</text>
+
+        <rect x="800" y="260" width="80" height="40" rx="4" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="840" y="283" fill="white" font-size="9" font-weight="600" text-anchor="middle">Repos</text>
+
+        <line x1="700" y1="280" x2="708" y2="280" stroke="#34d399" stroke-width="1" marker-end="url(#arrowhead)"/>
+        <line x1="790" y1="280" x2="798" y2="280" stroke="#34d399" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+        <!-- ==================== LEGEND ==================== -->
+
+        <text x="660" y="510" fill="white" font-size="10" font-weight="600">Legend</text>
+
+        <rect x="660" y="522" width="16" height="10" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="682" y="530" fill="#94a3b8" font-size="8">Frontend</text>
+
+        <rect x="740" y="522" width="16" height="10" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="762" y="530" fill="#94a3b8" font-size="8">Backend</text>
+
+        <rect x="660" y="540" width="16" height="10" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="682" y="548" fill="#94a3b8" font-size="8">Database</text>
+
+        <rect x="740" y="540" width="16" height="10" rx="2" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1"/>
+        <text x="762" y="548" fill="#94a3b8" font-size="8">Security</text>
+
+        <rect x="660" y="558" width="16" height="10" rx="2" fill="rgba(251, 191, 36, 0.1)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="682" y="566" fill="#94a3b8" font-size="8">Infrastructure</text>
+
+        <rect x="740" y="558" width="16" height="10" rx="2" fill="rgba(251, 146, 60, 0.15)" stroke="#fb923c" stroke-width="1"/>
+        <text x="762" y="566" fill="#94a3b8" font-size="8">Cache/Message</text>
+
+        <line x1="660" y1="580" x2="676" y2="580" stroke="#fb7185" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="682" y="583" fill="#94a3b8" font-size="8">Auth Flow</text>
+
+        <!-- ==================== Data flow diagram ==================== -->
+
+        <text x="100" y="520" fill="white" font-size="10" font-weight="600">Request Flow</text>
+
+        <!-- Simplified request flow -->
+        <rect x="100" y="535" width="60" height="24" rx="4" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1"/>
+        <text x="130" y="551" fill="white" font-size="8" text-anchor="middle">Request</text>
+
+        <line x1="160" y1="547" x2="178" y2="547" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+        <rect x="180" y="535" width="60" height="24" rx="4" fill="rgba(136, 19, 55, 0.3)" stroke="#fb7185" stroke-width="1"/>
+        <text x="210" y="551" fill="white" font-size="8" text-anchor="middle">Auth</text>
+
+        <line x1="240" y1="547" x2="258" y2="547" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+        <rect x="260" y="535" width="60" height="24" rx="4" fill="rgba(136, 19, 55, 0.3)" stroke="#fb7185" stroke-width="1"/>
+        <text x="290" y="551" fill="white" font-size="8" text-anchor="middle">RBAC</text>
+
+        <line x1="320" y1="547" x2="338" y2="547" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+        <rect x="340" y="535" width="60" height="24" rx="4" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="370" y="551" fill="white" font-size="8" text-anchor="middle">Handler</text>
+
+        <line x1="400" y1="547" x2="418" y2="547" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+        <rect x="420" y="535" width="60" height="24" rx="4" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="450" y="551" fill="white" font-size="8" text-anchor="middle">Service</text>
+
+        <line x1="480" y1="547" x2="498" y2="547" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+        <rect x="500" y="535" width="60" height="24" rx="4" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="530" y="551" fill="white" font-size="8" text-anchor="middle">Repo</text>
+
+        <line x1="560" y1="547" x2="578" y2="547" stroke="#94a3b8" stroke-width="1" marker-end="url(#arrowhead)"/>
+
+        <rect x="580" y="535" width="60" height="24" rx="4" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="610" y="551" fill="white" font-size="8" text-anchor="middle">Postgres</text>
+
+        <!-- Tech Stack Summary -->
+        <text x="100" y="600" fill="white" font-size="10" font-weight="600">Tech Stack</text>
+        <text x="100" y="618" fill="#94a3b8" font-size="8">Go 1.25 • Fiber v2 • SvelteKit 5 • Svelte 5 • Tailwind CSS 4 • shadcn-svelte</text>
+        <text x="100" y="633" fill="#94a3b8" font-size="8">PostgreSQL 17 • Redis 7 • Caddy • JWT (golang-jwt/v5) • shopspring/decimal</text>
+        <text x="100" y="648" fill="#94a3b8" font-size="8">UUID v7 • bcrypt • SSE • Docker Compose • Let's Encrypt (auto-HTTPS)</text>
+      </svg>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot cyan"></div>
+          <h3>Frontend</h3>
+        </div>
+        <ul>
+          <li>• SvelteKit 5 with Svelte 5 runes</li>
+          <li>• 43 pages, file-based routing</li>
+          <li>• Tailwind CSS 4 + shadcn-svelte</li>
+          <li>• Chart.js analytics</li>
+          <li>• i18n: Indonesian + English</li>
+          <li>• Dark mode with system detection</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot emerald"></div>
+          <h3>Backend</h3>
+        </div>
+        <ul>
+          <li>• Go 1.25, Fiber v2 framework</li>
+          <li>• 135+ REST endpoints, 29 groups</li>
+          <li>• Layered: Handler → Service → Repo</li>
+          <li>• shopspring/decimal for money</li>
+          <li>• UUID v7 for all IDs</li>
+          <li>• Parameterized SQL (no injection)</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot rose"></div>
+          <h3>Security</h3>
+        </div>
+        <ul>
+          <li>• JWT access + refresh tokens</li>
+          <li>• 21 group + 3 wallet RBAC levels</li>
+          <li>• OAuth2 (Google, GitHub)</li>
+          <li>• Password policy (bcrypt + strength)</li>
+          <li>• Rate limiting (Redis sliding window)</li>
+          <li>• HSTS, CORS restricted</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer">
+      Gofin — Self-Hosted Finance Tracker • Open Source • MIT License
+    </p>
+  </div>
+</body>
+</html>
