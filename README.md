@@ -20,11 +20,26 @@ Open `https://your-domain` — Caddy handles HTTPS automatically.
 
 ## Screenshots
 
-<!-- TODO: Add screenshots after first production deployment -->
-<!-- To add: run `make docker-selfhost`, navigate to pages, capture with browser -->
-<!-- Place in docs/public/ as dashboard.png, transactions.png, analytics.png -->
+<details>
+<summary>📊 Desktop (1440×900)</summary>
 
-> 📸 Screenshots coming soon. Run `make docker-selfhost` to try it locally!
+![Dashboard](docs/assets/images/screenshots/dashboard.png)
+![Transactions](docs/assets/images/screenshots/transactions.png)
+![Wallets](docs/assets/images/screenshots/wallets.png)
+
+👉 [View all 26 screenshots](docs/assets/images/screenshots/)
+</details>
+
+<details>
+<summary>📱 Mobile & Tablet</summary>
+
+| Mobile (375×812) | Tablet (768×1024) |
+|---|---|
+| ![Dashboard](docs/assets/images/screenshots/responsive-mobile-dashboard.png) | ![Dashboard](docs/assets/images/screenshots/responsive-tablet-dashboard.png) |
+| ![Transactions](docs/assets/images/screenshots/responsive-mobile-transactions.png) | ![Transactions](docs/assets/images/screenshots/responsive-tablet-transactions.png) |
+
+👉 [View all in docs](https://ajianaz.github.io/gofin-full/screenshots)
+</details>
 
 ## Features
 
