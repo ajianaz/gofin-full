@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **CI: add develop branch triggers** — CI pipeline now runs on push/PR to both `main` and `develop` branches for earlier quality gate feedback
+
+### Fixed
+- **Dev compose header** — Added "NOT for production" header to `docker-compose.yml` to clarify it's a local dev/Keycloak testing stack; `docker-compose.selfhost.yml` remains the production deployment target
+
+### Security
+- **Integration test migration verification** — All 13 UP migrations verified: 52 tables, 171 statements, 0 errors against PostgreSQL 18
+- **Go vet** — Clean pass across all internal packages (no issues)
+- **npm audit** — 7 low-severity transitive dependency vulnerabilities (bits-ui → runed → svelte-toolbelt → @sveltejs/kit); requires upstream library updates
+
 ### Added
 - **CONTRIBUTING.md** — Contribution guidelines covering setup, code style, testing, commit conventions, and PR workflow
 
