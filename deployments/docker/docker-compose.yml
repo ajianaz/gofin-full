@@ -1,3 +1,5 @@
+# Local development & Keycloak testing stack.
+# NOT for production — use docker-compose.selfhost.yml instead.
 services:
   app:
     build:
