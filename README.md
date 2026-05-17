@@ -6,17 +6,64 @@
 [![Go](https://img.shields.io/badge/Go-1.25-00ADD8)](https://go.dev/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green)](LICENSE)
 
-## Quick Start
+## Quick Start (Pre-built Images)
+
+No build required — just Docker Compose + env file.
+
+```bash
+# 1. Download compose file and env template
+mkdir gofin && cd gofin
+curl -O https://raw.githubusercontent.com/ajianaz/gofin/develop/deployments/docker/docker-compose.selfhost.yml
+curl -o .env https://raw.githubusercontent.com/ajianaz/gofin/develop/api/.env.example
+
+# 2. Edit .env — REQUIRED settings:
+#    AUTH_JWT_SECRET=<random-string-min-32-chars>
+#    DOMAIN=your-domain.com
+#    STATIC_CRON_TOKEN=<random-string>
+
+# 3. Start
+DOCKER_IMAGE_API=ajianaz/gofin-api:develop \
+DOCKER_IMAGE_WEB=ajianaz/gofin-web:develop \
+docker compose -f docker-compose.selfhost.yml up -d
+```
+
+Open `https://your-domain` — Caddy handles HTTPS automatically.
+
+> **Develop images** (`:develop`) are built from the `develop` branch on every push.
+> For stable releases, use `:latest` (built from `main`).
+
+<details>
+<summary>⚙️ All Configuration Options</summary>
+
+| Variable | Default | Required | Description |
+|----------|---------|----------|-------------|
+| `DOMAIN` | `localhost` | ✅ | Your public domain or IP |
+| `AUTH_JWT_SECRET` | — | ✅ | Min 32 characters |
+| `STATIC_CRON_TOKEN` | — | ✅ | Random string for cron auth |
+| `ADMIN_EMAIL` | — | Optional | Auto-create admin on first start |
+| `ADMIN_PASSWORD` | — | Optional | Admin password (min 8 chars) |
+| `DB_PASSWORD` | `gofin_secret` | Optional | PostgreSQL password |
+| `AUTH_ALLOW_REGISTRATION` | `false` | Optional | Allow self-registration |
+| `DOCKER_IMAGE_API` | `ajianaz/gofin-api:latest` | Optional | Override API image |
+| `DOCKER_IMAGE_WEB` | `ajianaz/gofin-web:latest` | Optional | Override web image |
+| `TZ` | `UTC` | Optional | Timezone (e.g. `Asia/Jakarta`) |
+
+</details>
+
+<details>
+<summary>🔧 Build from Source</summary>
 
 ```bash
 git clone https://github.com/ajianaz/gofin-full.git
 cd gofin-full
-cp .env.example .env
+cp api/.env.example .env
 # Edit .env — set AUTH_JWT_SECRET, DOMAIN, ADMIN_EMAIL
 make docker-selfhost
 ```
 
-Open `https://your-domain` — Caddy handles HTTPS automatically.
+This builds images locally instead of pulling from Docker Hub.
+
+</details>
 
 ## Screenshots
 
