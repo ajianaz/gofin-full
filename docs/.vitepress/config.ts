@@ -19,6 +19,12 @@ export default defineConfig({
       { text: 'Deployment', link: '/deployment' },
       { text: 'API', link: '/api/' },
       { text: 'Development', link: '/development' },
+      {
+        text: 'Media',
+        items: [
+          { text: 'Screenshots', link: '/screenshots' },
+        ],
+      },
     ],
     sidebar: [
       {
@@ -53,6 +59,12 @@ export default defineConfig({
         text: 'Development',
         items: [
           { text: 'Developer Setup', link: '/development' },
+        ],
+      },
+      {
+        text: 'Media',
+        items: [
+          { text: 'Screenshots', link: '/screenshots' },
         ],
       },
     ],
