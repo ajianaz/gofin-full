@@ -92,6 +92,7 @@
 	"layout.sidebar.rules": "Rules",
 	"layout.sidebar.reports": "Reports",
 	"layout.sidebar.settings": "Settings",
+	"layout.sidebar.logout": "Logout",
 	"dashboard.title": "Dashboard",
 	"dashboard.totalBalance": "Total Balance",
 	"dashboard.income": "Income",
