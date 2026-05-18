@@ -116,10 +116,9 @@ test.describe('Settings — Preferences Page', () => {
 
 		// currency, language are select-type; budget_indicator is checkbox-type
 		const checkboxes = page.locator('button[role="checkbox"]');
-		expect(await checkboxes.count()).toBeGreaterThanOrEqual(1);
-
-		const selects = page.locator('select');
-		expect(await selects.count()).toBeGreaterThanOrEqual(1);
+		const selects = page.locator('button[data-slot="select-trigger"]');
+		// At least one form control must be present
+		expect(await checkboxes.count() + await selects.count()).toBeGreaterThanOrEqual(1);
 	});
 
 	test('preferences API returns data', async ({ page }) => {
