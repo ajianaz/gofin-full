@@ -858,6 +858,7 @@ test.describe('Full API Integration Validation', () => {
 	let accessToken: string;
 	let walletId: string;
 	let categoryId: string;
+	let expenseWalletId: string;
 
 	test.beforeAll(async ({ request }) => {
 		const email = `e2e-full-validation-${Date.now()}@example.com`;
@@ -900,7 +901,7 @@ test.describe('Full API Integration Validation', () => {
 		categoryId = (await cRes.json()).data.id;
 
 		// Store expense wallet id for transaction tests
-		process.env._E2E_EXP_WALLET = expId;
+		expenseWalletId = expId;
 	});
 
 	const authHeaders = () => ({ Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' });
@@ -928,10 +929,9 @@ test.describe('Full API Integration Validation', () => {
 
 	// -- Transactions --
 	test('POST /api/v1/transactions requires sufficient balance (422 if empty)', async ({ request }) => {
-		const expId = process.env._E2E_EXP_WALLET!;
 		const res = await request.post('/api/v1/transactions', {
 			headers: authHeaders(),
-			data: { type: 'withdrawal', description: 'Val Txn', amount: '10000', source_id: walletId, destination_id: expId, date: '2026-01-15T00:00:00Z', category_ids: [categoryId] }
+			data: { type: 'withdrawal', description: 'Val Txn', amount: '10000', source_id: walletId, destination_id: expenseWalletId, date: '2026-01-15T00:00:00Z', category_ids: [categoryId] }
 		});
 		// New user has 0 balance, so transaction returns 422
 		expect([201, 422]).toContain(res.status());
@@ -986,14 +986,13 @@ test.describe('Full API Integration Validation', () => {
 
 	// -- Recurring --
 	test('POST /api/v1/recurrences creates a recurring transaction', async ({ request }) => {
-		const expId = process.env._E2E_EXP_WALLET!;
 		const res = await request.post('/api/v1/recurrences', {
 			headers: authHeaders(),
 			data: {
 				title: 'Val Recurring',
 				first_date: '2026-02-01T00:00:00Z',
 				repeat_freq: 'monthly',
-				transactions: [{ type: 'withdrawal', description: 'Val Recur Txn', amount: '25000', source_id: walletId, destination_id: expId, category_id: categoryId }]
+				transactions: [{ type: 'withdrawal', description: 'Val Recur Txn', amount: '25000', source_id: walletId, destination_id: expenseWalletId, category_id: categoryId }]
 			}
 		});
 		expect(res.ok()).toBeTruthy();
