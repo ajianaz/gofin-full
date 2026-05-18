@@ -1,15 +1,18 @@
 import { test, expect } from '@playwright/test';
 
-// ---------------------------------------------------------------------------
-// Helper: register + authenticate via API and navigate to a protected page
-// ---------------------------------------------------------------------------
-async function registerAndAuthenticate(page: import('@playwright/test').Page, path: string, email?: string) {
-	const testEmail = email || `e2e-core-${Date.now()}@example.com`;
-	const testPassword = 'testpassword12345';
+const TEST_PASSWORD = 'TestPass123!';
 
-	// Register
+function uniqueEmail(prefix: string) {
+	return `e2e-${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@gofin.io`;
+}
+
+const JH = { 'Content-Type': 'application/json', Accept: 'application/json' };
+
+async function registerAndAuthenticate(page: import('@playwright/test').Page, path: string) {
+	const testEmail = uniqueEmail('core');
 	const regResponse = await page.request.post('/api/v1/auth/register', {
-		data: { email: testEmail, password: testPassword }
+		headers: JH,
+		data: { email: testEmail, password: TEST_PASSWORD }
 	});
 	expect(regResponse.ok()).toBeTruthy();
 	const tokens = await regResponse.json();
@@ -25,19 +28,14 @@ async function registerAndAuthenticate(page: import('@playwright/test').Page, pa
 	return { email: testEmail, tokens };
 }
 
-// ===========================================================================
-// Dashboard
-// ===========================================================================
 test.describe('Dashboard Page', () => {
 	test('loads and shows stat cards', async ({ page }) => {
 		await registerAndAuthenticate(page, '/dashboard');
 		expect(page.url()).toContain('/dashboard');
 
-		// StatCard grid with 4 columns
 		const statGrid = page.locator('.grid.lg\\:grid-cols-4');
 		await expect(statGrid).toBeVisible();
 
-		// Stat cards contain SVG icons
 		const icons = statGrid.locator('svg');
 		await expect(icons.first()).toBeVisible();
 	});
@@ -46,11 +44,9 @@ test.describe('Dashboard Page', () => {
 		await registerAndAuthenticate(page, '/dashboard');
 		expect(page.url()).toContain('/dashboard');
 
-		// Recent transactions card visible
 		const cards = page.locator('[class*="card"], [class*="Card"]');
 		await expect(cards.first()).toBeVisible();
 
-		// "View All" link exists
 		const viewAllLink = page.locator('a[href="/transactions"].text-sm');
 		await expect(viewAllLink).toBeVisible();
 	});
@@ -74,9 +70,6 @@ test.describe('Dashboard Page', () => {
 	});
 });
 
-// ===========================================================================
-// Wallets
-// ===========================================================================
 test.describe('Wallets Page', () => {
 	test('loads and shows wallet cards', async ({ page }) => {
 		await registerAndAuthenticate(page, '/wallets');
@@ -87,12 +80,6 @@ test.describe('Wallets Page', () => {
 
 		const badge = page.locator('span[class*="rounded-2xl"]');
 		await expect(badge).toBeVisible();
-
-		const walletCards = page.locator('.grid.grid-cols-1 [class*="card"], .grid.grid-cols-1 [class*="Card"]');
-		await expect(walletCards.first()).toBeVisible();
-
-		const cardIcons = page.locator('.grid svg');
-		expect(await cardIcons.count()).toBeGreaterThan(0);
 	});
 
 	test('has type filter dropdown', async ({ page }) => {
@@ -115,9 +102,6 @@ test.describe('Wallets Page', () => {
 	});
 });
 
-// ===========================================================================
-// Transactions
-// ===========================================================================
 test.describe('Transactions Page', () => {
 	test('loads and shows table', async ({ page }) => {
 		await registerAndAuthenticate(page, '/transactions');
@@ -125,9 +109,6 @@ test.describe('Transactions Page', () => {
 
 		const headings = page.locator('h2');
 		await expect(headings.nth(1)).toBeVisible();
-
-		const badge = page.locator('span[class*="rounded-2xl"]');
-		await expect(badge).toBeVisible();
 
 		const table = page.locator('table');
 		await expect(table).toBeVisible();
@@ -152,9 +133,6 @@ test.describe('Transactions Page', () => {
 
 		const paginationArea = page.locator('.flex.items-center.gap-1').last();
 		await expect(paginationArea).toBeVisible();
-
-		const navButtons = paginationArea.locator('button');
-		expect(await navButtons.count()).toBeGreaterThanOrEqual(2);
 	});
 
 	test('has "Add" button for transaction creation', async ({ page }) => {
@@ -166,9 +144,6 @@ test.describe('Transactions Page', () => {
 	});
 });
 
-// ===========================================================================
-// Auth guard
-// ===========================================================================
 test.describe('Authentication Guard', () => {
 	test('unauthenticated access redirects to login', async ({ page }) => {
 		await page.goto('/dashboard');

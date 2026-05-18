@@ -92,6 +92,7 @@
 	"layout.sidebar.rules": "Aturan",
 	"layout.sidebar.reports": "Laporan",
 	"layout.sidebar.settings": "Pengaturan",
+	"layout.sidebar.logout": "Keluar",
 	"dashboard.title": "Dashboard",
 	"dashboard.totalBalance": "Total Saldo",
 	"dashboard.income": "Pemasukan",

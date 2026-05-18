@@ -74,7 +74,13 @@
 			await authStore.restore();
 			if (!authStore.isAuthenticated) {
 				goto('/login');
+				return;
 			}
+		}
+		// Attach logout handler via DOM (Svelte event binding lost inside SidebarFooter)
+		const logoutEl = document.getElementById('logout-btn');
+		if (logoutEl) {
+			logoutEl.addEventListener('click', () => handleLogout());
 		}
 	});
 
@@ -84,6 +90,10 @@
 
 	async function handleLogout() {
 		await authStore.logout();
+		if (typeof localStorage !== 'undefined') {
+			localStorage.removeItem('access_token');
+			localStorage.removeItem('refresh_token');
+		}
 		goto('/login');
 	}
 </script>
@@ -193,10 +203,17 @@
 							<span class="text-xs text-sidebar-foreground">{authStore.user?.email ?? ''}</span>
 						</div>
 					</div>
-					<ChevronsUpDown class="size-4 text-muted-foreground" />
 				</div>
-				<div class="flex items-center justify-center px-2">
+				<div class="flex items-center justify-between px-2">
 					<LanguageSwitcher />
+					<button
+						id="logout-btn"
+						class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						title={t('layout.sidebar.logout')}
+					>
+						<LogOut class="size-3.5" />
+						<span>{t('layout.sidebar.logout')}</span>
+					</button>
 				</div>
 			</div>
 		</SidebarFooter>
