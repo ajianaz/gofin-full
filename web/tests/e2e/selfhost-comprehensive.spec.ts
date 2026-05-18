@@ -343,8 +343,8 @@ test.describe('UI — Auth Pages', () => {
 
 		const newEmail = `ui-reg-${Date.now()}@example.com`;
 		await page.locator('input#email').fill(newEmail);
-		await page.locator('input#password').fill('password123');
-		await page.locator('input#confirm-password').fill('password123');
+		await page.locator('input#password').fill('TestPass123!');
+		await page.locator('input#confirm-password').fill('TestPass123!');
 		await page.locator('button[type="submit"]').click();
 
 		await page.waitForURL('**/dashboard**', { timeout: 5000 }).catch(() => {});

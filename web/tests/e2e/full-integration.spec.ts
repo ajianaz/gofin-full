@@ -4,11 +4,10 @@ import { test, expect } from '@playwright/test';
 // Helper: register + authenticate via API and navigate to a protected page
 // ---------------------------------------------------------------------------
 async function registerAndAuthenticate(page: import('@playwright/test').Page, path: string) {
-	const testEmail = `e2e-full-${Date.now()}@example.com`;
-	const testPassword = 'testpassword12345';
+	const testEmail = `e2e-full-${Date.now()}-${Math.random().toString(36).slice(2,8)}@gofin.io`;
+	const testPassword = 'TestPass123!';
 
 	const regResponse = await page.request.post('/api/v1/auth/register', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 		data: { email: testEmail, password: testPassword }
 	});
@@ -84,8 +83,6 @@ test.describe('Wallets List Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/wallets');
 
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Test Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -145,8 +142,6 @@ test.describe('Transactions List Page', () => {
 
 		// Seed wallet first
 		const walletRes = await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Txn Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -156,8 +151,6 @@ test.describe('Transactions List Page', () => {
 
 		// Seed category
 		const catRes = await page.request.post('/api/v1/categories', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Txn Category' }
 		});
@@ -167,8 +160,6 @@ test.describe('Transactions List Page', () => {
 
 		// Create transaction
 		const txnRes = await page.request.post('/api/v1/transactions', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { type: 'withdrawal', description: 'E2E Test Transaction', amount: 50000, source_id: walletId, date: '2026-01-15', category_ids: [catId] }
 		});
@@ -187,8 +178,6 @@ test.describe('Transactions Create Page', () => {
 
 		// Seed wallet for dropdown
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Txn Create Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -231,8 +220,6 @@ test.describe('Categories List Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/categories');
 
 		await page.request.post('/api/v1/categories', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Test Category' }
 		});
@@ -283,8 +270,6 @@ test.describe('Budgets List Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/budgets');
 
 		const res = await page.request.post('/api/v1/budgets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Test Budget' }
 		});
@@ -334,15 +319,11 @@ test.describe('Bills List Page', () => {
 
 		// Seed wallet for bill
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Bill Wallet', type: 'asset', currency_code: 'IDR' }
 		});
 
 		const res = await page.request.post('/api/v1/bills', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Test Bill', amount_min: 100000, date: '2026-02-01' }
 		});
@@ -361,8 +342,6 @@ test.describe('Bills Create Page', () => {
 
 		// Seed wallet for dropdown
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Bill Create Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -403,24 +382,18 @@ test.describe('Recurring List Page', () => {
 
 		// Seed wallet and category
 		const walletRes = await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Recur Wallet', type: 'asset', currency_code: 'IDR' }
 		});
 		const wallet = await walletRes.json();
 
 		const catRes = await page.request.post('/api/v1/categories', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Recur Category' }
 		});
 		const cat = await catRes.json();
 
 		const res = await page.request.post('/api/v1/recurrences', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: {
 				title: 'E2E Test Recurring',
@@ -444,8 +417,6 @@ test.describe('Recurring Create Page', () => {
 
 		// Seed wallet for dropdown
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Recur Create Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -470,8 +441,6 @@ test.describe('Piggy Banks List Page', () => {
 
 		// Piggy banks need a wallet — seed one
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Piggy Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -489,8 +458,6 @@ test.describe('Piggy Banks List Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/piggy-banks');
 
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Piggy Add Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -507,8 +474,6 @@ test.describe('Piggy Banks List Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/piggy-banks');
 
 		const walletRes = await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Piggy Create Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -534,8 +499,6 @@ test.describe('Piggy Banks Create Page', () => {
 
 		// Seed wallet for dropdown
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Piggy Form Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -575,8 +538,6 @@ test.describe('Rules List Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/rules');
 
 		await page.request.post('/api/v1/rule-groups', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { title: 'E2E Full Rules Group' }
 		});
@@ -624,8 +585,6 @@ test.describe('Tags List Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/tags');
 
 		await page.request.post('/api/v1/tags', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { tag: 'e2e-full-test', date: '2026-01-15' }
 		});
@@ -745,8 +704,6 @@ test.describe('Export Page', () => {
 
 		// Seed wallet for dropdown
 		await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Export Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -869,15 +826,13 @@ test.describe('Full API Integration Validation', () => {
 	test.beforeAll(async ({ request }) => {
 		const email = `e2e-full-validation-${Date.now()}@example.com`;
 		const regRes = await request.post('/api/v1/auth/register', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-			data: { email, password: 'testpassword12345' }
+			data: { email, password: 'TestPass123!' }
 		});
 		const tokens = await regRes.json();
 		accessToken = tokens.access_token;
 
 		// Seed wallet
 		const wRes = await request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
 			data: { name: 'Validation Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -885,8 +840,6 @@ test.describe('Full API Integration Validation', () => {
 
 		// Seed category
 		const cRes = await request.post('/api/v1/categories', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-			headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
 			data: { name: 'Validation Category' }
 		});
 		categoryId = (await cRes.json()).data.id;
@@ -904,7 +857,6 @@ test.describe('Full API Integration Validation', () => {
 
 	test('POST /api/v1/wallets creates a wallet', async ({ request }) => {
 		const res = await request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { name: 'Val Wallet 2', type: 'asset', currency_code: 'IDR' }
 		});
@@ -919,7 +871,6 @@ test.describe('Full API Integration Validation', () => {
 	// -- Transactions --
 	test('POST /api/v1/transactions creates a transaction', async ({ request }) => {
 		const res = await request.post('/api/v1/transactions', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { type: 'withdrawal', description: 'Val Txn', amount: 10000, source_id: walletId, date: '2026-01-15', category_ids: [categoryId] }
 		});
@@ -944,7 +895,6 @@ test.describe('Full API Integration Validation', () => {
 	// -- Budgets --
 	test('POST /api/v1/budgets creates a budget', async ({ request }) => {
 		const res = await request.post('/api/v1/budgets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { name: 'Val Budget' }
 		});
@@ -961,7 +911,6 @@ test.describe('Full API Integration Validation', () => {
 	// -- Bills --
 	test('POST /api/v1/bills creates a bill', async ({ request }) => {
 		const res = await request.post('/api/v1/bills', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { name: 'Val Bill', amount_min: 50000, date: '2026-02-01' }
 		});
@@ -978,7 +927,6 @@ test.describe('Full API Integration Validation', () => {
 	// -- Recurring --
 	test('POST /api/v1/recurrences creates a recurring transaction', async ({ request }) => {
 		const res = await request.post('/api/v1/recurrences', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: {
 				title: 'Val Recurring',
@@ -1016,7 +964,6 @@ test.describe('Full API Integration Validation', () => {
 	// -- Tags --
 	test('POST /api/v1/tags creates a tag', async ({ request }) => {
 		const res = await request.post('/api/v1/tags', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { tag: 'val-tag', date: '2026-01-15' }
 		});

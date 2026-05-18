@@ -5,10 +5,9 @@ import { test, expect } from '@playwright/test';
 // ---------------------------------------------------------------------------
 async function registerAndAuthenticate(page: import('@playwright/test').Page, path: string) {
 	const testEmail = `e2e-apiint-${Date.now()}@example.com`;
-	const testPassword = 'testpassword12345';
+	const testPassword = 'TestPass123!';
 
 	const regResponse = await page.request.post('/api/v1/auth/register', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 		data: { email: testEmail, password: testPassword }
 	});
@@ -68,8 +67,6 @@ test.describe('Settings — API Keys Page', () => {
 		expect(page.url()).toContain('/settings/api-keys');
 
 		const createRes = await page.request.post('/api/v1/api-keys', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Test Key' }
 		});
@@ -102,20 +99,14 @@ test.describe('Settings — Preferences Page', () => {
 
 		// Seed preferences using keys recognized by the preferences page config
 		await page.request.post('/api/v1/preferences', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'currency', data: 'IDR' }
 		});
 		await page.request.post('/api/v1/preferences', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'language', data: 'id' }
 		});
 		await page.request.post('/api/v1/preferences', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'budget_indicator', data: 'true' }
 		});
@@ -146,8 +137,6 @@ test.describe('Settings — Preferences Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/settings/preferences');
 
 		const setRes = await page.request.post('/api/v1/preferences', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'e2e_test_pref', data: 'test_value' }
 		});
@@ -266,8 +255,6 @@ test.describe('Wallet Members Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/wallets');
 
 		const walletRes = await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Members Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -287,8 +274,6 @@ test.describe('Wallet Members Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/wallets');
 
 		const walletRes = await page.request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { name: 'E2E Members API Wallet', type: 'asset', currency_code: 'IDR' }
 		});
@@ -313,8 +298,6 @@ test.describe('Rules Group Detail Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/rules');
 
 		const groupRes = await page.request.post('/api/v1/rule-groups', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { title: 'E2E Test Rule Group' }
 		});
@@ -338,8 +321,6 @@ test.describe('Rules Group Detail Page', () => {
 		const { tokens } = await registerAndAuthenticate(page, '/rules');
 
 		const groupRes = await page.request.post('/api/v1/rule-groups', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: { Authorization: `Bearer ${tokens.access_token}`, ...JSON_HEADERS },
 			data: { title: 'E2E Empty Rules Group' }
 		});
@@ -381,8 +362,7 @@ test.describe('API Integration Validation', () => {
 	test.beforeAll(async ({ request }) => {
 		const email = `e2e-validation-${Date.now()}@example.com`;
 		const regRes = await request.post('/api/v1/auth/register', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-			data: { email, password: 'testpassword12345' }
+			data: { email, password: 'TestPass123!' }
 		});
 		const tokens = await regRes.json();
 		accessToken = tokens.access_token;
@@ -392,7 +372,6 @@ test.describe('API Integration Validation', () => {
 
 	test('POST /api/v1/api-keys creates a key', async ({ request }) => {
 		const res = await request.post('/api/v1/api-keys', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { name: 'Validation Key' }
 		});
@@ -413,7 +392,6 @@ test.describe('API Integration Validation', () => {
 
 	test('POST /api/v1/preferences sets a value', async ({ request }) => {
 		const res = await request.post('/api/v1/preferences', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { name: 'e2e_test_pref', data: 'test_value' }
 		});
@@ -459,7 +437,6 @@ test.describe('API Integration Validation', () => {
 
 	test('POST /api/v1/rule-groups creates a group', async ({ request }) => {
 		const res = await request.post('/api/v1/rule-groups', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { title: 'E2E Validation Group' }
 		});
@@ -488,7 +465,6 @@ test.describe('API Integration Validation', () => {
 
 	test('GET /api/v1/wallets/:id/members returns array (may be null)', async ({ request }) => {
 		const walletRes = await request.post('/api/v1/wallets', {
-		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 			headers: authHeaders(),
 			data: { name: 'E2E Members Validation', type: 'asset', currency_code: 'IDR' }
 		});
