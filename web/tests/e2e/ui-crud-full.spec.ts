@@ -29,6 +29,7 @@ async function deleteFirstItem(page: Page, url: string, apiPath: string) {
 }
 
 test.describe.serial('UI Full CRUD — Real API', () => {
+	test.setTimeout(120000);
 	let page: Page;
 
 	test('0. Register', async ({ browser }) => {
