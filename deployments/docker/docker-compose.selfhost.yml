@@ -1,11 +1,16 @@
 # Self-hosted deployment: Postgres + Redis + Caddy (HTTPS) + Gofin + Web UI + Backup.
-# Optimized for personal/single-user use.
+# Uses pre-built Docker images from Docker Hub.
 #
 # Quick start:
-#   cp .env.example .env
-#   # REQUIRED: set AUTH_JWT_SECRET, DB_PASSWORD, DOMAIN, STATIC_CRON_TOKEN
+#   cp api/.env.example .env
+#   # REQUIRED: set AUTH_JWT_SECRET, DOMAIN, STATIC_CRON_TOKEN
 #   # RECOMMENDED: set ADMIN_EMAIL, ADMIN_PASSWORD
 #   docker compose -f deployments/docker/docker-compose.selfhost.yml up -d
+#
+# Images:
+#   api:  ajianaz/gofin-api:latest  (or set DOCKER_IMAGE_API)
+#   web:  ajianaz/gofin-web:latest  (or set DOCKER_IMAGE_WEB)
+#   Override: DOCKER_IMAGE_API=ajianaz/gofin-api:develop
 #
 # Requirements:
 #   - DOMAIN env var must be set (your public domain or IP)
@@ -40,9 +45,7 @@ services:
         condition: service_started
 
   app:
-    build:
-      context: ../../api
-      dockerfile: ../deployments/docker/Dockerfile.api
+    image: ${DOCKER_IMAGE_API:-ajianaz/gofin-api:latest}
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
@@ -98,9 +101,7 @@ services:
       start_period: 15s
 
   web:
-    build:
-      context: ../../web
-      dockerfile: ../deployments/docker/Dockerfile.web
+    image: ${DOCKER_IMAGE_WEB:-ajianaz/gofin-web:latest}
     environment:
       ORIGIN: https://${DOMAIN:-localhost}
     restart: unless-stopped

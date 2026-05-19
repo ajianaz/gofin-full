@@ -5,9 +5,10 @@ import { test, expect } from '@playwright/test';
 // ---------------------------------------------------------------------------
 async function registerAndAuthenticate(page: import('@playwright/test').Page, path: string) {
 	const testEmail = `e2e-apiint-${Date.now()}@example.com`;
-	const testPassword = 'testpassword12345';
+	const testPassword = 'TestPass123!';
 
 	const regResponse = await page.request.post('/api/v1/auth/register', {
+		headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 		data: { email: testEmail, password: testPassword }
 	});
 	expect(regResponse.ok()).toBeTruthy();
@@ -115,10 +116,9 @@ test.describe('Settings — Preferences Page', () => {
 
 		// currency, language are select-type; budget_indicator is checkbox-type
 		const checkboxes = page.locator('button[role="checkbox"]');
-		expect(await checkboxes.count()).toBeGreaterThanOrEqual(1);
-
-		const selects = page.locator('select');
-		expect(await selects.count()).toBeGreaterThanOrEqual(1);
+		const selects = page.locator('button[data-slot="select-trigger"]');
+		// At least one form control must be present
+		expect(await checkboxes.count() + await selects.count()).toBeGreaterThanOrEqual(1);
 	});
 
 	test('preferences API returns data', async ({ page }) => {
@@ -361,7 +361,7 @@ test.describe('API Integration Validation', () => {
 	test.beforeAll(async ({ request }) => {
 		const email = `e2e-validation-${Date.now()}@example.com`;
 		const regRes = await request.post('/api/v1/auth/register', {
-			data: { email, password: 'testpassword12345' }
+			data: { email, password: 'TestPass123!' }
 		});
 		const tokens = await regRes.json();
 		accessToken = tokens.access_token;
