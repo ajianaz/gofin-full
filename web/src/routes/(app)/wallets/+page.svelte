@@ -63,7 +63,10 @@
 
 	function formatBalance(balance: string, symbol?: string): string {
 		const num = Math.abs(parseFloat(balance));
-		if (isNaN(num)) return `$ 0`;
+		if (isNaN(num)) {
+			const sym = symbol || getDefaultSymbol();
+			return `${sym} 0`;
+		}
 		const sym = symbol || getDefaultSymbol();
 		return `${sym} ${num.toLocaleString(localeStore.localeCode)}`;
 	}

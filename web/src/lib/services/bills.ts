@@ -9,7 +9,8 @@ export const billService = {
 			...b,
 			next_date: (b as any).date || '',
 			currency_code: (b as any).currency_code || (b as any).currency_id || 'USD',
-			currency_symbol: (b as any).currency_symbol || '$'
+			currency_symbol: (b as any).currency_symbol || '$',
+			currency_decimal_places: (b as any).currency_decimal_places ?? 2
 		}));
 	},
 
@@ -30,7 +31,8 @@ export const billService = {
 			...b,
 			next_date: (b as any).date || '',
 			currency_code: (b as any).currency_code || (b as any).currency_id || 'USD',
-			currency_symbol: (b as any).currency_symbol || '$'
+			currency_symbol: (b as any).currency_symbol || '$',
+			currency_decimal_places: (b as any).currency_decimal_places ?? 2
 		};
 	},
 

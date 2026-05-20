@@ -185,10 +185,16 @@ func fmtTime(t *time.Time) string {
 }
 
 func billToMap(b domain.Bill, cMap map[string]CurrencyInfo) fiber.Map {
+	dp := 2
+	if b.CurrencyID != "" {
+		if ci, ok := cMap[b.CurrencyID]; ok {
+			dp = ci.DecimalPlaces
+		}
+	}
 	attrs := fiber.Map{
 		"name":        b.Name,
-		"amount_min":  b.AmountMin.StringFixed(2),
-		"amount_max":  b.AmountMax.StringFixed(2),
+		"amount_min":  b.AmountMin.StringFixed(int32(dp)),
+		"amount_max":  b.AmountMax.StringFixed(int32(dp)),
 		"date":        b.Date.Format(time.RFC3339),
 		"end_date":    fmtTime(b.EndDate),
 		"repeat_freq": b.RepeatFreq,
@@ -206,10 +212,16 @@ func billToMap(b domain.Bill, cMap map[string]CurrencyInfo) fiber.Map {
 }
 
 func billToMapFull(b *domain.Bill, cMap map[string]CurrencyInfo) fiber.Map {
+	dp := 2
+	if b.CurrencyID != "" {
+		if ci, ok := cMap[b.CurrencyID]; ok {
+			dp = ci.DecimalPlaces
+		}
+	}
 	attrs := fiber.Map{
 		"name":        b.Name,
-		"amount_min":  b.AmountMin.StringFixed(2),
-		"amount_max":  b.AmountMax.StringFixed(2),
+		"amount_min":  b.AmountMin.StringFixed(int32(dp)),
+		"amount_max":  b.AmountMax.StringFixed(int32(dp)),
 		"date":        b.Date.Format(time.RFC3339),
 		"end_date":    fmtTime(b.EndDate),
 		"repeat_freq": b.RepeatFreq,
