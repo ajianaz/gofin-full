@@ -117,7 +117,7 @@ func main() {
 	}
 	userHandler := handler.NewUserHandler(userRepo)
 	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr)
-	walletHandler := handler.NewWalletHandler(walletRepo)
+	walletHandler := handler.NewWalletHandler(walletRepo, handler.NewCurrencyResolver(db))
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	tagHandler := handler.NewTagHandler(tagRepo)
 	txHandler := handler.NewTransactionHandler(txService, txRepo)
@@ -127,7 +127,7 @@ func main() {
 	ruleHandler := handler.NewRuleHandler(ruleRepo)
 	recurrenceHandler := handler.NewRecurrenceHandler(recurrenceRepo)
 	currencyHandler := handler.NewCurrencyHandler(currencyRepo)
-	billHandler := handler.NewBillHandler(billRepo)
+	billHandler := handler.NewBillHandler(billRepo, handler.NewCurrencyResolver(db))
 	exchangeRateHandler := handler.NewExchangeRateHandler(exchangeRateRepo)
 	webhookHandler := handler.NewWebhookHandler(webhookRepo)
 	attachmentHandler := handler.NewAttachmentHandler(attachmentRepo)

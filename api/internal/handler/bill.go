@@ -1,23 +1,26 @@
 package handler
 
 import (
-"time"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/domain"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
 
 type BillHandler struct {
-	repo *repository.BillRepository
+	repo  *repository.BillRepository
+	curry *CurrencyResolver
 }
 
-func NewBillHandler(repo *repository.BillRepository) *BillHandler {
-	return &BillHandler{repo: repo}
+func NewBillHandler(repo *repository.BillRepository, curry *CurrencyResolver) *BillHandler {
+	return &BillHandler{repo: repo, curry: curry}
 }
 
 func (h *BillHandler) Index(c *fiber.Ctx) error {
@@ -33,22 +36,18 @@ func (h *BillHandler) Index(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
+	// Batch resolve currency
+	cIDs := make([]string, 0, len(bills))
+	for _, b := range bills {
+		if b.CurrencyID != "" {
+			cIDs = append(cIDs, b.CurrencyID)
+		}
+	}
+	cMap := h.curry.ResolveMany(c.Context(), cIDs)
+
 	var data []fiber.Map
 	for _, b := range bills {
-		data = append(data, fiber.Map{
-			"type": "bills",
-			"id":   b.ID,
-			"attributes": fiber.Map{
-				"name":        b.Name,
-				"amount_min":  b.AmountMin.StringFixed(2),
-				"amount_max":  b.AmountMax.StringFixed(2),
-				"date":        b.Date.Format(time.RFC3339),
-				"end_date":    fmtTime(b.EndDate),
-				"repeat_freq": b.RepeatFreq,
-				"active":      b.Active,
-				"currency_id": b.CurrencyID,
-			},
-		})
+		data = append(data, billToMap(b, cMap))
 	}
 	return c.JSON(fiber.Map{"data": data})
 }
@@ -70,23 +69,9 @@ func (h *BillHandler) Show(c *fiber.Ctx) error {
 		return apperrors.NotFoundResource("bill", id)
 	}
 
-	return c.JSON(fiber.Map{"data": fiber.Map{
-		"type": "bills",
-		"id":   b.ID,
-		"attributes": fiber.Map{
-			"name":        b.Name,
-			"amount_min":  b.AmountMin.StringFixed(2),
-			"amount_max":  b.AmountMax.StringFixed(2),
-			"date":        b.Date.Format(time.RFC3339),
-			"end_date":    fmtTime(b.EndDate),
-			"repeat_freq": b.RepeatFreq,
-			"skip":        b.Skip,
-			"active":      b.Active,
-			"order":       b.Order,
-			"notes":       b.Notes,
-			"currency_id": b.CurrencyID,
-		},
-	}})
+	cMap := h.curry.ResolveMany(c.Context(), []string{b.CurrencyID})
+
+	return c.JSON(fiber.Map{"data": billToMapFull(b, cMap)})
 }
 
 func (h *BillHandler) Store(c *fiber.Ctx) error {
@@ -136,18 +121,9 @@ func (h *BillHandler) Store(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
-	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{
-		"type": "bills",
-		"id":   b.ID,
-		"attributes": fiber.Map{
-			"name":        b.Name,
-			"amount_min":  b.AmountMin.StringFixed(2),
-			"amount_max":  b.AmountMax.StringFixed(2),
-			"date":        b.Date.Format(time.RFC3339),
-			"repeat_freq": b.RepeatFreq,
-			"currency_id": b.CurrencyID,
-		},
-	}})
+	cMap := h.curry.ResolveMany(c.Context(), []string{b.CurrencyID})
+
+	return c.Status(201).JSON(fiber.Map{"data": billToMap(*b, cMap)})
 }
 
 func (h *BillHandler) Update(c *fiber.Ctx) error {
@@ -206,4 +182,49 @@ func fmtTime(t *time.Time) string {
 		return ""
 	}
 	return t.Format(time.RFC3339)
+}
+
+func billToMap(b domain.Bill, cMap map[string]CurrencyInfo) fiber.Map {
+	attrs := fiber.Map{
+		"name":        b.Name,
+		"amount_min":  b.AmountMin.StringFixed(2),
+		"amount_max":  b.AmountMax.StringFixed(2),
+		"date":        b.Date.Format(time.RFC3339),
+		"end_date":    fmtTime(b.EndDate),
+		"repeat_freq": b.RepeatFreq,
+		"active":      b.Active,
+		"currency_id": b.CurrencyID,
+	}
+	if b.CurrencyID != "" {
+		if ci, ok := cMap[b.CurrencyID]; ok {
+			attrs["currency_code"] = ci.Code
+			attrs["currency_symbol"] = ci.Symbol
+			attrs["currency_decimal_places"] = ci.DecimalPlaces
+		}
+	}
+	return fiber.Map{"type": "bills", "id": b.ID, "attributes": attrs}
+}
+
+func billToMapFull(b *domain.Bill, cMap map[string]CurrencyInfo) fiber.Map {
+	attrs := fiber.Map{
+		"name":        b.Name,
+		"amount_min":  b.AmountMin.StringFixed(2),
+		"amount_max":  b.AmountMax.StringFixed(2),
+		"date":        b.Date.Format(time.RFC3339),
+		"end_date":    fmtTime(b.EndDate),
+		"repeat_freq": b.RepeatFreq,
+		"skip":        b.Skip,
+		"active":      b.Active,
+		"order":       b.Order,
+		"notes":       b.Notes,
+		"currency_id": b.CurrencyID,
+	}
+	if b.CurrencyID != "" {
+		if ci, ok := cMap[b.CurrencyID]; ok {
+			attrs["currency_code"] = ci.Code
+			attrs["currency_symbol"] = ci.Symbol
+			attrs["currency_decimal_places"] = ci.DecimalPlaces
+		}
+	}
+	return fiber.Map{"type": "bills", "id": b.ID, "attributes": attrs}
 }

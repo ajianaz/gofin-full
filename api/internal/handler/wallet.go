@@ -13,12 +13,13 @@ import (
 
 // WalletHandler handles wallet endpoints.
 type WalletHandler struct {
-	repo *repository.WalletRepository
+	repo    *repository.WalletRepository
+	curry   *CurrencyResolver
 }
 
 // NewWalletHandler creates a new wallet handler.
-func NewWalletHandler(repo *repository.WalletRepository) *WalletHandler {
-	return &WalletHandler{repo: repo}
+func NewWalletHandler(repo *repository.WalletRepository, curry *CurrencyResolver) *WalletHandler {
+	return &WalletHandler{repo: repo, curry: curry}
 }
 
 // Index handles GET /api/v1/wallets.
@@ -41,9 +42,18 @@ func (h *WalletHandler) Index(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
+	// Collect currency IDs for batch resolve
+	cIDs := make([]string, 0, len(wallets))
+	for _, w := range wallets {
+		if w.CurrencyID != nil && *w.CurrencyID != "" {
+			cIDs = append(cIDs, *w.CurrencyID)
+		}
+	}
+	cMap := h.curry.ResolveMany(c.Context(), cIDs)
+
 	var data []fiber.Map
 	for _, w := range wallets {
-		data = append(data, walletToMap(&w))
+		data = append(data, walletToMap(&w, cMap))
 	}
 
 	return c.JSON(fiber.Map{"data": data})
@@ -71,7 +81,9 @@ func (h *WalletHandler) Show(c *fiber.Ctx) error {
 		return apperrors.NotFoundResource("wallet", id)
 	}
 
-	return c.JSON(fiber.Map{"data": walletToMap(wallet)})
+	cMap := h.curry.ResolveMany(c.Context(), currencyIDsFromWallet(wallet))
+
+	return c.JSON(fiber.Map{"data": walletToMap(wallet, cMap)})
 }
 
 // Store handles POST /api/v1/wallets.
@@ -135,7 +147,9 @@ func (h *WalletHandler) Store(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
-	return c.Status(201).JSON(fiber.Map{"data": walletToMap(created)})
+	cMap := h.curry.ResolveMany(c.Context(), currencyIDsFromWallet(created))
+
+	return c.Status(201).JSON(fiber.Map{"data": walletToMap(created, cMap)})
 }
 
 // Update handles PUT /api/v1/wallets/:id.
@@ -176,7 +190,9 @@ func (h *WalletHandler) Update(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
-	return c.JSON(fiber.Map{"data": walletToMap(updated)})
+	cMap := h.curry.ResolveMany(c.Context(), currencyIDsFromWallet(updated))
+
+	return c.JSON(fiber.Map{"data": walletToMap(updated, cMap)})
 }
 
 // Delete handles DELETE /api/v1/wallets/:id.
@@ -203,13 +219,13 @@ func (h *WalletHandler) Delete(c *fiber.Ctx) error {
 	return c.Status(204).Send(nil)
 }
 
-func walletToMap(w *domain.Wallet) fiber.Map {
+func walletToMap(w *domain.Wallet, cMap map[string]CurrencyInfo) fiber.Map {
 	m := fiber.Map{
 		"type":       "wallets",
 		"id":         w.ID,
 		"attributes": fiber.Map{
 			"name":              w.Name,
-				 "wallet_type":      w.AccountType,
+			 "wallet_type":      w.AccountType,
 			"active":            w.Active,
 			"virtual_balance":   w.VirtualBalance.StringFixed(2),
 			"include_net_worth": w.IncludeNetWorth,
@@ -223,7 +239,22 @@ func walletToMap(w *domain.Wallet) fiber.Map {
 	if w.Notes != nil { m["attributes"].(fiber.Map)["notes"] = *w.Notes }
 	if w.Latitude != nil { m["attributes"].(fiber.Map)["latitude"] = *w.Latitude }
 	if w.Longitude != nil { m["attributes"].(fiber.Map)["longitude"] = *w.Longitude }
+	// Resolve currency info
+	if w.CurrencyID != nil && *w.CurrencyID != "" {
+		if ci, ok := cMap[*w.CurrencyID]; ok {
+			m["attributes"].(fiber.Map)["currency_code"] = ci.Code
+			m["attributes"].(fiber.Map)["currency_symbol"] = ci.Symbol
+			m["attributes"].(fiber.Map)["currency_decimal_places"] = ci.DecimalPlaces
+		}
+	}
 	return m
+}
+
+func currencyIDsFromWallet(w *domain.Wallet) []string {
+	if w.CurrencyID != nil && *w.CurrencyID != "" {
+		return []string{*w.CurrencyID}
+	}
+	return nil
 }
 
 func isValidWalletType(wt domain.WalletType) bool {

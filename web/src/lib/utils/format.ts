@@ -1,24 +1,35 @@
 import { localeStore } from '$lib/stores/i18n.svelte.js';
 
+const DEFAULT_SYMBOLS: Record<string, string> = {
+	en: '$',
+	id: 'Rp'
+};
+
+export function getDefaultSymbol(): string {
+	return DEFAULT_SYMBOLS[localeStore.locale] ?? '$';
+}
+
 export function formatCurrency(
 	amount: string,
-	symbol: string = 'Rp',
+	symbol?: string,
 	decimalPlaces: number = 0
 ): string {
+	const sym = symbol ?? getDefaultSymbol();
 	const num = parseFloat(amount);
-	if (isNaN(num)) return `${symbol}0`;
-	return `${symbol}${Math.abs(num).toLocaleString(localeStore.localeCode, {
+	if (isNaN(num)) return `${sym}0`;
+	return `${sym}${Math.abs(num).toLocaleString(localeStore.localeCode, {
 		minimumFractionDigits: decimalPlaces,
 		maximumFractionDigits: decimalPlaces
 	})}`;
 }
 
-export function formatAmount(amount: string): { text: string; color: string } {
+export function formatAmount(amount: string, symbol?: string): { text: string; color: string } {
+	const sym = symbol ?? getDefaultSymbol();
 	const num = parseFloat(amount);
-	if (isNaN(num)) return { text: 'Rp0', color: 'text-foreground' };
+	if (isNaN(num)) return { text: `${sym}0`, color: 'text-foreground' };
 	const isNegative = num < 0;
 	return {
-		text: `${isNegative ? '-' : '+'}Rp ${Math.abs(num).toLocaleString(localeStore.localeCode)}`,
+		text: `${isNegative ? '-' : '+'}${sym} ${Math.abs(num).toLocaleString(localeStore.localeCode)}`,
 		color: isNegative ? 'text-red-600' : 'text-green-600'
 	};
 }

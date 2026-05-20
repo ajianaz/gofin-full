@@ -13,7 +13,7 @@ const messages: Record<Locale, Record<string, string>> = { id, en };
 
 class I18nStore {
 	locale = $state<Locale>(
-		browser ? ((localStorage.getItem('gofin_locale') as Locale) ?? 'id') : 'id'
+		browser ? ((localStorage.getItem('gofin_locale') as Locale) ?? 'en') : 'en'
 	);
 
 	get localeCode() {
@@ -21,7 +21,7 @@ class I18nStore {
 	}
 
 	t = (key: string, params?: Record<string, string | number>): string => {
-		let text = messages[this.locale][key] ?? messages.id[key] ?? key;
+		let text = messages[this.locale][key] ?? messages.en[key] ?? key;
 		if (params) {
 			for (const [k, v] of Object.entries(params)) {
 				text = text.replace(`{${k}}`, String(v));
