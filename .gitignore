@@ -1,60 +1,51 @@
-# OS
-.DS_Store
-Thumbs.db
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
+!.env.example
+!Dockerfile.*.test
+# CI artifacts
+# Claude
+# Docker volumes
+# Environment
 # Go
-bin/
-/server
+# IDE
+# Node
+# OS
+# SvelteKit build artifacts
+*.exe
+*.out
+*.swo
+*.swp
+*.test
+*~
+.DS_Store
+.claude/
+.env
+.env.*
+.env.local
+.idea/
+.netlify
+.output
+.svelte-kit/
+.vercel
+.vscode/
+.wrangler
 /migrate
 /seed
+/server
+Thumbs.db
+api/gofin-api
 api/migrate
 api/seed
 api/server
-*.exe
-*.test
-!Dockerfile.*.test
-*.out
+bin/
+build/
 coverage.out
+docs/.vitepress/cache/
+docs/.vitepress/dist/
 go.work
 go.work.sum
-
-# Node
 node_modules/
-
-# SvelteKit build artifacts
-.output
-.vercel
-.netlify
-.wrangler
-.svelte-kit/
-build/
-
-# Environment
-.env
-.env.local
-.env.*
-!.env.example
-
-# Docker volumes
 postgres_data/
 redis_data/
-
-# CI artifacts
-tmp/
 test-results/
-
-# Claude
-.claude/
-
-docs/.vitepress/cache/
-
-docs/.vitepress/dist/
-
+tmp/
 web/package-lock.json
