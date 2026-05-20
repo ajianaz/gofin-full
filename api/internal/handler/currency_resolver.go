@@ -26,8 +26,9 @@ func NewCurrencyResolver(db *pgxpool.Pool) *CurrencyResolver {
 	return &CurrencyResolver{db: db}
 }
 
-// ResolveMany resolves multiple currency IDs in a single query.
-// Returns a map[currencyID]CurrencyInfo.
+// ResolveMany resolves multiple currency identifiers in a single query.
+// Accepts both UUIDs and currency codes (e.g. "IDR", "USD").
+// Returns a map[inputIdentifier]CurrencyInfo so callers can look up by whatever they passed.
 func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[string]CurrencyInfo {
 	result := make(map[string]CurrencyInfo, len(ids))
 	if len(ids) == 0 {
@@ -47,7 +48,7 @@ func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[st
 		return result
 	}
 
-	// Build query with positional args
+	// Build query with positional args — match by id OR code
 	placeholders := ""
 	args := []interface{}{}
 	for i, id := range unique {
@@ -59,29 +60,38 @@ func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[st
 	}
 
 	query := `SELECT id, code, symbol, COALESCE(decimal_places, 2)
-			  FROM currencies WHERE id IN (` + placeholders + `)
-			  AND deleted_at IS NULL`
+		  FROM currencies
+		  WHERE (id IN (` + placeholders + `) OR code IN (` + placeholders + `))
+		  AND deleted_at IS NULL`
 
-	rows, err := r.db.Query(ctx, query, args...)
+	// Duplicate args for both IN clauses
+	allArgs := append(args, args...)
+
+	rows, err := r.db.Query(ctx, query, allArgs...)
 	if err != nil {
 		log.Printf("currency: resolve failed: %v", err)
 		return result
 	}
 	defer rows.Close()
 
+	// Map by both uuid and code so any input format resolves
 	for rows.Next() {
-		var id, code, symbol string
+		var uuid, code, symbol string
 		var dp int
-		if err := rows.Scan(&id, &code, &symbol, &dp); err != nil {
+		if err := rows.Scan(&uuid, &code, &symbol, &dp); err != nil {
 			log.Printf("currency: scan failed: %v", err)
 			continue
 		}
-		result[id] = CurrencyInfo{Code: code, Symbol: symbol, DecimalPlaces: dp}
+		info := CurrencyInfo{Code: code, Symbol: symbol, DecimalPlaces: dp}
+		result[uuid] = info
+		if code != "" {
+			result[code] = info
+		}
 	}
 	return result
 }
 
-// ResolveSingle resolves a single currency ID.
+// ResolveSingle resolves a single currency identifier (UUID or code).
 func (r *CurrencyResolver) ResolveSingle(ctx context.Context, id string) CurrencyInfo {
 	if id == "" {
 		return CurrencyInfo{}
