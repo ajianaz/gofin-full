@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- CurrencyResolver now handles both UUID and currency code (e.g. "IDR") inputs in a single query — no migration or FE changes required
 - Add working logout button to sidebar footer (vanilla JS event listener via onMount, explicit localStorage cleanup)
 - E2E tests: add explicit Content-Type/Accept JSON headers to all API requests
 - E2E tests: update test password to `TestPass123!` to meet API complexity policy (3 of: uppercase, lowercase, digit, special char)
