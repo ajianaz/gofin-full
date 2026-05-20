@@ -13,7 +13,7 @@
 		icon?: typeof Inbox;
 	} = $props();
 
-	const IconComponent = icon;
+	const IconComponent = $derived(icon);
 </script>
 
 <div class="flex flex-col items-center justify-center py-16 text-center">
