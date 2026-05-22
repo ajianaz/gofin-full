@@ -9,8 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - CurrencyResolver now handles both UUID and currency code (e.g. "IDR") inputs in a single query — no migration or FE changes required
 - Bill amounts now use `currency_decimal_places` from resolver instead of hardcoded `StringFixed(2)`
-- Wallet balance NaN fallback uses dynamic currency symbol instead of hardcoded `$`
+- Wallet balance NaN fallback uses dynamic currency symbol + locale formatting instead of hardcoded `$ 0`
 - CodeRabbit: safe slice copy for duplicated query args in CurrencyResolver
+- CurrencyResolver: add `rows.Err()` check after iteration to catch silent partial results
+- i18n locale validation: use `validLocales` array lookup instead of hardcoded string comparison, remove duplicate `safeLocale` function
 - Add working logout button to sidebar footer (vanilla JS event listener via onMount, explicit localStorage cleanup)
 - E2E tests: add explicit Content-Type/Accept JSON headers to all API requests
 - E2E tests: update test password to `TestPass123!` to meet API complexity policy (3 of: uppercase, lowercase, digit, special char)

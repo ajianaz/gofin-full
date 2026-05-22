@@ -9,11 +9,16 @@ const localeCodes: Record<Locale, string> = {
 	en: 'en-US'
 };
 
-const messages: Record<Locale, Record<string, string>> = { id, en };
+const validLocales: Locale[] = ['id', 'en'];
+
+function parseLocale(raw: string | null): Locale {
+	if (raw && validLocales.includes(raw as Locale)) return raw as Locale;
+	return 'en';
+}
 
 class I18nStore {
 	locale = $state<Locale>(
-		browser ? ((localStorage.getItem('gofin_locale') as Locale) ?? 'en') : 'en'
+		browser ? parseLocale(localStorage.getItem('gofin_locale')) : 'en'
 	);
 
 	get localeCode() {

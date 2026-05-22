@@ -64,10 +64,10 @@ func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[st
 		  WHERE (id IN (` + placeholders + `) OR code IN (` + placeholders + `))
 		  AND deleted_at IS NULL`
 
-	// Duplicate args for both IN clauses (avoid append mutating args slice)
-	allArgs := make([]interface{}, len(args)*2)
-	copy(allArgs, args)
-	copy(allArgs[len(args):], args)
+	// Build combined args for both id IN and code IN clauses
+	allArgs := make([]interface{}, 0, len(args)*2)
+	allArgs = append(allArgs, args...)
+	allArgs = append(allArgs, args...)
 
 	rows, err := r.db.Query(ctx, query, allArgs...)
 	if err != nil {
@@ -89,6 +89,9 @@ func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[st
 		if code != "" {
 			result[code] = info
 		}
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("currency: rows iteration failed: %v", err)
 	}
 	return result
 }
