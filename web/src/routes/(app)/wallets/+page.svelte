@@ -7,6 +7,7 @@
 	import { walletService } from '$lib/services/index.js';
 	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { getDefaultSymbol } from '$lib/utils/format.js';
 	import { ConfirmDialog } from '$lib/components/shared/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
@@ -60,10 +61,13 @@
 		return t('wallets.list.bankAccount');
 	}
 
-	function formatBalance(balance: string): string {
+	function formatBalance(balance: string, symbol?: string): string {
 		const num = Math.abs(parseFloat(balance));
-		if (isNaN(num)) return 'Rp 0';
-		return `Rp ${num.toLocaleString(localeStore.localeCode)}`;
+		const sym = symbol || getDefaultSymbol();
+		if (isNaN(num)) {
+			return `${sym} ${(0).toLocaleString(localeStore.localeCode)}`;
+		}
+		return `${sym} ${num.toLocaleString(localeStore.localeCode)}`;
 	}
 </script>
 
@@ -129,7 +133,7 @@
 						</button>
 					</div>
 					<p class="text-xl font-bold {parseFloat(wallet.balance) < 0 ? 'text-red-600' : 'text-foreground'}">
-						{formatBalance(wallet.balance)}
+						{formatBalance(wallet.balance, wallet.currency_symbol)}
 					</p>
 					<p class="mt-1 text-xs text-muted-foreground">{walletLabel(wallet)}</p>
 				</CardContent>

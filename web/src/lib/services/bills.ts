@@ -8,8 +8,9 @@ export const billService = {
 		return unwrapMany<Bill>(res).map((b) => ({
 			...b,
 			next_date: (b as any).date || '',
-			currency_code: (b as any).currency_id || 'USD',
-			currency_symbol: 'Rp'
+			currency_code: (b as any).currency_code || (b as any).currency_id || 'USD',
+			currency_symbol: (b as any).currency_symbol || '$',
+			currency_decimal_places: (b as any).currency_decimal_places ?? 2
 		}));
 	},
 
@@ -26,7 +27,13 @@ export const billService = {
 			amount_max: data.amount_max ? String(data.amount_max) : undefined,
 		});
 		const b = unwrapOne<Bill>(res);
-		return { ...b, next_date: (b as any).date || '', currency_code: 'USD', currency_symbol: 'Rp' };
+		return {
+			...b,
+			next_date: (b as any).date || '',
+			currency_code: (b as any).currency_code || (b as any).currency_id || 'USD',
+			currency_symbol: (b as any).currency_symbol || '$',
+			currency_decimal_places: (b as any).currency_decimal_places ?? 2
+		};
 	},
 
 	async update(id: string, data: { name?: string; active?: boolean }): Promise<void> {

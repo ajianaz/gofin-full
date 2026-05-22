@@ -76,6 +76,7 @@ export interface Bill {
 	active: boolean;
 	currency_code: string;
 	currency_symbol: string;
+	currency_decimal_places: number;
 }
 
 export interface RecurringTransaction {
