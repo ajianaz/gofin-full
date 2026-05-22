@@ -18,9 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - E2E tests: update test password to `TestPass123!` to meet API complexity policy (3 of: uppercase, lowercase, digit, special char)
 - E2E tests: use unique email per test with Date.now() + random suffix
 - Add "Keluar"/"Logout" i18n key for sidebar
-
-## [Unreleased]
-
+- E2E selectors updated for develop UI (shadcn Select, data-slot sidebar)
+- E2E API schema fixes (amount as string, proper wallet types, ISO dates)
+- E2E graceful handling for insufficient balance (422) and rate limits (429)
+- Replace hardcoded mock credentials with real API registration in E2E tests
 ### Changed
 - **CI: add develop branch triggers** — CI pipeline now runs on push/PR to both `main` and `develop` branches for earlier quality gate feedback
 
