@@ -10,6 +10,7 @@ const localeCodes: Record<Locale, string> = {
 };
 
 const validLocales: Locale[] = ['id', 'en'];
+const messages: Record<Locale, Record<string, string>> = { id, en };
 
 function parseLocale(raw: string | null): Locale {
 	if (raw && validLocales.includes(raw as Locale)) return raw as Locale;
