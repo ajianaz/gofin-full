@@ -17,10 +17,11 @@ import (
 type TransactionHandler struct {
 	txService *service.TransactionService
 	txRepo    *repository.TransactionRepository
+	curry     *CurrencyResolver
 }
 
-func NewTransactionHandler(txService *service.TransactionService, txRepo *repository.TransactionRepository) *TransactionHandler {
-	return &TransactionHandler{txService: txService, txRepo: txRepo}
+func NewTransactionHandler(txService *service.TransactionService, txRepo *repository.TransactionRepository, curry *CurrencyResolver) *TransactionHandler {
+	return &TransactionHandler{txService: txService, txRepo: txRepo, curry: curry}
 }
 
 func (h *TransactionHandler) Index(c *fiber.Ctx) error {
@@ -111,7 +112,16 @@ func (h *TransactionHandler) Show(c *fiber.Ctx) error {
 		return apperrors.NotFoundResource("transaction", id)
 	}
 
-	return c.JSON(fiber.Map{"data": transactionGroupToMap(group)})
+	// Resolve currency for all journals
+	cIDs := make([]string, 0)
+	for _, j := range group.Journals {
+		if j.CurrencyID != "" {
+			cIDs = append(cIDs, j.CurrencyID)
+		}
+	}
+	cMap := h.curry.ResolveMany(c.Context(), cIDs)
+
+	return c.JSON(fiber.Map{"data": transactionGroupToMap(group, cMap)})
 }
 
 func (h *TransactionHandler) Store(c *fiber.Ctx) error {
@@ -269,7 +279,7 @@ func (h *TransactionHandler) Delete(c *fiber.Ctx) error {
 	return c.Status(204).Send(nil)
 }
 
-func transactionGroupToMap(g *domain.TransactionGroup) fiber.Map {
+func transactionGroupToMap(g *domain.TransactionGroup, cMap map[string]CurrencyInfo) fiber.Map {
 	var journals []fiber.Map
 	for _, j := range g.Journals {
 		journal := fiber.Map{
@@ -284,10 +294,20 @@ func transactionGroupToMap(g *domain.TransactionGroup) fiber.Map {
 			"updated_at":             j.UpdatedAt,
 		}
 
+		dp := 2
+		if j.CurrencyID != "" {
+			if ci, ok := cMap[j.CurrencyID]; ok {
+				dp = ci.DecimalPlaces
+				journal["currency_code"] = ci.Code
+				journal["currency_symbol"] = ci.Symbol
+				journal["currency_decimal_places"] = ci.DecimalPlaces
+			}
+		}
+
 		if len(j.SourceTransactions) > 0 {
 			st := j.SourceTransactions[0]
 			journal["source_id"] = st.AccountID
-			journal["amount"] = st.Amount.StringFixed(2)
+			journal["amount"] = st.Amount.StringFixed(int32(dp))
 		}
 		if len(j.DestinationTransactions) > 0 {
 			dt := j.DestinationTransactions[0]

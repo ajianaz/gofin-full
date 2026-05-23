@@ -10,11 +10,12 @@ import (
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type BudgetHandler struct {
-	repo *repository.BudgetRepository
+	repo  *repository.BudgetRepository
+	curry *CurrencyResolver
 }
 
-func NewBudgetHandler(repo *repository.BudgetRepository) *BudgetHandler {
-	return &BudgetHandler{repo: repo}
+func NewBudgetHandler(repo *repository.BudgetRepository, curry *CurrencyResolver) *BudgetHandler {
+	return &BudgetHandler{repo: repo, curry: curry}
 }
 
 func (h *BudgetHandler) Index(c *fiber.Ctx) error {

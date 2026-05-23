@@ -13,11 +13,12 @@ import (
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type RecurrenceHandler struct {
-	repo *repository.RecurrenceRepository
+	repo  *repository.RecurrenceRepository
+	curry *CurrencyResolver
 }
 
-func NewRecurrenceHandler(repo *repository.RecurrenceRepository) *RecurrenceHandler {
-	return &RecurrenceHandler{repo: repo}
+func NewRecurrenceHandler(repo *repository.RecurrenceRepository, curry *CurrencyResolver) *RecurrenceHandler {
+	return &RecurrenceHandler{repo: repo, curry: curry}
 }
 
 func (h *RecurrenceHandler) Index(c *fiber.Ctx) error {
@@ -63,7 +64,16 @@ func (h *RecurrenceHandler) Show(c *fiber.Ctx) error {
 		return apperrors.NotFoundResource("recurrence", id)
 	}
 
-	return c.JSON(fiber.Map{"data": recurrenceToMap(rec)})
+	// Resolve currency for all recurring transactions
+	cIDs := make([]string, 0)
+	for _, t := range rec.Transactions {
+		if t.CurrencyID != uuid.Nil {
+			cIDs = append(cIDs, t.CurrencyID.String())
+		}
+	}
+	cMap := h.curry.ResolveMany(c.Context(), cIDs)
+
+	return c.JSON(fiber.Map{"data": recurrenceToMap(rec, cMap)})
 }
 
 func (h *RecurrenceHandler) Store(c *fiber.Ctx) error {
@@ -169,12 +179,27 @@ func (h *RecurrenceHandler) Delete(c *fiber.Ctx) error {
 	return c.Status(204).Send(nil)
 }
 
-func recurrenceToMap(r *domain.Recurrence) fiber.Map {
+func recurrenceToMap(r *domain.Recurrence, cMap map[string]CurrencyInfo) fiber.Map {
 	var txns []fiber.Map
 	for _, t := range r.Transactions {
+		dp := 2
+		cID := t.CurrencyID.String()
+		if cID != "" && t.CurrencyID != uuid.Nil {
+			if ci, ok := cMap[cID]; ok {
+				dp = ci.DecimalPlaces
+			}
+		}
 		txn := fiber.Map{
 			"id": t.ID, "type": t.Type, "description": t.Description,
-			"amount": t.Amount.StringFixed(2),
+			"amount": t.Amount.StringFixed(int32(dp)),
+			"currency_id": t.CurrencyID,
+		}
+		if cID != "" && t.CurrencyID != uuid.Nil {
+			if ci, ok := cMap[cID]; ok {
+				txn["currency_code"] = ci.Code
+				txn["currency_symbol"] = ci.Symbol
+				txn["currency_decimal_places"] = ci.DecimalPlaces
+			}
 		}
 		if t.SourceID != uuid.Nil {
 			txn["source_id"] = t.SourceID

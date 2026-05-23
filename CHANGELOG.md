@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- All API responses now use dynamic decimal places from `currency_decimal_places` instead of hardcoded `StringFixed(2)` — wallet balance, transaction amounts, piggy bank amounts, recurring transaction amounts, budget limits all resolve per-currency dp via `CurrencyResolver`
 - CurrencyResolver now handles both UUID and currency code (e.g. "IDR") inputs in a single query — no migration or FE changes required
 - Bill amounts now use `currency_decimal_places` from resolver instead of hardcoded `StringFixed(2)`
 - Wallet balance NaN fallback uses dynamic currency symbol + locale formatting instead of hardcoded `$ 0`
