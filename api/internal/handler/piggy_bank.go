@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,11 +15,25 @@ import (
 )
 
 type PiggyBankHandler struct {
-	repo *repository.PiggyBankRepository
+	repo       *repository.PiggyBankRepository
+	walletRepo *repository.WalletRepository
+	curry      *CurrencyResolver
 }
 
-func NewPiggyBankHandler(repo *repository.PiggyBankRepository) *PiggyBankHandler {
-	return &PiggyBankHandler{repo: repo}
+func NewPiggyBankHandler(repo *repository.PiggyBankRepository, walletRepo *repository.WalletRepository, curry *CurrencyResolver) *PiggyBankHandler {
+	return &PiggyBankHandler{repo: repo, walletRepo: walletRepo, curry: curry}
+}
+
+// resolvePiggyBankCurrency resolves the currency info for a piggy bank via its wallet.
+func (h *PiggyBankHandler) resolvePiggyBankCurrency(ctx context.Context, accountID uuid.UUID) CurrencyInfo {
+	if accountID == uuid.Nil {
+		return CurrencyInfo{DecimalPlaces: 2}
+	}
+	w, err := h.walletRepo.FindByID(ctx, accountID, uuid.Nil)
+	if err != nil || w == nil || w.CurrencyID == nil || *w.CurrencyID == "" {
+		return CurrencyInfo{DecimalPlaces: 2}
+	}
+	return h.curry.ResolveSingle(ctx, *w.CurrencyID)
 }
 
 // requireGroupID extracts the active group ID or returns an error.
@@ -47,6 +62,9 @@ func (h *PiggyBankHandler) Index(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
+	ci := h.resolvePiggyBankCurrency(c.Context(), accountID)
+	dp := int32(ci.DecimalPlaces)
+
 	var data []fiber.Map
 	for _, pb := range pbs {
 		data = append(data, fiber.Map{
@@ -54,7 +72,7 @@ func (h *PiggyBankHandler) Index(c *fiber.Ctx) error {
 			"id":   pb.ID,
 			"attributes": fiber.Map{
 				"wallet_id": pb.AccountID, "name": pb.Name,
-				"target_amount": pb.TargetAmount.StringFixed(2),
+				"target_amount": pb.TargetAmount.StringFixed(dp),
 				"start_date":    pb.StartDate, "target_date": pb.TargetDate,
 				"order": pb.Order,
 			},
@@ -79,17 +97,26 @@ func (h *PiggyBankHandler) Show(c *fiber.Ctx) error {
 		return apperrors.NotFoundResource("piggy_bank", id)
 	}
 
+	ci := h.resolvePiggyBankCurrency(c.Context(), pb.AccountID)
+	dp := int32(ci.DecimalPlaces)
+	attrs := fiber.Map{
+		"account_id": pb.AccountID, "name": pb.Name,
+		"target_amount":  pb.TargetAmount.StringFixed(dp),
+		"current_amount": pb.CurrentAmount.StringFixed(dp),
+		"left_to_target": pb.LeftToTarget.StringFixed(dp),
+		"percentage":     pb.Percentage,
+		"start_date":     pb.StartDate, "target_date": pb.TargetDate,
+		"order": pb.Order, "notes": pb.Notes,
+	}
+	if ci.Code != "" {
+		attrs["currency_code"] = ci.Code
+		attrs["currency_symbol"] = ci.Symbol
+		attrs["currency_decimal_places"] = ci.DecimalPlaces
+	}
+
 	return c.JSON(fiber.Map{"data": fiber.Map{
 		"type": "piggy_banks", "id": pb.ID,
-		"attributes": fiber.Map{
-			"account_id": pb.AccountID, "name": pb.Name,
-			"target_amount":  pb.TargetAmount.StringFixed(2),
-			"current_amount": pb.CurrentAmount.StringFixed(2),
-			"left_to_target": pb.LeftToTarget.StringFixed(2),
-			"percentage":     pb.Percentage,
-			"start_date":     pb.StartDate, "target_date": pb.TargetDate,
-			"order": pb.Order, "notes": pb.Notes,
-		},
+		"attributes": attrs,
 	}})
 }
 
@@ -136,11 +163,14 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
+	ci := h.resolvePiggyBankCurrency(c.Context(), pb.AccountID)
+	dp := int32(ci.DecimalPlaces)
+
 	return c.Status(201).JSON(fiber.Map{"data": fiber.Map{
 		"type": "piggy_banks", "id": pb.ID,
 		"attributes": fiber.Map{
 			"wallet_id": pb.AccountID, "name": pb.Name,
-			"target_amount": pb.TargetAmount.StringFixed(2),
+			"target_amount": pb.TargetAmount.StringFixed(dp),
 			"order":         pb.Order,
 		},
 	}})

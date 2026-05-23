@@ -220,14 +220,20 @@ func (h *WalletHandler) Delete(c *fiber.Ctx) error {
 }
 
 func walletToMap(w *domain.Wallet, cMap map[string]CurrencyInfo) fiber.Map {
+	dp := 2
+	if w.CurrencyID != nil && *w.CurrencyID != "" {
+		if ci, ok := cMap[*w.CurrencyID]; ok {
+			dp = ci.DecimalPlaces
+		}
+	}
 	m := fiber.Map{
 		"type":       "wallets",
 		"id":         w.ID,
 		"attributes": fiber.Map{
 			"name":              w.Name,
-			 "wallet_type":      w.AccountType,
+			"wallet_type":      w.AccountType,
 			"active":            w.Active,
-			"virtual_balance":   w.VirtualBalance.StringFixed(2),
+			"virtual_balance":   w.VirtualBalance.StringFixed(int32(dp)),
 			"include_net_worth": w.IncludeNetWorth,
 			"created_at":        w.CreatedAt,
 			"updated_at":        w.UpdatedAt,
