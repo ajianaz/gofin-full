@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - CI: push Docker images to GHCR (GitHub Container Registry) alongside Docker Hub — `ghcr.io/ajianaz/gofin-api` and `ghcr.io/ajianaz/gofin-web`
 - CI: Trivy security scanning (CRITICAL/HIGH) after image publish, results uploaded to GitHub Security tab
+- Docker: `docker-compose.traefik.yml` for deployment with external Traefik + optional Redis (Postgres + API + Web only)
 
 ### Fixed
 - E2E test flakiness: add waitForLoadState + waitForTimeout to helpers to reduce parallel worker races
