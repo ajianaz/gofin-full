@@ -94,17 +94,39 @@ func (r *WalletRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) 
 	w.IncludeNetWorth = includeNetWorth
 	w.Latitude = lat
 	w.Longitude = long
-	if iban.Valid && iban.s != "" { w.IBAN = &iban.s }
-	if bic.Valid && bic.s != "" { w.BIC = &bic.s }
-	if currencyID.Valid && currencyID.s != "" { w.CurrencyID = &currencyID.s }
-	if notes.Valid && notes.s != "" { w.Notes = &notes.s }
-	if interestPeriod.Valid && interestPeriod.s != "" { w.InterestPeriod = &interestPeriod.s }
-	if liabilityType.Valid && liabilityType.s != "" { w.LiabilityType = &liabilityType.s }
-	if liabilityDirection.Valid && liabilityDirection.s != "" { w.LiabilityDirection = &liabilityDirection.s }
-	if creditCardType.Valid && creditCardType.s != "" { w.CreditCardType = &creditCardType.s }
-	if interestRate != nil { w.InterestRate = interestRate }
-	if currentDebt != nil { w.CurrentDebt = currentDebt }
-	if monthlyPaymentAmt != nil { w.MonthlyPaymentAmount = monthlyPaymentAmt }
+	if iban.Valid && iban.s != "" {
+		w.IBAN = &iban.s
+	}
+	if bic.Valid && bic.s != "" {
+		w.BIC = &bic.s
+	}
+	if currencyID.Valid && currencyID.s != "" {
+		w.CurrencyID = &currencyID.s
+	}
+	if notes.Valid && notes.s != "" {
+		w.Notes = &notes.s
+	}
+	if interestPeriod.Valid && interestPeriod.s != "" {
+		w.InterestPeriod = &interestPeriod.s
+	}
+	if liabilityType.Valid && liabilityType.s != "" {
+		w.LiabilityType = &liabilityType.s
+	}
+	if liabilityDirection.Valid && liabilityDirection.s != "" {
+		w.LiabilityDirection = &liabilityDirection.s
+	}
+	if creditCardType.Valid && creditCardType.s != "" {
+		w.CreditCardType = &creditCardType.s
+	}
+	if interestRate != nil {
+		w.InterestRate = interestRate
+	}
+	if currentDebt != nil {
+		w.CurrentDebt = currentDebt
+	}
+	if monthlyPaymentAmt != nil {
+		w.MonthlyPaymentAmount = monthlyPaymentAmt
+	}
 	w.MonthlyPaymentDate = monthlyPaymentDate
 
 	return &w, nil
@@ -202,7 +224,11 @@ func (s *sqlString) Scan(value interface{}) error {
 	return nil
 }
 
-func scanWallets(rows interface{ Next() bool; Scan(...interface{}) error; Err() error }) ([]domain.Wallet, error) {
+func scanWallets(rows interface {
+	Next() bool
+	Scan(...interface{}) error
+	Err() error
+}) ([]domain.Wallet, error) {
 	var wallets []domain.Wallet
 	for rows.Next() {
 		var w domain.Wallet
@@ -225,17 +251,39 @@ func scanWallets(rows interface{ Next() bool; Scan(...interface{}) error; Err() 
 
 		w.Latitude = lat
 		w.Longitude = long
-		if iban.Valid && iban.s != "" { w.IBAN = &iban.s }
-		if bic.Valid && bic.s != "" { w.BIC = &bic.s }
-		if currencyID.Valid && currencyID.s != "" { w.CurrencyID = &currencyID.s }
-		if notes.Valid && notes.s != "" { w.Notes = &notes.s }
-		if interestPeriod.Valid && interestPeriod.s != "" { w.InterestPeriod = &interestPeriod.s }
-		if liabilityType.Valid && liabilityType.s != "" { w.LiabilityType = &liabilityType.s }
-		if liabilityDirection.Valid && liabilityDirection.s != "" { w.LiabilityDirection = &liabilityDirection.s }
-		if creditCardType.Valid && creditCardType.s != "" { w.CreditCardType = &creditCardType.s }
-		if interestRate != nil { w.InterestRate = interestRate }
-		if currentDebt != nil { w.CurrentDebt = currentDebt }
-		if monthlyPaymentAmt != nil { w.MonthlyPaymentAmount = monthlyPaymentAmt }
+		if iban.Valid && iban.s != "" {
+			w.IBAN = &iban.s
+		}
+		if bic.Valid && bic.s != "" {
+			w.BIC = &bic.s
+		}
+		if currencyID.Valid && currencyID.s != "" {
+			w.CurrencyID = &currencyID.s
+		}
+		if notes.Valid && notes.s != "" {
+			w.Notes = &notes.s
+		}
+		if interestPeriod.Valid && interestPeriod.s != "" {
+			w.InterestPeriod = &interestPeriod.s
+		}
+		if liabilityType.Valid && liabilityType.s != "" {
+			w.LiabilityType = &liabilityType.s
+		}
+		if liabilityDirection.Valid && liabilityDirection.s != "" {
+			w.LiabilityDirection = &liabilityDirection.s
+		}
+		if creditCardType.Valid && creditCardType.s != "" {
+			w.CreditCardType = &creditCardType.s
+		}
+		if interestRate != nil {
+			w.InterestRate = interestRate
+		}
+		if currentDebt != nil {
+			w.CurrentDebt = currentDebt
+		}
+		if monthlyPaymentAmt != nil {
+			w.MonthlyPaymentAmount = monthlyPaymentAmt
+		}
 		w.MonthlyPaymentDate = monthlyPaymentDate
 
 		wallets = append(wallets, w)

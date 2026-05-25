@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"log"
-"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"log"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
 
 type CurrencyHandler struct {
 	repo *repository.CurrencyRepository
