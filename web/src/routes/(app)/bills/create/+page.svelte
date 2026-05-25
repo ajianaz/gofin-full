@@ -30,7 +30,7 @@
 	});</script>
 
 <div class="flex flex-col gap-4">
-	<FormCard title="{t('bills.create.title')}">
+	<FormCard title={t('bills.create.title')}>
 			<form class="flex flex-col gap-6" onsubmit={async (e) => {
 					e.preventDefault();
 					isLoading = true;

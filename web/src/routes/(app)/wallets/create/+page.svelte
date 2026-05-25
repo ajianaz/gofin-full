@@ -17,7 +17,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<FormCard title="{t('wallets.create.title')}">
+	<FormCard title={t('wallets.create.title')}>
 			<form class="flex flex-col gap-6" onsubmit={async (e) => { e.preventDefault(); isLoading = true; errorMsg = ''; try { await walletService.create({ name, wallet_type: type }); goto('/wallets'); } catch (err: any) { errorMsg = err?.detail || err?.message || t('common.error'); } finally { isLoading = false; } }}>
 				<div class="grid gap-6 md:grid-cols-2">
 					<div class="flex flex-col gap-2">
