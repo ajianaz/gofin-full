@@ -102,7 +102,10 @@
 	"dashboard.savings": "Savings",
 	"dashboard.recentTransactions": "Recent Transactions",
 	"dashboard.viewAll": "View All",
-	"dashboard.spendingByCategory": "Spending by Category",
+    "dashboard.spendingByCategory": "Spending by Category",
+    "dashboard.emptyTitle": "Get Started",
+    "dashboard.emptyDescription": "Create your first wallet to start tracking your finances.",
+    "dashboard.noWallets": "No wallets yet",
 	"transactions.list.title": "Transaction List",
 	"transactions.list.searchPlaceholder": "Search transactions...",
 	"transactions.list.add": "Add",
@@ -590,5 +593,9 @@
 	"settings.preferences.fiscal_year_start": "Fiscal year start month",
 	"settings.preferences.transaction_count_per_page": "Transactions per page",
 	"settings.preferences.two_factor_enabled": "Enable two-factor authentication",
-	"settings.preferences.email_digest": "Email digest frequency"
+	"settings.preferences.email_digest": "Email digest frequency",
+	"wallets.edit.title": "Edit Wallet",
+	"wallets.edit.name": "Wallet Name",
+	"wallets.edit.currency": "Currency",
+	"wallets.edit.save": "Save"
 }

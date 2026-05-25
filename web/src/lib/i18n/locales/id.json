@@ -102,7 +102,10 @@
 	"dashboard.savings": "Tabungan",
 	"dashboard.recentTransactions": "Transaksi Terakhir",
 	"dashboard.viewAll": "Lihat Semua",
-	"dashboard.spendingByCategory": "Pengeluaran per Kategori",
+    "dashboard.spendingByCategory": "Pengeluaran per Kategori",
+    "dashboard.emptyTitle": "Mulai Sekarang",
+    "dashboard.emptyDescription": "Buat dompet pertamamu untuk mulai mencatat keuangan.",
+    "dashboard.noWallets": "Belum ada dompet",
 	"transactions.list.title": "Daftar Transaksi",
 	"transactions.list.searchPlaceholder": "Cari transaksi...",
 	"transactions.list.add": "Tambah",
@@ -590,5 +593,9 @@
 	"settings.preferences.fiscal_year_start": "Bulan awal tahun fiskal",
 	"settings.preferences.transaction_count_per_page": "Jumlah transaksi per halaman",
 	"settings.preferences.two_factor_enabled": "Aktifkan autentikasi dua faktor",
-	"settings.preferences.email_digest": "Frekuensi email ringkasan"
+	"settings.preferences.email_digest": "Frekuensi email ringkasan",
+	"wallets.edit.title": "Edit Dompet",
+	"wallets.edit.name": "Nama Dompet",
+	"wallets.edit.currency": "Mata Uang",
+	"wallets.edit.save": "Simpan"
 }
