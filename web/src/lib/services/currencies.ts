@@ -1,5 +1,5 @@
 import { api } from './client.js';
-import { unwrapMany } from './helpers.js';
+import { unwrapMany, unwrapOne } from './helpers.js';
 import type { Currency, ExchangeRate } from '$lib/types/domain.js';
 
 export const currencyService = {
@@ -22,5 +22,21 @@ export const currencyService = {
 			rate: parseFloat(String((r as any).rate ?? '0')),
 			date: (r as any).date ?? ''
 		}));
+	},
+
+	async createExchangeRate(data: { from_currency_id: string; to_currency_id: string; rate: string; date?: string }): Promise<ExchangeRate> {
+		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/exchange-rates', data);
+		const r = unwrapOne<ExchangeRate>(res);
+		return {
+			...r,
+			from_code: (r as any).from_currency_id ?? (r as any).from_code ?? '',
+			to_code: (r as any).to_currency_id ?? (r as any).to_code ?? '',
+			rate: parseFloat(String((r as any).rate ?? '0')),
+			date: (r as any).date ?? ''
+		};
+	},
+
+	async deleteExchangeRate(id: string): Promise<void> {
+		await api.delete(`/exchange-rates/${id}`);
 	}
 };

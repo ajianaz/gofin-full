@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Wallet creation: optional opening balance field — auto-sets virtual_balance (closes #34)
+- Dashboard: empty state with CTA buttons for new users (closes #30)
+- Wallet list: edit wallet name and currency inline (closes #29)
+- Exchange rates: add and delete exchange rates from UI (closes #31)
 - CI: push Docker images to GHCR (GitHub Container Registry) alongside Docker Hub
 - CI: Trivy security scanning (CRITICAL/HIGH) after image publish
 - CI: SSH auto-deploy workflow — triggers after Publish Docker Images completes
@@ -28,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Dashboard: removed fake trend badges (+12%, +5%, etc.)
 
 ### Fixed
+- Transaction API: default currency resolved from source wallet instead of hardcoded EUR (closes #33)
 - **Critical**: CurrencyResolver failed on PostgreSQL — UUID column couldn't compare with string codes like "IDR". Now separates UUIDs from codes before querying
 - Wallets created without currency_id showed no currency info — fallback to locale default
 - Default locale now persisted to localStorage on first visit (closes #26)

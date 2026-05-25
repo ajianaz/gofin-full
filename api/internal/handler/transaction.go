@@ -15,13 +15,14 @@ import (
 )
 
 type TransactionHandler struct {
-	txService *service.TransactionService
-	txRepo    *repository.TransactionRepository
-	curry     *CurrencyResolver
+	txService  *service.TransactionService
+	txRepo     *repository.TransactionRepository
+	walletRepo *repository.WalletRepository
+	curry      *CurrencyResolver
 }
 
-func NewTransactionHandler(txService *service.TransactionService, txRepo *repository.TransactionRepository, curry *CurrencyResolver) *TransactionHandler {
-	return &TransactionHandler{txService: txService, txRepo: txRepo, curry: curry}
+func NewTransactionHandler(txService *service.TransactionService, txRepo *repository.TransactionRepository, walletRepo *repository.WalletRepository, curry *CurrencyResolver) *TransactionHandler {
+	return &TransactionHandler{txService: txService, txRepo: txRepo, walletRepo: walletRepo, curry: curry}
 }
 
 func (h *TransactionHandler) Index(c *fiber.Ctx) error {
@@ -157,7 +158,14 @@ func (h *TransactionHandler) Store(c *fiber.Ctx) error {
 	}
 
 	if input.CurrencyID == "" {
-		input.CurrencyID = "EUR"
+		sourceWallet, err := h.walletRepo.FindByID(c.Context(), input.SourceID, *groupID)
+		if err != nil {
+			log.Printf("handler/Store: failed to find source wallet %s: %v", input.SourceID, err)
+			return apperrors.New(422, "Source wallet not found.")
+		}
+		if sourceWallet.CurrencyID != nil && *sourceWallet.CurrencyID != "" {
+			input.CurrencyID = *sourceWallet.CurrencyID
+		}
 	}
 
 	result, err := h.txService.CreateTransaction(c.Context(), user.ID, *groupID, input)
