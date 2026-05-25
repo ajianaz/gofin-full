@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { authStore } from '$lib/stores/auth.svelte.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { themeStore } from '$lib/stores/theme.svelte.js';
 	import { LanguageSwitcher } from '$lib/components/shared/index.js';
 	import {
 		Sidebar,
@@ -35,7 +36,9 @@
 		Settings,
 		LogOut,
 		ChevronsUpDown,
-		Hexagon
+		Hexagon,
+		Sun,
+		Moon
 	} from '@lucide/svelte';
 
 	let { children } = $props();
@@ -205,7 +208,20 @@
 					</div>
 				</div>
 				<div class="flex items-center justify-between px-2">
-					<LanguageSwitcher />
+					<div class="flex items-center gap-1">
+						<LanguageSwitcher />
+						<button
+							onclick={() => themeStore.toggle()}
+							class="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+							title={themeStore.isDark ? t('layout.sidebar.lightMode') : t('layout.sidebar.darkMode')}
+						>
+							{#if themeStore.isDark}
+								<Sun class="size-3.5" />
+							{:else}
+								<Moon class="size-3.5" />
+							{/if}
+						</button>
+					</div>
 					<button
 						id="logout-btn"
 						class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"

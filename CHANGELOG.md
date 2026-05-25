@@ -7,14 +7,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
-- CI: push Docker images to GHCR (GitHub Container Registry) alongside Docker Hub — `ghcr.io/ajianaz/gofin-api` and `ghcr.io/ajianaz/gofin-web`
-- CI: Trivy security scanning (CRITICAL/HIGH) after image publish, results uploaded to GitHub Security tab
-- Docker: `docker-compose.traefik.yml` for deployment with external Traefik + optional Redis (Postgres + API + Web only)
+- CI: push Docker images to GHCR (GitHub Container Registry) alongside Docker Hub
+- CI: Trivy security scanning (CRITICAL/HIGH) after image publish
+- Docker: `docker-compose.traefik.yml` for external Traefik deployment
+- Dark/light mode toggle button in sidebar footer (closes #25)
+- Settings > Account page — shows email info and password change guidance (closes #22)
+- Settings > Groups page — list, create, and switch between groups (closes #23)
 
 ### Fixed
-- E2E test flakiness: add waitForLoadState + waitForTimeout to helpers to reduce parallel worker races
-- E2E test: admin users page heading locator now matches both h1 and h2 (PageHeader uses h1)
-- E2E test: rules group detail empty state regex expanded with English fallback and longer timeout
+- E2E test flakiness: add waitForLoadState + waitForTimeout to helpers
+- E2E test: admin users page heading locator matches both h1 and h2
+- E2E test: rules group detail empty state regex expanded with English fallback
+- Default locale now persisted to localStorage on first visit (closes #26)
+- Transactions page: guard Select components behind client-only render to prevent hydration error (closes #21)
+
+### Note
+- Issue #24 (login form validation) already fixed — `required` attributes and JS validation present
 - All API responses now use dynamic decimal places from `currency_decimal_places` instead of hardcoded `StringFixed(2)` — wallet balance, transaction amounts, piggy bank amounts, recurring transaction amounts, budget limits all resolve per-currency dp via `CurrencyResolver`
 - CurrencyResolver now handles both UUID and currency code (e.g. "IDR") inputs in a single query — no migration or FE changes required
 - Bill amounts now use `currency_decimal_places` from resolver instead of hardcoded `StringFixed(2)`
