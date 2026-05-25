@@ -57,6 +57,12 @@ docker-selfhost:
 docker-selfhost-down:
 	docker compose -f $(COMPOSE_DIR)/docker-compose.selfhost.yml down
 
+docker-traefik:
+	docker compose -f $(COMPOSE_DIR)/docker-compose.traefik.yml up -d
+
+docker-traefik-down:
+	docker compose -f $(COMPOSE_DIR)/docker-compose.traefik.yml down
+
 docker-dev:
 	docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml up -d
 
@@ -104,5 +110,7 @@ help:
 	@echo "  docker-dev-logs      Tail API logs from dev stack"
 	@echo "  docker-selfhost      Start self-hosted stack (Caddy + API + Web)"
 	@echo "  docker-selfhost-down Stop self-hosted stack"
+	@echo "  docker-traefik      Start Traefik stack (Postgres + API + Web, external Traefik & Redis)"
+	@echo "  docker-traefik-down Stop Traefik stack"
 	@echo "  docker-test          Run full test suite in containers"
 	@echo "  docker-test-down     Tear down test containers and volumes"
