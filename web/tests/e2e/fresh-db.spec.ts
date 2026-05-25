@@ -118,7 +118,8 @@ test.describe('Fresh DB — Full User Journey', () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     expect(res.ok()).toBeTruthy();
-    const attrs = res.json().then ? (await res.json()).data?.attributes : null;
+    const body = await res.json();
+    const attrs = body.data?.attributes;
     if (attrs) {
       expect(attrs.total_income).toBeDefined();
     }
