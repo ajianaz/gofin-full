@@ -6,26 +6,17 @@ on:
     branches: [develop]
     types: [completed]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
 
 # Only one deploy at a time
 concurrency:
-  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  group: deploy-server
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy (${{ github.event.inputs.environment || 'staging' }})
+    name: Deploy to OCI server
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'staging' }}
+    environment: OCI
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success')
@@ -36,15 +27,10 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          port: ${{ secrets.DEPLOY_PORT }}
           script: |
             echo "=== Deploying Gofin ==="
-            cd ${{ secrets.DEPLOY_PATH || '/home/ajianaz/serviceku/gofin' }}
-
-            # Pull latest compose file if tracking git
-            if [ -d .git ]; then
-              git pull origin develop
-            fi
+            cd ${{ secrets.DEPLOY_PATH }}
 
             # Pull latest images
             docker compose pull
