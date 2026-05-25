@@ -598,5 +598,6 @@
   "dashboard.emptyState.title": "Welcome to Gofin!",
   "dashboard.emptyState.description": "Start tracking your finances by creating your first wallet. You can add transactions, set budgets, and monitor your spending.",
   "dashboard.emptyState.createWallet": "Create First Wallet",
-  "dashboard.emptyState.addTransaction": "Add Transaction"
+  "dashboard.emptyState.addTransaction": "Add Transaction",
+  "currencies.exchangeRates.addTitle": "Add Exchange Rate"
 }

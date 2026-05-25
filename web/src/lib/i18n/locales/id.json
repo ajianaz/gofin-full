@@ -598,5 +598,6 @@
   "dashboard.emptyState.title": "Selamat Datang di Gofin!",
   "dashboard.emptyState.description": "Mulai kelola keuanganmu dengan membuat dompet pertama. Kamu bisa menambah transaksi, menyetel anggaran, dan memantau pengeluaran.",
   "dashboard.emptyState.createWallet": "Buat Dompet Pertama",
-  "dashboard.emptyState.addTransaction": "Tambah Transaksi"
+  "dashboard.emptyState.addTransaction": "Tambah Transaksi",
+  "currencies.exchangeRates.addTitle": "Tambah Nilai Tukar"
 }
