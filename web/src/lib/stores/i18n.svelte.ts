@@ -22,6 +22,12 @@ class I18nStore {
 		browser ? parseLocale(localStorage.getItem('gofin_locale')) : 'en'
 	);
 
+	constructor() {
+		if (browser && !localStorage.getItem('gofin_locale')) {
+			localStorage.setItem('gofin_locale', 'en');
+		}
+	}
+
 	get localeCode() {
 		return localeCodes[this.locale];
 	}

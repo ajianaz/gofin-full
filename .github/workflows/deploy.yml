@@ -1,0 +1,54 @@
+name: Deploy to Server
+
+on:
+  workflow_run:
+    workflows: ["Publish Docker Images"]
+    branches: [develop]
+    types: [completed]
+  workflow_dispatch:
+
+# Only one deploy at a time
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to OCI server
+    runs-on: ubuntu-latest
+    environment: OCI
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success')
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script: |
+            echo "=== Deploying Gofin ==="
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            # Pull latest images
+            docker compose pull
+
+            # Rolling update (no downtime)
+            docker compose up -d --remove-orphans
+
+            # Wait for health check
+            echo "Waiting for API health check..."
+            for i in $(seq 1 30); do
+              if wget -q -O /dev/null http://localhost:8080/health 2>/dev/null; then
+                echo "✅ API is healthy"
+                break
+              fi
+              echo "  attempt $i/30..."
+              sleep 2
+            done
+
+            # Show status
+            docker compose ps
+            echo "=== Deploy complete ==="

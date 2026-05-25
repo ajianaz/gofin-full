@@ -14,6 +14,8 @@
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+
+	let mounted = $state(false);
 	const t = localeStore.t;
 
 	let isLoading = $state(true);
@@ -53,6 +55,7 @@
 			console.error('Failed to load transactions:', e);
 		} finally {
 			isLoading = false;
+			mounted = true;
 		}
 	});
 
@@ -132,6 +135,7 @@
 		</div>
 
 	<div class="flex flex-wrap items-center gap-3">
+		{#if mounted}
 		<div class="relative">
 			<Select bind:value={typeFilter}>
 		<SelectTrigger class="w-40">
@@ -185,6 +189,7 @@
 </Select>
 			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 		</div>
+		{/if}
 	</div>
 
 	<Card>
