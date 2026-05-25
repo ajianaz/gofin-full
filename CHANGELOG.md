@@ -14,8 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - CodeRabbit: safe slice copy for duplicated query args in CurrencyResolver
 - CurrencyResolver: add `rows.Err()` check after iteration to catch silent partial results
 - i18n locale validation: use `validLocales` array lookup instead of hardcoded string comparison, remove duplicate `safeLocale` function
+- Svelte warnings: fix `state_referenced_locally` in EmptyState icon capture, remove quoted attributes on FormCard in 4 create pages
 - Add working logout button to sidebar footer (vanilla JS event listener via onMount, explicit localStorage cleanup)
 - E2E tests: add explicit Content-Type/Accept JSON headers to all API requests
+- Svelte warnings: fix `state_referenced_locally` in EmptyState icon capture, remove quoted attributes on FormCard in 4 create pages
 - E2E tests: update test password to `TestPass123!` to meet API complexity policy (3 of: uppercase, lowercase, digit, special char)
 - E2E tests: use unique email per test with Date.now() + random suffix
 - Add "Keluar"/"Logout" i18n key for sidebar

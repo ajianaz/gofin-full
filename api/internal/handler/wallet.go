@@ -231,7 +231,7 @@ func walletToMap(w *domain.Wallet, cMap map[string]CurrencyInfo) fiber.Map {
 		"id":         w.ID,
 		"attributes": fiber.Map{
 			"name":              w.Name,
-			"wallet_type":      w.AccountType,
+			"wallet_type":       w.AccountType,
 			"active":            w.Active,
 			"virtual_balance":   w.VirtualBalance.StringFixed(int32(dp)),
 			"include_net_worth": w.IncludeNetWorth,

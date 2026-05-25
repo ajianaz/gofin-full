@@ -62,7 +62,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<FormCard title="{t('transactions.create.title')}">
+	<FormCard title={t('transactions.create.title')}>
 			<form class="flex flex-col gap-6" onsubmit={handleSubmit}>
 				<div class="grid gap-6 md:grid-cols-2">
 					<div class="flex flex-col gap-4">
