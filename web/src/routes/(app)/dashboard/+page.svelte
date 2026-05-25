@@ -3,19 +3,23 @@
 	import { PageHeader, StatCard, AmountDisplay } from '$lib/components/shared/index.js';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Progress } from '$lib/components/ui/progress/index.js';
-	import { Wallet, TrendingUp, TrendingDown, PiggyBank } from '@lucide/svelte';
+	import { Wallet, TrendingUp, TrendingDown, PiggyBank, Plus, ArrowRight } from '@lucide/svelte';
 	import { walletService, transactionService, budgetService } from '$lib/services/index.js';
 	import { formatCurrency, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { Account, Transaction, Budget } from '$lib/types/domain.js';
-	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+import { Button } from '$lib/components/ui/button/index.js';
+import EmptyState from '$lib/components/shared/EmptyState.svelte';
 
-	const t = localeStore.t;
+const t = localeStore.t;
 
-	let wallets = $state<Account[]>([]);
-	let transactions = $state<Transaction[]>([]);
-	let budgets = $state<Budget[]>([]);
-	let isLoading = $state(true);
+let wallets = $state<Account[]>([]);
+let transactions = $state<Transaction[]>([]);
+let budgets = $state<Budget[]>([]);
+let isLoading = $state(true);
+
+const isEmpty = $derived(wallets.length === 0);
 
 	// Group wallets by currency for accurate totals
 	const walletCurrencyGroups = $derived(() => {
@@ -80,8 +84,30 @@
 			{/each}
 		</CardContent>
 	</Card>
-	{:else}
-	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+{:else if isEmpty}
+	<div class="flex flex-col items-center justify-center py-16 text-center">
+		<div class="flex size-20 items-center justify-center rounded-full bg-muted mb-4">
+			<Wallet class="size-10 text-muted-foreground" />
+		</div>
+		<h3 class="text-xl font-semibold text-foreground mb-2">{t('dashboard.emptyState.title')}</h3>
+		<p class="text-sm text-muted-foreground max-w-md mb-6">{t('dashboard.emptyState.description')}</p>
+		<div class="flex gap-3">
+			<a href="/wallets/create">
+				<Button>
+					<Plus class="size-4 mr-2" />
+					{t('dashboard.emptyState.createWallet')}
+				</Button>
+			</a>
+			<a href="/transactions/create">
+				<Button variant="outline">
+					{t('dashboard.emptyState.addTransaction')}
+					<ArrowRight class="size-4 ml-2" />
+				</Button>
+			</a>
+		</div>
+	</div>
+{:else}
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
 		<StatCard title={t('dashboard.totalBalance')} value={formatCurrency(totalBalance.toString(), totalBalanceSymbol)} icon={Wallet} />
 		<StatCard title={t('dashboard.income')} value={formatCurrency(totalIncome.toString(), totalBalanceSymbol)} icon={TrendingUp} />
 		<StatCard title={t('dashboard.expense')} value={formatCurrency(totalExpense.toString(), totalBalanceSymbol)} icon={TrendingDown} />
