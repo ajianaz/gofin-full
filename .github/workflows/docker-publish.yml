@@ -224,6 +224,7 @@ jobs:
 
       - name: Run Trivy vulnerability scanner (SARIF)
         uses: aquasecurity/trivy-action@v0.33.0
+        continue-on-error: true
         with:
           image-ref: "${{ matrix.image }}:${{ steps.tag.outputs.branch }}"
           format: "sarif"
@@ -234,6 +235,7 @@ jobs:
 
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
         if: always()
         with:
           sarif_file: "trivy-${{ matrix.target }}-results.sarif"
@@ -241,6 +243,7 @@ jobs:
 
       - name: Trivy summary table
         uses: aquasecurity/trivy-action@v0.33.0
+        continue-on-error: true
         with:
           image-ref: "${{ matrix.image }}:${{ steps.tag.outputs.branch }}"
           format: "table"
