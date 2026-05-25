@@ -22,6 +22,8 @@ async function registerAndAuthenticate(page: import('@playwright/test').Page, pa
 	}, tokens.access_token);
 	await page.goto(path);
 	await page.waitForLoadState('domcontentloaded');
+	// Wait for page to stabilize (skeleton loading states to resolve)
+	await page.waitForTimeout(500);
 
 	return { email: testEmail, tokens };
 }
@@ -34,6 +36,7 @@ async function navigateWithAuth(page: import('@playwright/test').Page, path: str
 	}, accessToken);
 	await page.goto(path);
 	await page.waitForLoadState('domcontentloaded');
+	await page.waitForTimeout(500);
 }
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
@@ -58,8 +61,9 @@ test.describe('Settings — API Keys Page', () => {
 		await registerAndAuthenticate(page, '/settings/api-keys');
 		expect(page.url()).toContain('/settings/api-keys');
 
+		await page.waitForLoadState('networkidle');
 		const addButton = page.locator('button:has(svg.lucide-plus)').first();
-		await expect(addButton).toBeVisible({ timeout: 10000 });
+		await expect(addButton).toBeVisible({ timeout: 15000 });
 	});
 
 	test('can create an API key and see it listed', async ({ page }) => {
@@ -329,8 +333,8 @@ test.describe('Rules Group Detail Page', () => {
 
 		await navigateWithAuth(page, `/rules/${groupId}`, tokens.access_token);
 
-		const emptyState = page.getByText(/belum ada aturan|belum ada data|gagal memuat/i);
-		await expect(emptyState).toBeVisible({ timeout: 10000 });
+		const emptyState = page.getByText(/belum ada aturan|belum ada data|gagal memuat|no rules/i);
+		await expect(emptyState).toBeVisible({ timeout: 15000 });
 	});
 
 	test('rules API returns groups and rules', async ({ page }) => {

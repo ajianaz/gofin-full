@@ -814,7 +814,7 @@ test.describe('Admin — Users Page', () => {
 		await registerAndAuthenticate(page, '/admin/users');
 		expect(page.url()).toContain('/admin/users');
 
-		const heading = page.locator('h2').filter({ hasText: /admin.*user/i });
+		const heading = page.locator('h1, h2').filter({ hasText: /admin.*user|pengguna/i });
 		const noData = page.getByText(NO_DATA);
 		const errorState = page.getByText(ERROR_STATE);
 		await expect(heading.first().or(noData).first().or(errorState).first()).toBeVisible({ timeout: 15000 });

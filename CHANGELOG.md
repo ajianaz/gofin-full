@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- E2E test flakiness: add waitForLoadState + waitForTimeout to helpers to reduce parallel worker races
+- E2E test: admin users page heading locator now matches both h1 and h2 (PageHeader uses h1)
+- E2E test: rules group detail empty state regex expanded with English fallback and longer timeout
 - All API responses now use dynamic decimal places from `currency_decimal_places` instead of hardcoded `StringFixed(2)` — wallet balance, transaction amounts, piggy bank amounts, recurring transaction amounts, budget limits all resolve per-currency dp via `CurrencyResolver`
 - CurrencyResolver now handles both UUID and currency code (e.g. "IDR") inputs in a single query — no migration or FE changes required
 - Bill amounts now use `currency_decimal_places` from resolver instead of hardcoded `StringFixed(2)`
