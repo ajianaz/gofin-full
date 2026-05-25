@@ -223,7 +223,7 @@ jobs:
           echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Run Trivy vulnerability scanner (SARIF)
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.33.0
         with:
           image-ref: "${{ matrix.image }}:${{ steps.tag.outputs.branch }}"
           format: "sarif"
@@ -240,7 +240,7 @@ jobs:
           category: "trivy-${{ matrix.target }}"
 
       - name: Trivy summary table
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.33.0
         with:
           image-ref: "${{ matrix.image }}:${{ steps.tag.outputs.branch }}"
           format: "table"
