@@ -99,13 +99,14 @@ func (h *WalletHandler) Store(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		Name       string `json:"name"`
-		WalletType string `json:"wallet_type"`
-		CurrencyID string `json:"currency_id"`
-		Active     *bool  `json:"active"`
-		IBAN       string `json:"iban"`
-		BIC        string `json:"bic"`
-		Notes      string `json:"notes"`
+		Name           string `json:"name"`
+		WalletType     string `json:"wallet_type"`
+		CurrencyID     string `json:"currency_id"`
+		Active         *bool  `json:"active"`
+		IBAN           string `json:"iban"`
+		BIC            string `json:"bic"`
+		Notes          string `json:"notes"`
+		OpeningBalance string `json:"opening_balance"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{
@@ -128,13 +129,21 @@ func (h *WalletHandler) Store(c *fiber.Ctx) error {
 		active = *req.Active
 	}
 
+	// Parse opening balance (default 0)
+	virtualBalance := decimal.Zero
+	if req.OpeningBalance != "" {
+		if ob, err := decimal.NewFromString(req.OpeningBalance); err == nil {
+			virtualBalance = ob
+		}
+	}
+
 	wallet := &domain.Wallet{
 		UserID:          user.ID,
 		UserGroupID:     *groupID,
 		Name:            req.Name,
 		AccountType:     req.WalletType,
 		Active:          active,
-		VirtualBalance:  decimal.Zero,
+		VirtualBalance:  virtualBalance,
 		IncludeNetWorth: true,
 	}
 	if req.IBAN != "" {

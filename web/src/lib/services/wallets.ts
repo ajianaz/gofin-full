@@ -24,7 +24,7 @@ export const walletService = {
 		}));
 	},
 
-	async create(data: { name: string; wallet_type?: string; currency_id?: string; active?: boolean }): Promise<Account> {
+	async create(data: { name: string; wallet_type?: string; currency_id?: string; active?: boolean; opening_balance?: string }): Promise<Account> {
 		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/wallets', data);
 		const w = unwrapOne<Account>(res);
 		return {
