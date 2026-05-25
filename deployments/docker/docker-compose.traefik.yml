@@ -133,7 +133,7 @@ services:
       start_period: 15s
     networks:
       - gofin-internal
-      - traefik-public
+      - external-net
     labels:
       <<: *traefik-api
 
@@ -151,7 +151,7 @@ services:
           memory: 32M
     networks:
       - gofin-internal
-      - traefik-public
+      - external-net
     labels:
       <<: *traefik-web
 
@@ -161,5 +161,8 @@ volumes:
 networks:
   gofin-internal:
     driver: bridge
-  traefik-public:
+  external-net:
+    # Name of your existing Traefik network. Adjust to match your setup.
+    # Common names: traefik-public, proxy, web
+    name: ${TRAEFIK_NETWORK:-traefik-public}
     external: true
