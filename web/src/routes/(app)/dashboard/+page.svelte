@@ -17,7 +17,21 @@
 	let budgets = $state<Budget[]>([]);
 	let isLoading = $state(true);
 
+	// Group wallets by currency for accurate totals
+	const walletCurrencyGroups = $derived(() => {
+		const groups = new Map<string, { wallets: Account[]; symbol: string; decimal: number }>();
+		for (const w of wallets) {
+			const code = w.currency_code || 'USD';
+			if (!groups.has(code)) {
+				groups.set(code, { wallets: [], symbol: w.currency_symbol || '$', decimal: w.currency_decimal_places ?? 2 });
+			}
+			groups.get(code)!.wallets.push(w);
+		}
+		return groups;
+	});
+
 	const totalBalance = $derived(wallets.reduce((sum, w) => sum + parseFloat(w.balance || '0'), 0));
+	const totalBalanceSymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || '$') : '$');
 	const totalIncome = $derived(transactions.filter((tx) => tx.type === 'deposit').reduce((sum, tx) => sum + parseFloat(tx.amount || '0'), 0));
 	const totalExpense = $derived(transactions.filter((tx) => tx.type === 'withdrawal').reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount || '0')), 0));
 	const recentTransactions = $derived(transactions.slice(0, 8));
@@ -68,10 +82,10 @@
 	</Card>
 	{:else}
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-		<StatCard title={t('dashboard.totalBalance')} value={formatCurrency(totalBalance.toString())} icon={Wallet} trend={{ value: '+12%', positive: true }} />
-		<StatCard title={t('dashboard.income')} value={formatCurrency(totalIncome.toString())} icon={TrendingUp} trend={{ value: '+5%', positive: true }} />
-		<StatCard title={t('dashboard.expense')} value={formatCurrency(totalExpense.toString())} icon={TrendingDown} trend={{ value: '-8%', positive: false }} />
-		<StatCard title={t('dashboard.savings')} value={formatCurrency('12000000')} icon={PiggyBank} trend={{ value: '+3%', positive: true }} />
+		<StatCard title={t('dashboard.totalBalance')} value={formatCurrency(totalBalance.toString(), totalBalanceSymbol)} icon={Wallet} />
+		<StatCard title={t('dashboard.income')} value={formatCurrency(totalIncome.toString(), totalBalanceSymbol)} icon={TrendingUp} />
+		<StatCard title={t('dashboard.expense')} value={formatCurrency(totalExpense.toString(), totalBalanceSymbol)} icon={TrendingDown} />
+		<StatCard title={t('dashboard.savings')} value={formatCurrency(Math.max(0, totalIncome - totalExpense).toString(), totalBalanceSymbol)} icon={PiggyBank} />
 	</div>
 
 	<div class="grid gap-4 lg:grid-cols-3">
@@ -87,7 +101,7 @@
 								<p class="text-sm font-medium text-foreground truncate">{tx.description}</p>
 								<p class="text-xs text-muted-foreground">{formatDate(tx.date)} &middot; {tx.category_name || ''}</p>
 							</div>
-							<AmountDisplay amount={tx.amount} class="text-sm" />
+							<AmountDisplay amount={tx.amount} symbol={tx.currency_symbol} class="text-sm" />
 						</div>
 					{:else}
 						<p class="text-sm text-muted-foreground">{t('common.noData')}</p>

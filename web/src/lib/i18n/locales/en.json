@@ -160,6 +160,7 @@
 	"wallets.create.virtualBalance": "Virtual Balance",
 	"wallets.create.includeNetWorth": "Include in Net Worth",
 	"wallets.create.submit": "Save Wallet",
+	"wallets.create.currency": "Currency",
 	"wallets.create.bankAccount": "Bank Account",
 	"wallets.create.cash": "Cash",
 	"wallets.create.creditCard": "Credit Card",

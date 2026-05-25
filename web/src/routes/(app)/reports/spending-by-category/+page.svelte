@@ -4,7 +4,7 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ArrowLeft } from '@lucide/svelte';
-	import { reportService } from '$lib/services/index.js';
+	import { reportService, walletService } from '$lib/services/index.js';
 	import { formatCurrency } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
@@ -14,10 +14,19 @@
 
 	let categoryData: { name: string; amount: number }[] = $state([]);
 	let totalSpent = $state(0);
+	let currencySymbol = $state('$');
+	let decimalPlaces = $state(0);
 
 	onMount(async () => {
 		try {
-			const data = await reportService.spendingByCategory();
+			const [data, walletList] = await Promise.all([
+				reportService.spendingByCategory(),
+				walletService.list()
+			]);
+			if (walletList.length > 0) {
+				currencySymbol = walletList[0].currency_symbol || '$';
+				decimalPlaces = walletList[0].currency_decimal_places ?? 2;
+			}
 			categoryData = data
 				.map((c) => ({ name: c.category_name, amount: c.total }))
 				.filter((c) => c.amount > 0)
@@ -54,7 +63,7 @@
 		<Card>
 			<CardHeader class="pb-1"><CardTitle class="text-sm font-semibold">{t('reports.spendingByCategory.totalSpending')}</CardTitle></CardHeader>
 			<CardContent>
-				<p class="text-xl font-bold text-destructive">{formatCurrency(totalSpent.toString())}</p>
+				<p class="text-xl font-bold text-destructive">{formatCurrency(totalSpent.toString(), currencySymbol, decimalPlaces)}</p>
 				<p class="text-xs text-muted-foreground">{t('reports.spendingByCategory.categoryCount', { count: categoryData.length })}</p>
 			</CardContent>
 		</Card>
@@ -72,7 +81,7 @@
 							<div>
 								<div class="flex items-center justify-between mb-1.5">
 									<span class="text-sm font-medium text-foreground">{cat.name}</span>
-									<span class="text-sm font-medium text-foreground">{formatCurrency(cat.amount.toString())}</span>
+									<span class="text-sm font-medium text-foreground">{formatCurrency(cat.amount.toString(), currencySymbol, decimalPlaces)}</span>
 								</div>
 								<div class="h-0.5 w-full rounded-full bg-muted"></div>
 							</div>

@@ -32,6 +32,7 @@ func (h *CurrencyHandler) Index(c *fiber.Ctx) error {
 			"type": "currencies",
 			"id":   cur.Code,
 			"attributes": fiber.Map{
+				"code":           cur.Code,
 				"name":           cur.Name,
 				"symbol":         cur.Symbol,
 				"decimal_places": cur.DecimalPlaces,
@@ -57,6 +58,7 @@ func (h *CurrencyHandler) Show(c *fiber.Ctx) error {
 		"type": "currencies",
 		"id":   cur.Code,
 		"attributes": fiber.Map{
+			"code":           cur.Code,
 			"name":           cur.Name,
 			"symbol":         cur.Symbol,
 			"decimal_places": cur.DecimalPlaces,

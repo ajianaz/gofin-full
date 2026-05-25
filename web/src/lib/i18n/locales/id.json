@@ -160,6 +160,7 @@
 	"wallets.create.virtualBalance": "Saldo Virtual",
 	"wallets.create.includeNetWorth": "Sertakan dalam Net Worth",
 	"wallets.create.submit": "Simpan Dompet",
+	"wallets.create.currency": "Mata Uang",
 	"wallets.create.bankAccount": "Rekening Bank",
 	"wallets.create.cash": "Kas",
 	"wallets.create.creditCard": "Kartu Kredit",

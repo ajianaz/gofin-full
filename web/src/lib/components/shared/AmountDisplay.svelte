@@ -3,13 +3,15 @@
 
 	let {
 		amount,
+		symbol,
 		class: className = ''
 	}: {
 		amount: string;
+		symbol?: string;
 		class?: string;
 	} = $props();
 
-	let formatted = $derived(formatAmount(amount));
+	let formatted = $derived(formatAmount(amount, symbol));
 </script>
 
 <span class="font-semibold {formatted.color} {className}">

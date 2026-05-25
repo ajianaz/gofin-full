@@ -9,10 +9,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - CI: push Docker images to GHCR (GitHub Container Registry) alongside Docker Hub
 - CI: Trivy security scanning (CRITICAL/HIGH) after image publish
+- CI: SSH auto-deploy workflow — triggers after Publish Docker Images completes
 - Docker: `docker-compose.traefik.yml` for external Traefik deployment
 - Dark/light mode toggle button in sidebar footer (closes #25)
 - Settings > Account page — shows email info and password change guidance (closes #22)
 - Settings > Groups page — list, create, and switch between groups (closes #23)
+- Wallet creation: currency selector — pick currency when creating a new wallet
+- API: currency endpoint now returns `code` field in attributes
+- API: wallet update now accepts `currency_id` field
+
+### Changed
+- **Currency consistency fix**: All pages now use wallet/transaction currency symbol instead of locale default
+  - Dashboard: stat cards and recent transactions use wallet currency
+  - Reports: overview, spending-by-category, spending-by-period, net-worth use wallet currency
+  - Transactions: amount display uses transaction currency symbol
+  - Wallets: balance display uses wallet currency symbol
+- Dashboard: Savings card now calculated (income - expense), removed hardcoded value
+- Dashboard: removed fake trend badges (+12%, +5%, etc.)
+
+### Fixed
+- **Critical**: CurrencyResolver failed on PostgreSQL — UUID column couldn't compare with string codes like "IDR". Now separates UUIDs from codes before querying
+- Wallets created without currency_id showed no currency info — fallback to locale default
+- Default locale now persisted to localStorage on first visit (closes #26)
+- Transactions page: guard Select components behind client-only render to prevent hydration error (closes #21)
+- E2E test flakiness: add waitForLoadState + waitForTimeout to helpers
+
+### Note
+- Issue #24 (login form validation) already fixed — `required` attributes and JS validation present
 
 ### Fixed
 - E2E test flakiness: add waitForLoadState + waitForTimeout to helpers

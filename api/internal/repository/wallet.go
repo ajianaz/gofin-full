@@ -144,15 +144,16 @@ func (r *WalletRepository) List(ctx context.Context, groupID uuid.UUID, walletTy
 }
 
 // Update updates wallet fields.
-func (r *WalletRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, active, includeNetWorth *bool, notes *string) error {
+func (r *WalletRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, active, includeNetWorth *bool, currencyID *string, notes *string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE wallets SET name = COALESCE(NULLIF($1, ''), name),
 		  active = COALESCE($2, active),
 		  include_net_worth = COALESCE($3, include_net_worth),
-		  notes = COALESCE($4, notes),
-		  updated_at = $5
-		 WHERE id = $6 AND user_group_id = $7 AND deleted_at IS NULL`,
-		name, active, includeNetWorth, notes, time.Now().UTC(), id, groupID,
+		  currency_id = COALESCE($4, currency_id),
+		  notes = COALESCE($5, notes),
+		  updated_at = $6
+		 WHERE id = $7 AND user_group_id = $8 AND deleted_at IS NULL`,
+		name, active, includeNetWorth, currencyID, notes, time.Now().UTC(), id, groupID,
 	)
 	return err
 }

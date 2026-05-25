@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-	import { reportService } from '$lib/services/index.js';
+	import { reportService, walletService } from '$lib/services/index.js';
 	import { formatCurrency } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import type { Account } from '$lib/types/domain.js';
 	const t = localeStore.t;
 
 	let loading = $state(true);
@@ -14,6 +15,8 @@
 	let diff = $state(0);
 	let netWorthVal = $state(0);
 	let transactionCount = $state(0);
+	let currencySymbol = $state('$');
+	let decimalPlaces = $state(0);
 
 	let categorySpending: { name: string; amount: number }[] = $state([]);
 	let monthData: { label: string; income: number; expense: number }[] = $state([]);
@@ -25,11 +28,18 @@
 
 	onMount(async () => {
 		try {
-			const [netWorthRes, categoryRes, periodRes] = await Promise.all([
+			const [netWorthRes, categoryRes, periodRes, walletList] = await Promise.all([
 				reportService.netWorth(),
 				reportService.spendingByCategory(),
-				reportService.spendingByPeriod()
+				reportService.spendingByPeriod(),
+				walletService.list()
 			]);
+
+			// Get currency from wallets (use first wallet's currency)
+			if (walletList.length > 0) {
+				currencySymbol = walletList[0].currency_symbol || '$';
+				decimalPlaces = walletList[0].currency_decimal_places ?? 2;
+			}
 
 			totalIncome = netWorthRes.total_income;
 			totalExpense = netWorthRes.total_expense;
@@ -78,28 +88,28 @@
 			<Card>
 				<CardHeader class="pb-1"><CardTitle class="text-sm font-semibold">{t('reports.income')}</CardTitle></CardHeader>
 				<CardContent>
-					<p class="text-xl font-bold text-green-600">{formatCurrency(totalIncome.toString())}</p>
+					<p class="text-xl font-bold text-green-600">{formatCurrency(totalIncome.toString(), currencySymbol, decimalPlaces)}</p>
 					<p class="text-xs text-muted-foreground">{transactionCount} transactions</p>
 				</CardContent>
 			</Card>
 			<Card>
 				<CardHeader class="pb-1"><CardTitle class="text-sm font-semibold">{t('reports.expense')}</CardTitle></CardHeader>
 				<CardContent>
-					<p class="text-xl font-bold text-destructive">{formatCurrency(totalExpense.toString())}</p>
+					<p class="text-xl font-bold text-destructive">{formatCurrency(totalExpense.toString(), currencySymbol, decimalPlaces)}</p>
 					<p class="text-xs text-muted-foreground">{t('reports.spendingByPeriod.title')}</p>
 				</CardContent>
 			</Card>
 			<Card>
 				<CardHeader class="pb-1"><CardTitle class="text-sm font-semibold">{t('reports.diff')}</CardTitle></CardHeader>
 				<CardContent>
-					<p class="text-xl font-bold {diff >= 0 ? 'text-green-600' : 'text-destructive'}">{formatCurrency(Math.abs(diff).toString())}</p>
+					<p class="text-xl font-bold {diff >= 0 ? 'text-green-600' : 'text-destructive'}">{formatCurrency(Math.abs(diff).toString(), currencySymbol, decimalPlaces)}</p>
 					<p class="text-xs text-muted-foreground">{t('reports.monthlySavings')}</p>
 				</CardContent>
 			</Card>
 			<Card>
 				<CardHeader class="pb-1"><CardTitle class="text-sm font-semibold">{t('reports.netWorth')}</CardTitle></CardHeader>
 				<CardContent>
-					<p class="text-xl font-bold text-foreground">{formatCurrency(netWorthVal.toString())}</p>
+					<p class="text-xl font-bold text-foreground">{formatCurrency(netWorthVal.toString(), currencySymbol, decimalPlaces)}</p>
 					<p class="text-xs text-muted-foreground">{t('reports.netWorth.title')}</p>
 				</CardContent>
 			</Card>
@@ -120,7 +130,7 @@
 										class="h-5 rounded"
 										style="width: {(cat.amount / maxCatAmount) * 70}%; min-width: 8px; background-color: {barColors[i % barColors.length]}"
 									></div>
-									<span class="text-xs text-muted-foreground">{formatCurrency(cat.amount.toString())}</span>
+									<span class="text-xs text-muted-foreground">{formatCurrency(cat.amount.toString(), currencySymbol, decimalPlaces)}</span>
 								</div>
 							{/each}
 						</div>

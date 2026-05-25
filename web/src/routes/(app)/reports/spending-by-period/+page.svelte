@@ -5,7 +5,7 @@
 	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ArrowLeft } from '@lucide/svelte';
-	import { reportService } from '$lib/services/index.js';
+	import { reportService, walletService } from '$lib/services/index.js';
 	import { formatCurrency } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
@@ -21,10 +21,19 @@
 	}
 
 	let periodData: PeriodRow[] = $state([]);
+	let currencySymbol = $state('$');
+	let decimalPlaces = $state(0);
 
 	onMount(async () => {
 		try {
-			const data = await reportService.spendingByPeriod();
+			const [data, walletList] = await Promise.all([
+				reportService.spendingByPeriod(),
+				walletService.list()
+			]);
+			if (walletList.length > 0) {
+				currencySymbol = walletList[0].currency_symbol || '$';
+				decimalPlaces = walletList[0].currency_decimal_places ?? 2;
+			}
 			periodData = data
 				.map((p) => ({
 					period: p.period,
@@ -82,10 +91,10 @@
 								{#each periodData as row}
 						<TableRow>
 							<TableCell class="px-4 py-3 font-medium text-foreground">{row.period}</TableCell>
-							<TableCell class="px-4 py-3 text-right text-green-600">{formatCurrency(row.income.toString())}</TableCell>
-							<TableCell class="px-4 py-3 text-right text-destructive">{formatCurrency(row.expense.toString())}</TableCell>
+							<TableCell class="px-4 py-3 text-right text-green-600">{formatCurrency(row.income.toString(), currencySymbol, decimalPlaces)}</TableCell>
+							<TableCell class="px-4 py-3 text-right text-destructive">{formatCurrency(row.expense.toString(), currencySymbol, decimalPlaces)}</TableCell>
 							<TableCell class="px-4 py-3 text-right font-medium {row.diff >= 0 ? 'text-green-600' : 'text-destructive'}">
-								{row.diff >= 0 ? '+' : '-'}{formatCurrency(Math.abs(row.diff).toString())}
+								{row.diff >= 0 ? '+' : '-'}{formatCurrency(Math.abs(row.diff).toString(), currencySymbol, decimalPlaces)}
 							</TableCell>
 						</TableRow>
 								{/each}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/internal/domain"
@@ -48,28 +49,62 @@ func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[st
 		return result
 	}
 
-	// Build query with positional args — match by id OR code
-	placeholders := ""
-	args := []interface{}{}
-	for i, id := range unique {
-		if i > 0 {
-			placeholders += ","
+	// Separate UUIDs from codes to avoid PostgreSQL type mismatch
+	var uuids []string
+	var codes []string
+	for _, id := range unique {
+		if _, err := uuid.Parse(id); err == nil {
+			uuids = append(uuids, id)
+		} else {
+			codes = append(codes, id)
 		}
-		placeholders += domain.Placeholder(i + 1)
-		args = append(args, id)
+	}
+
+	// Build query dynamically based on what we have
+	var conditions []string
+	var queryArgs []interface{}
+	idx := 1
+
+	if len(uuids) > 0 {
+		ph := ""
+		for i, u := range uuids {
+			if i > 0 {
+				ph += ","
+			}
+			ph += domain.Placeholder(idx)
+			queryArgs = append(queryArgs, u)
+			idx++
+		}
+		conditions = append(conditions, "id IN ("+ph+")")
+	}
+
+	if len(codes) > 0 {
+		ph := ""
+		for i, c := range codes {
+			if i > 0 {
+				ph += ","
+			}
+			ph += domain.Placeholder(idx)
+			queryArgs = append(queryArgs, c)
+			idx++
+		}
+		conditions = append(conditions, "code IN ("+ph+")")
+	}
+
+	if len(conditions) == 0 {
+		return result
+	}
+
+	where := conditions[0]
+	if len(conditions) > 1 {
+		where = "(" + conditions[0] + " OR " + conditions[1] + ")"
 	}
 
 	query := `SELECT id, code, symbol, COALESCE(decimal_places, 2)
 		  FROM currencies
-		  WHERE (id IN (` + placeholders + `) OR code IN (` + placeholders + `))
-		  AND deleted_at IS NULL`
+		  WHERE ` + where + ` AND deleted_at IS NULL`
 
-	// Duplicate args for both IN clauses (avoid append mutating args slice)
-	allArgs := make([]interface{}, len(args)*2)
-	copy(allArgs, args)
-	copy(allArgs[len(args):], args)
-
-	rows, err := r.db.Query(ctx, query, allArgs...)
+	rows, err := r.db.Query(ctx, query, queryArgs...)
 	if err != nil {
 		log.Printf("currency: resolve failed: %v", err)
 		return result

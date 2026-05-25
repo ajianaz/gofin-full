@@ -173,6 +173,7 @@ func (h *WalletHandler) Update(c *fiber.Ctx) error {
 		Name            string  `json:"name"`
 		Active          *bool   `json:"active"`
 		IncludeNetWorth *bool   `json:"include_net_worth"`
+		CurrencyID      *string `json:"currency_id"`
 		Notes           *string `json:"notes"`
 	}
 	if err := c.BodyParser(&req); err != nil {
@@ -181,7 +182,7 @@ func (h *WalletHandler) Update(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Name, req.Active, req.IncludeNetWorth, req.Notes); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, req.Name, req.Active, req.IncludeNetWorth, req.CurrencyID, req.Notes); err != nil {
 		return apperrors.ErrInternal
 	}
 
