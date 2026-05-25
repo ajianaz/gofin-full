@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- CI: push Docker images to GHCR (GitHub Container Registry) alongside Docker Hub — `ghcr.io/ajianaz/gofin-api` and `ghcr.io/ajianaz/gofin-web`
+- CI: Trivy security scanning (CRITICAL/HIGH) after image publish, results uploaded to GitHub Security tab
+
 ### Fixed
 - E2E test flakiness: add waitForLoadState + waitForTimeout to helpers to reduce parallel worker races
 - E2E test: admin users page heading locator now matches both h1 and h2 (PageHeader uses h1)

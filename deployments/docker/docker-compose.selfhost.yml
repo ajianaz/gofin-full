@@ -7,10 +7,13 @@
 #   # RECOMMENDED: set ADMIN_EMAIL, ADMIN_PASSWORD
 #   docker compose -f deployments/docker/docker-compose.selfhost.yml up -d
 #
-# Images:
-#   api:  ajianaz/gofin-api:latest  (or set DOCKER_IMAGE_API)
-#   web:  ajianaz/gofin-web:latest  (or set DOCKER_IMAGE_WEB)
-#   Override: DOCKER_IMAGE_API=ajianaz/gofin-api:develop
+# Images (dual registry — Docker Hub + GHCR):
+#   Docker Hub: ajianaz/gofin-api:latest / ajianaz/gofin-web:latest
+#   GHCR:       ghcr.io/ajianaz/gofin-api:latest / ghcr.io/ajianaz/gofin-web:latest
+#
+# Override via env vars:
+#   DOCKER_IMAGE_API=ghcr.io/ajianaz/gofin-api:develop
+#   DOCKER_IMAGE_WEB=ghcr.io/ajianaz/gofin-web:develop
 #
 # Requirements:
 #   - DOMAIN env var must be set (your public domain or IP)
