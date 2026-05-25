@@ -92,7 +92,7 @@
 						</div>
 					</div>
 					<div class="flex shrink-0 items-center gap-3">
-						<span class="text-sm font-semibold text-green-600">+ {formatCurrency(rec.amount)}</span>
+						<span class="text-sm font-semibold text-green-600">+ {formatCurrency(rec.amount, rec.currency_symbol, rec.currency_decimal_places)}</span>
 						{#if rec.active}
 							<Badge variant="secondary" class="text-xs">{t('recurring.list.active')}</Badge>
 						{:else}

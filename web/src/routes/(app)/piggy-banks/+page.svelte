@@ -50,6 +50,11 @@
 			: items.filter((pb) => pb.account_id === accountFilter)
 	);
 
+	function getWalletCurrency(accountId: string): { symbol: string; decimal: number } {
+		const w = wallets.find((w) => w.id === accountId);
+		return { symbol: w?.currency_symbol || '$', decimal: w?.currency_decimal_places ?? 2 };
+	}
+
 	const accounts = $derived([...new Set(items.map((pb) => pb.account_id))]);
 </script>
 
@@ -121,8 +126,8 @@
 					</div>
 					<div class="ml-auto shrink-0 flex items-center gap-3">
 						<div class="text-right">
-							<p class="text-sm font-semibold text-foreground">{formatCurrency(pb.current_amount)}</p>
-							<p class="text-xs text-muted-foreground">{t('piggyBanks.list.of', { pct: Math.round(pct), target: formatCurrency(pb.target_amount) })}</p>
+							<p class="text-sm font-semibold text-foreground">{formatCurrency(pb.current_amount, getWalletCurrency(pb.account_id).symbol, getWalletCurrency(pb.account_id).decimal)}</p>
+							<p class="text-xs text-muted-foreground">{t('piggyBanks.list.of', { pct: Math.round(pct), target: formatCurrency(pb.target_amount, getWalletCurrency(pb.account_id).symbol, getWalletCurrency(pb.account_id).decimal) })}</p>
 						</div>
 						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = { walletId: pb.account_id, id: pb.id })}>
 							<Trash2 class="size-4" />

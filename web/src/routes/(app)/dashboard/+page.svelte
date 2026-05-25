@@ -123,7 +123,7 @@
 							<div>
 								<div class="flex items-center justify-between mb-1">
 									<span class="text-sm text-foreground">{limit.category_name}</span>
-									<span class="text-xs text-muted-foreground">{formatCurrency(limit.spend || '0')} / {formatCurrency(limit.amount || '0')}</span>
+									<span class="text-xs text-muted-foreground">{formatCurrency(limit.spend || '0', totalBalanceSymbol)} / {formatCurrency(limit.amount || '0', totalBalanceSymbol)}</span>
 								</div>
 								<Progress value={pct} class="h-2" />
 							</div>

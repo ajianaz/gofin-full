@@ -89,6 +89,8 @@ export interface RecurringTransaction {
 	active: boolean;
 	amount: string;
 	currency_code: string;
+	currency_symbol: string;
+	currency_decimal_places: number;
 	description?: string;
 	source_account_id?: string;
 	source_account_name?: string;

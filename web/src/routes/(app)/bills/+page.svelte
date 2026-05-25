@@ -99,9 +99,9 @@
 							<p class="text-sm font-semibold text-foreground">{bill.name}</p>
 							<p class="text-[13px] text-muted-foreground">
 								{#if bill.amount_min === bill.amount_max}
-									{formatCurrency(bill.amount_min)}{t('bills.list.perMonth')}
+									{formatCurrency(bill.amount_min, bill.currency_symbol, bill.currency_decimal_places)}{t('bills.list.perMonth')}
 								{:else}
-									{formatCurrency(bill.amount_min)} — {formatCurrency(bill.amount_max)}
+									{formatCurrency(bill.amount_min, bill.currency_symbol, bill.currency_decimal_places)} — {formatCurrency(bill.amount_max, bill.currency_symbol, bill.currency_decimal_places)}
 								{/if}
 							</p>
 						</div>
