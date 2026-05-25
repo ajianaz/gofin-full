@@ -120,7 +120,7 @@ func main() {
 	walletHandler := handler.NewWalletHandler(walletRepo, handler.NewCurrencyResolver(db))
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	tagHandler := handler.NewTagHandler(tagRepo)
-	txHandler := handler.NewTransactionHandler(txService, txRepo, handler.NewCurrencyResolver(db))
+	txHandler := handler.NewTransactionHandler(txService, txRepo, walletRepo, handler.NewCurrencyResolver(db))
 	budgetHandler := handler.NewBudgetHandler(budgetRepo, handler.NewCurrencyResolver(db))
 	piggyHandler := handler.NewPiggyBankHandler(piggyRepo, walletRepo, handler.NewCurrencyResolver(db))
 	ruleGroupHandler := handler.NewRuleGroupHandler(ruleGroupRepo)
