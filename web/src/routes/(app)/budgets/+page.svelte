@@ -5,8 +5,8 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Progress } from '$lib/components/ui/progress/index.js';
 	import { Plus, Trash2 } from '@lucide/svelte';
-	import { budgetService } from '$lib/services/index.js';
-	import type { Budget } from '$lib/types/domain.js';
+	import { budgetService, walletService } from '$lib/services/index.js';
+	import type { Budget, Account } from '$lib/types/domain.js';
 	import { formatCurrency } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { ConfirmDialog } from '$lib/components/shared/index.js';
@@ -15,6 +15,7 @@
 	const t = localeStore.t;
 
 	let items = $state<Budget[]>([]);
+	let wallets = $state<Account[]>([]);
 	let isLoading = $state(true);
 	let errorMsg = $state('');
 	let deleteTarget = $state<string | null>(null);
@@ -27,7 +28,12 @@
 
 	onMount(async () => {
 		try {
-			items = await budgetService.list();
+			const [budgetList, walletList] = await Promise.all([
+				budgetService.list(),
+				walletService.list()
+			]);
+			items = budgetList;
+			wallets = walletList;
 		} catch (e) {
 			errorMsg = t('common.error');
 			console.error(e);
@@ -35,6 +41,9 @@
 			isLoading = false;
 		}
 	});
+
+	let currencySymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || '$') : '$');
+	let currencyDecimal = $derived(wallets.length > 0 ? (wallets[0].currency_decimal_places ?? 2) : 2);
 </script>
 
 <div class="flex flex-col gap-4">
@@ -85,16 +94,16 @@
 					<div class="mb-3">
 						<div class="flex justify-between text-sm mb-1">
 							<span class="text-muted-foreground">{t('budgets.list.used')}</span>
-							<span class="font-medium text-foreground">{formatCurrency(budget.spend_amount)}</span>
+							<span class="font-medium text-foreground">{formatCurrency(budget.spend_amount, currencySymbol, currencyDecimal)}</span>
 						</div>
 						<div class="flex justify-between text-sm mb-1">
 							<span class="text-muted-foreground">{t('budgets.list.budget')}</span>
-							<span class="font-medium text-foreground">{formatCurrency(budget.budget_amount)}</span>
+							<span class="font-medium text-foreground">{formatCurrency(budget.budget_amount, currencySymbol, currencyDecimal)}</span>
 						</div>
 						<div class="flex justify-between text-sm">
 							<span class="text-muted-foreground">{t('budgets.list.remaining')}</span>
 							<span class="font-medium {remaining >= 0 ? 'text-green-600' : 'text-red-600'}">
-								{formatCurrency(remaining.toString())}
+								{formatCurrency(remaining.toString(), currencySymbol, currencyDecimal)}
 							</span>
 						</div>
 					</div>

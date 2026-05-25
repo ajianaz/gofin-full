@@ -20,6 +20,8 @@
 	let totalAssets = $derived(assets.reduce((s, w) => s + parseFloat(w.balance), 0));
 	let totalLiabilities = $derived(liabilities.reduce((s, w) => s + Math.abs(parseFloat(w.balance)), 0));
 	let netWorth = $derived(totalAssets - totalLiabilities);
+	let primarySymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || '$') : '$');
+	let primaryDecimal = $derived(wallets.length > 0 ? (wallets[0].currency_decimal_places ?? 2) : 2);
 
 	onMount(async () => {
 		try {
@@ -53,7 +55,7 @@
 		<Card>
 			<CardHeader class="pb-1"><CardTitle class="text-sm font-semibold">{t('reports.netWorth.title')}</CardTitle></CardHeader>
 			<CardContent>
-				<p class="text-xl font-bold {netWorth >= 0 ? 'text-green-600' : 'text-destructive'}">{formatCurrency(netWorth.toString())}</p>
+				<p class="text-xl font-bold {netWorth >= 0 ? 'text-green-600' : 'text-destructive'}">{formatCurrency(netWorth.toString(), primarySymbol, primaryDecimal)}</p>
 			</CardContent>
 		</Card>
 
@@ -69,13 +71,13 @@
 						{#each assets as w}
 							<div class="flex items-center justify-between px-4 py-3 border-b last:border-b-0">
 								<span class="text-sm font-medium text-foreground">{w.name}</span>
-								<span class="text-sm font-medium text-green-600">{formatCurrency(w.balance)}</span>
+								<span class="text-sm font-medium text-green-600">{formatCurrency(w.balance, w.currency_symbol, w.currency_decimal_places)}</span>
 							</div>
 						{/each}
 					{/if}
 					<div class="flex items-center justify-between bg-muted/50 px-4 py-3 font-semibold">
 						<span class="text-sm text-foreground">{t('reports.netWorth.totalAssets')}</span>
-						<span class="text-sm text-foreground">{formatCurrency(totalAssets.toString())}</span>
+						<span class="text-sm text-foreground">{formatCurrency(totalAssets.toString(), primarySymbol, primaryDecimal)}</span>
 					</div>
 				</CardContent>
 			</Card>
@@ -91,13 +93,13 @@
 						{#each liabilities as w}
 							<div class="flex items-center justify-between px-4 py-3 border-b last:border-b-0">
 								<span class="text-sm font-medium text-foreground">{w.name}</span>
-								<span class="text-sm font-medium text-destructive">{formatCurrency(w.balance)}</span>
+								<span class="text-sm font-medium text-destructive">{formatCurrency(w.balance, w.currency_symbol, w.currency_decimal_places)}</span>
 							</div>
 						{/each}
 					{/if}
 					<div class="flex items-center justify-between bg-muted/50 px-4 py-3 font-semibold">
 						<span class="text-sm text-foreground">{t('reports.netWorth.totalLiabilities')}</span>
-						<span class="text-sm text-foreground">{formatCurrency(totalLiabilities.toString())}</span>
+						<span class="text-sm text-foreground">{formatCurrency(totalLiabilities.toString(), primarySymbol, primaryDecimal)}</span>
 					</div>
 				</CardContent>
 			</Card>

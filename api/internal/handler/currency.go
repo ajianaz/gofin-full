@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"log"
-"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"log"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
 
 type CurrencyHandler struct {
 	repo *repository.CurrencyRepository
@@ -32,6 +33,7 @@ func (h *CurrencyHandler) Index(c *fiber.Ctx) error {
 			"type": "currencies",
 			"id":   cur.Code,
 			"attributes": fiber.Map{
+				"code":           cur.Code,
 				"name":           cur.Name,
 				"symbol":         cur.Symbol,
 				"decimal_places": cur.DecimalPlaces,
@@ -57,6 +59,7 @@ func (h *CurrencyHandler) Show(c *fiber.Ctx) error {
 		"type": "currencies",
 		"id":   cur.Code,
 		"attributes": fiber.Map{
+			"code":           cur.Code,
 			"name":           cur.Name,
 			"symbol":         cur.Symbol,
 			"decimal_places": cur.DecimalPlaces,

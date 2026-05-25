@@ -214,7 +214,7 @@
 								<TableCell class="whitespace-nowrap text-foreground">{formatDate(tx.date)}</TableCell>
 								<TableCell class="text-foreground">{tx.description}</TableCell>
 								<TableCell class="whitespace-nowrap">
-									<span class="font-semibold {formatAmount(tx.amount).color}">{formatAmount(tx.amount).text}</span>
+									<span class="font-semibold {formatAmount(tx.amount, tx.currency_symbol).color}">{formatAmount(tx.amount, tx.currency_symbol).text}</span>
 								</TableCell>
 								<TableCell class="hidden md:table-cell text-muted-foreground">{tx.category_name || '-'}</TableCell>
 								<TableCell class="hidden md:table-cell text-muted-foreground">{acctName(tx)}</TableCell>
