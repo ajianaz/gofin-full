@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Wallet creation: validate name (required, max 100 chars) and opening balance (non-negative) (closes #48)
 - Piggy bank creation: validate target_amount is non-negative, trim whitespace from name (closes #49)
 - Input validation: audit all CRUD Store handlers — tags, categories, budgets, recurrence, rules already have required field validation (closes #50)
+- Wallet Update/Delete: return 404 for non-existent IDs instead of 500/204 — existence check before operation (closes #52, #53)
+- Category Update: return 404 for non-existent IDs instead of silent 200 — existence check before update (closes #54)
+- Exchange rate: reject negative and zero rates — must be greater than zero (closes #55)
 
 ### Added
 - Wallet creation: optional opening balance field — auto-sets virtual_balance (closes #34)

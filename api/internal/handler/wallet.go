@@ -222,6 +222,11 @@ func (h *WalletHandler) Update(c *fiber.Ctx) error {
 		})
 	}
 
+	// Verify wallet exists before update
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("wallet", id)
+	}
+
 	if err := h.repo.Update(c.Context(), id, *groupID, req.Name, req.Active, req.IncludeNetWorth, req.CurrencyID, req.Notes); err != nil {
 		return apperrors.ErrInternal
 	}
@@ -251,6 +256,11 @@ func (h *WalletHandler) Delete(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return apperrors.ErrBadRequest
+	}
+
+	// Verify wallet exists before delete
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("wallet", id)
 	}
 
 	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
