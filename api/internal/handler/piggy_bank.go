@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -141,8 +142,15 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 	if req.WalletID == uuid.Nil {
 		fieldErrors["wallet_id"] = append(fieldErrors["wallet_id"], "wallet_id is required")
 	}
-	if req.Name == "" {
+	if strings.TrimSpace(req.Name) == "" {
 		fieldErrors["name"] = append(fieldErrors["name"], "name is required")
+	}
+	if req.TargetAmount != "" {
+		if ta, err := decimal.NewFromString(req.TargetAmount); err != nil {
+			fieldErrors["target_amount"] = append(fieldErrors["target_amount"], "must be a valid number")
+		} else if ta.IsNegative() {
+			fieldErrors["target_amount"] = append(fieldErrors["target_amount"], "must be zero or positive")
+		}
 	}
 	if len(fieldErrors) > 0 {
 		return apperrors.NewValidationError(fieldErrors)

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -124,17 +126,38 @@ func (h *WalletHandler) Store(c *fiber.Ctx) error {
 		})
 	}
 
+	// Validate name
+	if strings.TrimSpace(req.Name) == "" {
+		return apperrors.NewValidationError(map[string][]string{
+			"name": {"Name is required."},
+		})
+	}
+	if len(req.Name) > 100 {
+		return apperrors.NewValidationError(map[string][]string{
+			"name": {"Name must be 100 characters or less."},
+		})
+	}
+
 	active := true
 	if req.Active != nil {
 		active = *req.Active
 	}
 
-	// Parse opening balance (default 0)
+	// Parse opening balance (default 0) — must be non-negative
 	virtualBalance := decimal.Zero
 	if req.OpeningBalance != "" {
-		if ob, err := decimal.NewFromString(req.OpeningBalance); err == nil {
-			virtualBalance = ob
+		ob, err := decimal.NewFromString(req.OpeningBalance)
+		if err != nil {
+			return apperrors.NewValidationError(map[string][]string{
+				"opening_balance": {"Must be a valid number."},
+			})
 		}
+		if ob.IsNegative() {
+			return apperrors.NewValidationError(map[string][]string{
+				"opening_balance": {"Must be zero or positive."},
+			})
+		}
+		virtualBalance = ob
 	}
 
 	wallet := &domain.Wallet{

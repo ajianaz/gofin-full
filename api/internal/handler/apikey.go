@@ -20,14 +20,19 @@ func NewAPIKeyHandler(keyRepo *repository.APIKeyRepository) *APIKeyHandler {
 
 // Create handles POST /api/v1/api-keys.
 // Generates a new API key and returns the raw key (shown only once).
+// JWT auth required — API key auth is not allowed to create new keys (privilege escalation prevention).
 func (h *APIKeyHandler) Create(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 	if user == nil {
 		return fiber.ErrUnauthorized
 	}
 
-	// Debug: verify user ID
-	_ = user.ID // ensure user is used
+	// Reject API key auth — only JWT can manage API keys
+	if c.Locals("auth_method") == "api_key" {
+		return c.Status(403).JSON(fiber.Map{
+			"message": "API key management requires full authentication.",
+		})
+	}
 
 	var req struct {
 		Name string `json:"name"`
@@ -100,10 +105,18 @@ func (h *APIKeyHandler) List(c *fiber.Ctx) error {
 
 // Delete handles DELETE /api/v1/api-keys/:id.
 // Soft-deletes the API key.
+// JWT auth required — API key auth cannot delete keys.
 func (h *APIKeyHandler) Delete(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 	if user == nil {
 		return fiber.ErrUnauthorized
+	}
+
+	// Reject API key auth — only JWT can manage API keys
+	if c.Locals("auth_method") == "api_key" {
+		return c.Status(403).JSON(fiber.Map{
+			"message": "API key management requires full authentication.",
+		})
 	}
 
 	id, err := uuid.Parse(c.Params("id"))
