@@ -69,6 +69,19 @@ func (r *ExchangeRateRepository) FindRate(ctx context.Context, groupID uuid.UUID
 	return rate, nil
 }
 
+func (r *ExchangeRateRepository) FindByID(ctx context.Context, id, groupID uuid.UUID) (*domain.ExchangeRate, error) {
+	var er domain.ExchangeRate
+	err := r.db.QueryRow(ctx,
+		`SELECT id, user_id, user_group_id, from_currency_id, to_currency_id, rate, date, created_at, updated_at
+		 FROM exchange_rates WHERE id = $1 AND user_group_id = $2`,
+		id, groupID,
+	).Scan(&er.ID, &er.UserID, &er.UserGroupID, &er.FromCurrencyID, &er.ToCurrencyID, &er.Rate, &er.Date, &er.CreatedAt, &er.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &er, nil
+}
+
 func (r *ExchangeRateRepository) Delete(ctx context.Context, groupID, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM exchange_rates WHERE id = $1 AND user_group_id = $2`, id, groupID)
 	return err

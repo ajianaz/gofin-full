@@ -123,6 +123,10 @@ func (h *BudgetHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
+	// Verify budget exists before update
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("budget", id)
+	}
 	if err := h.repo.Update(c.Context(), id, *groupID, req.Name, req.Active); err != nil {
 		return apperrors.NotFoundResource("budget", id)
 	}
@@ -145,6 +149,10 @@ func (h *BudgetHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
+	// Verify budget exists before delete
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("budget", id)
+	}
 	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("budget", id)
 	}

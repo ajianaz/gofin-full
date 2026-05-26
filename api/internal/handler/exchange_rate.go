@@ -151,6 +151,10 @@ func (h *ExchangeRateHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
+	// Verify exchange rate exists before delete
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("exchange_rate", id)
+	}
 	if err := h.repo.Delete(c.Context(), *groupID, id); err != nil {
 		return apperrors.NotFoundResource("exchange_rate", id)
 	}
