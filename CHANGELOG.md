@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - IDOR: all CRUD handlers (category, budget, tag, transaction, exchange-rate, piggy-bank) return 404 for non-existent resources on Update and Delete — existence check before mutation (closes #59)
 - Auth: login returns 422 for empty email/password instead of 401 — validation runs before authentication (closes #61)
 - Auth: group switch returns 422 for invalid UUID format, 404 for non-existent group — better error feedback (closes #62)
+- Category: validate name max length (100 chars) to prevent 500 on long names — trim whitespace on create (closes #64)
 
 ### Changed
 
