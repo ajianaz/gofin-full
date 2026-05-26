@@ -73,6 +73,9 @@ func (h *ExchangeRateHandler) Store(c *fiber.Ctx) error {
 	if err != nil {
 		return apperrors.NewValidationError(map[string][]string{"rate": {"invalid rate value"}})
 	}
+	if rate.LessThanOrEqual(decimal.Zero) {
+		return apperrors.NewValidationError(map[string][]string{"rate": {"rate must be greater than zero"}})
+	}
 
 	date, err := time.Parse(time.RFC3339, req.Date)
 	if err != nil {

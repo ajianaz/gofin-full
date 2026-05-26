@@ -117,6 +117,11 @@ func (h *CategoryHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"name": {"name is required"}})
 	}
 
+	// Verify category exists before update
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("category", id)
+	}
+
 	if err := h.repo.Update(c.Context(), id, *groupID, req.Name); err != nil {
 		return apperrors.NotFoundResource("category", id)
 	}
