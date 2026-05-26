@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -213,17 +214,24 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		UserGroupID uuid.UUID `json:"user_group_id"`
+		UserGroupID string `json:"user_group_id"`
 	}
-	if err := c.BodyParser(&req); err != nil || req.UserGroupID == uuid.Nil {
+	if err := c.BodyParser(&req); err != nil || strings.TrimSpace(req.UserGroupID) == "" {
 		return apperrors.NewValidationError(map[string][]string{
 			"user_group_id": {"A valid group ID is required."},
 		})
 	}
 
-	if err := h.userRepo.SetActiveGroup(c.Context(), user.ID, req.UserGroupID); err != nil {
+	parsedUUID, err := uuid.Parse(req.UserGroupID)
+	if err != nil {
+		return apperrors.NewValidationError(map[string][]string{
+			"user_group_id": {"Invalid UUID format."},
+		})
+	}
+
+	if err := h.userRepo.SetActiveGroup(c.Context(), user.ID, parsedUUID); err != nil {
 		log.Printf("group switch failed: %v", err)
-		return apperrors.New(400, "Failed to switch group. You may not be a member of the target group.")
+		return apperrors.New(404, "Group not found or you are not a member.")
 	}
 
 	// Re-issue JWT with updated group claim
@@ -235,12 +243,12 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 			DemoUser:     claims.DemoUser,
 			TokenVersion: claims.TokenVersion,
 		}
-		tokens, err := h.jwtMgr.GenerateTokenPair(identity, &req.UserGroupID)
+		tokens, err := h.jwtMgr.GenerateTokenPair(identity, &parsedUUID)
 		if err == nil {
 			return c.JSON(fiber.Map{
 				"data": fiber.Map{
 					"type": "user_groups",
-					"id":   req.UserGroupID,
+					"id":   parsedUUID,
 				},
 				"meta": fiber.Map{
 					"message": "Active group switched successfully.",
@@ -254,7 +262,7 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"data": fiber.Map{
 			"type": "user_groups",
-			"id":   req.UserGroupID,
+			"id":   parsedUUID,
 		},
 		"meta": fiber.Map{
 			"message": "Active group switched successfully.",

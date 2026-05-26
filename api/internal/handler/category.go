@@ -2,7 +2,9 @@ package handler
 
 import (
 	"log"
-"github.com/gofiber/fiber/v2"
+	"strings"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -78,11 +80,14 @@ func (h *CategoryHandler) Store(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
-	if req.Name == "" {
+	if strings.TrimSpace(req.Name) == "" {
 		return apperrors.NewValidationError(map[string][]string{"name": {"name is required"}})
 	}
+	if len(req.Name) > 100 {
+		return apperrors.NewValidationError(map[string][]string{"name": {"name must be 100 characters or less"}})
+	}
 
-	cat, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Name)
+	cat, err := h.repo.Create(c.Context(), user.ID, *groupID, strings.TrimSpace(req.Name))
 	if err != nil {
 		log.Printf("handler/Index: failed to create category: %v", err)
 		return apperrors.ErrInternal
@@ -115,6 +120,9 @@ func (h *CategoryHandler) Update(c *fiber.Ctx) error {
 	}
 	if req.Name == "" {
 		return apperrors.NewValidationError(map[string][]string{"name": {"name is required"}})
+	}
+	if len(req.Name) > 100 {
+		return apperrors.NewValidationError(map[string][]string{"name": {"name must be 100 characters or less"}})
 	}
 
 	// Verify category exists before update

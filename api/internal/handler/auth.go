@@ -77,6 +77,18 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 
+	// Validate required fields before authentication
+	if strings.TrimSpace(req.Email) == "" {
+		return apperrors.NewValidationError(map[string][]string{
+			"email": {"Email is required."},
+		})
+	}
+	if strings.TrimSpace(req.Password) == "" {
+		return apperrors.NewValidationError(map[string][]string{
+			"password": {"Password is required."},
+		})
+	}
+
 	clientIP := c.IP()
 
 	// Check if account is temporarily locked due to too many failed attempts
