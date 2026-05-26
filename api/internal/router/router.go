@@ -61,6 +61,7 @@ type RouterConfig struct {
 	CORSAllowedOrigins   string
 	RateLimitMax         int
 	RateLimitWindowSec   int
+	RateLimitEnabled     bool
 	DisableMetrics       bool
 	RedisClient          redis.Cmdable
 	MaxRequestBodyBytes  int64
@@ -97,7 +98,7 @@ func New(cfg RouterConfig) *fiber.App {
 
 	// Auth routes (public)
 	authGroup := v1.Group("/auth")
-	if cfg.RedisClient != nil && cfg.RateLimitMax > 0 {
+	if cfg.RedisClient != nil && cfg.RateLimitEnabled && cfg.RateLimitMax > 0 {
 		rl := middleware.RateLimit(cfg.RedisClient, cfg.RateLimitMax, time.Duration(cfg.RateLimitWindowSec)*time.Second)
 		authGroup.Use(rl)
 	}
@@ -144,7 +145,7 @@ func New(cfg RouterConfig) *fiber.App {
 
 	// Sensitive user operations (rate limited)
 	sensitiveUser := protected.Group("")
-	if cfg.RedisClient != nil && cfg.RateLimitMax > 0 {
+	if cfg.RedisClient != nil && cfg.RateLimitEnabled && cfg.RateLimitMax > 0 {
 		rl := middleware.RateLimit(cfg.RedisClient, cfg.RateLimitMax/2, time.Duration(cfg.RateLimitWindowSec)*time.Second)
 		sensitiveUser.Use(rl)
 	}
