@@ -12,12 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - API Key auth: fallback to first group_membership when `user_group_id` is NULL — fixes "No active group" error for API key authentication (closes #44)
 - Preferences: show default values for new users with no saved preferences — fixes empty Settings > Preferences page (closes #43)
 - Security: API Key auth can no longer create or delete API keys — JWT required for key management (closes #47)
-- Wallet creation: validate name (required, max 100 chars) and opening balance (non-negative) (closes #48)
-- Piggy bank creation: validate target_amount is non-negative, trim whitespace from name (closes #49)
-- Input validation: audit all CRUD Store handlers — tags, categories, budgets, recurrence, rules already have required field validation (closes #50)
-- Wallet Update/Delete: return 404 for non-existent IDs instead of 500/204 — existence check before operation (closes #52, #53)
-- Category Update: return 404 for non-existent IDs instead of silent 200 — existence check before update (closes #54)
-- Exchange rate: reject negative and zero rates — must be greater than zero (closes #55)
+- Input validation: wallet name required + max 100 chars, opening_balance must be non-negative, piggy bank target_amount non-negative, exchange rate must be positive (closes #48, #49)
+- CRUD IDOR: wallet/category/budget/tag/transaction/exchange-rate Update & Delete return 404 for non-existent resources (closes #52, #53, #54)
+- Exchange rate: reject zero, negative, empty, and non-numeric rate values (closes #55)
+- Configurable rate limiting: `RATE_LIMIT_ENABLED` (global API middleware), `LOGIN_RATE_LIMIT_ENABLED` (login lockout), `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES` — all default to true/secure values
+
+### Changed
 
 ### Added
 - Wallet creation: optional opening balance field — auto-sets virtual_balance (closes #34)

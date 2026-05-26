@@ -21,13 +21,28 @@ import (
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
-// Login attempt lockout constants.
+// Login attempt lockout defaults (overridden by config).
 const (
-	loginMaxAttempts       = 5
-	loginLockoutDuration   = 15 * time.Minute
-	loginAttemptWindow     = 15 * time.Minute
 	loginAttemptsKeyPrefix = "login_attempts:"
+	defaultLoginMaxAttempts = 5
+	defaultLoginLockoutMinutes = 15
 )
+
+// loginMaxAttempts returns the configured max attempts, falling back to default.
+func (h *AuthHandler) loginMaxAttempts() int {
+	if h.cfg.LoginMaxAttempts > 0 {
+		return h.cfg.LoginMaxAttempts
+	}
+	return defaultLoginMaxAttempts
+}
+
+// loginLockoutDuration returns the configured lockout duration, falling back to default.
+func (h *AuthHandler) loginLockoutDuration() time.Duration {
+	if h.cfg.LoginLockoutMinutes > 0 {
+		return time.Duration(h.cfg.LoginLockoutMinutes) * time.Minute
+	}
+	return time.Duration(defaultLoginLockoutMinutes) * time.Minute
+}
 
 // AuthHandler handles authentication endpoints.
 type AuthHandler struct {
@@ -65,10 +80,12 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	clientIP := c.IP()
 
 	// Check if account is temporarily locked due to too many failed attempts
-	if locked, retryMinutes := h.isAccountLocked(c.Context(), req.Email, clientIP); locked {
-		return c.Status(429).JSON(fiber.Map{
-			"message": fmt.Sprintf("Too many failed login attempts. Try again in %d minutes.", retryMinutes),
-		})
+	if h.cfg.LoginRateLimitEnabled {
+		if locked, retryMinutes := h.isAccountLocked(c.Context(), req.Email, clientIP); locked {
+			return c.Status(429).JSON(fiber.Map{
+				"message": fmt.Sprintf("Too many failed login attempts. Try again in %d minutes.", retryMinutes),
+			})
+		}
 	}
 
 	identity, err := h.provider.Authenticate(c.Context(), auth.Credentials{
@@ -76,7 +93,9 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		Password: req.Password,
 	})
 	if err != nil {
-		h.recordFailedLogin(c.Context(), req.Email, clientIP)
+		if h.cfg.LoginRateLimitEnabled {
+			h.recordFailedLogin(c.Context(), req.Email, clientIP)
+		}
 		return apperrors.New(401, "Invalid email or password.")
 	}
 
@@ -85,7 +104,9 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 
 	// Successful login — clear failed attempt counter
-	h.clearFailedLogins(c.Context(), req.Email, clientIP)
+	if h.cfg.LoginRateLimitEnabled {
+		h.clearFailedLogins(c.Context(), req.Email, clientIP)
+	}
 
 	tokens, err := h.jwtMgr.GenerateTokenPair(identity, identity.UserGroupID)
 	if err != nil {
@@ -119,7 +140,7 @@ func init() {
 		defer ticker.Stop()
 		for range ticker.C {
 			now := time.Now().UnixMilli()
-			windowStart := now - loginAttemptWindow.Milliseconds()
+			windowStart := now - int64(defaultLoginLockoutMinutes)*60*1000
 			loginAttemptStore.Range(func(key, val interface{}) bool {
 				entry := val.(*loginAttemptEntry)
 				entry.mu.Lock()
@@ -145,7 +166,7 @@ func init() {
 // Returns (locked, retryMinutes).
 func memLoginAttemptCheck(key string) (bool, int) {
 	now := time.Now().UnixMilli()
-	windowStart := now - loginAttemptWindow.Milliseconds()
+	windowStart := now - int64(defaultLoginLockoutMinutes)*60*1000
 
 	val, _ := loginAttemptStore.LoadOrStore(key, &loginAttemptEntry{})
 	entry := val.(*loginAttemptEntry)
@@ -162,10 +183,10 @@ func memLoginAttemptCheck(key string) (bool, int) {
 	}
 	entry.timestamps = valid
 
-	if len(entry.timestamps) >= loginMaxAttempts {
+	if len(entry.timestamps) >= defaultLoginMaxAttempts {
 		// Calculate retry from oldest attempt in window
 		oldest := entry.timestamps[0]
-		retryMs := (oldest + loginAttemptWindow.Milliseconds()) - now
+		retryMs := (oldest + int64(defaultLoginLockoutMinutes)*60*1000) - now
 		retryMinutes := int(retryMs / 60000)
 		if retryMinutes < 1 {
 			retryMinutes = 1
@@ -200,7 +221,7 @@ func (h *AuthHandler) isAccountLocked(ctx context.Context, email, clientIP strin
 	}
 
 	attempts, err := strconv.Atoi(val)
-	if err != nil || attempts < loginMaxAttempts {
+	if err != nil || attempts < h.loginMaxAttempts() {
 		return false, 0
 	}
 
@@ -227,7 +248,7 @@ func (h *AuthHandler) recordFailedLogin(ctx context.Context, email, clientIP str
 
 	pipe := h.rdb.Pipeline()
 	pipe.Incr(ctx, key)
-	pipe.Expire(ctx, key, loginLockoutDuration)
+	pipe.Expire(ctx, key, h.loginLockoutDuration())
 	if _, err := pipe.Exec(ctx); err != nil {
 		log.Printf("login attempt tracking: redis error: %v", err)
 	}

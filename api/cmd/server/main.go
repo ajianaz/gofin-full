@@ -196,6 +196,7 @@ func main() {
 		SSEHub:               sseHub,
 		RateLimitMax:         cfg.RateLimitMax,
 		RateLimitWindowSec:   cfg.RateLimitWindowSeconds,
+		RateLimitEnabled:     cfg.RateLimitEnabled,
 		DisableMetrics:       cfg.DisablePrometheus,
 		RedisClient:          rdb,
 		MaxRequestBodyBytes:  cfg.MaxRequestBodyBytes,
