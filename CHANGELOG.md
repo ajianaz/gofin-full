@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Dashboard: add individual wallet cards section showing name, currency, and balance (closes #40)
 - API Key auth: fallback to first group_membership when `user_group_id` is NULL — fixes "No active group" error for API key authentication (closes #44)
 - Preferences: show default values for new users with no saved preferences — fixes empty Settings > Preferences page (closes #43)
+- Security: API Key auth can no longer create or delete API keys — JWT required for key management (closes #47)
+- Wallet creation: validate name (required, max 100 chars) and opening balance (non-negative) (closes #48)
+- Piggy bank creation: validate target_amount is non-negative, trim whitespace from name (closes #49)
+- Input validation: audit all CRUD Store handlers — tags, categories, budgets, recurrence, rules already have required field validation (closes #50)
 
 ### Added
 - Wallet creation: optional opening balance field — auto-sets virtual_balance (closes #34)
