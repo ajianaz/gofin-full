@@ -121,6 +121,10 @@ func (h *TagHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"tag": {"tag is required"}})
 	}
 
+	// Verify tag exists before update
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("tag", id)
+	}
 	if err := h.repo.Update(c.Context(), id, *groupID, req.Tag, req.Date); err != nil {
 		return apperrors.NotFoundResource("tag", id)
 	}
@@ -143,6 +147,10 @@ func (h *TagHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
+	// Verify tag exists before delete
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("tag", id)
+	}
 	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("tag", id)
 	}

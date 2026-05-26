@@ -144,6 +144,10 @@ func (h *CategoryHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
+	// Verify category exists before delete
+	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("category", id)
+	}
 	if err := h.repo.Delete(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("category", id)
 	}

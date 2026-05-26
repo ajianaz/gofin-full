@@ -249,6 +249,10 @@ func (h *TransactionHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
+	// Verify transaction exists before update
+	if _, err := h.txRepo.FindGroupByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("transaction", id)
+	}
 	if err := h.txRepo.UpdateJournal(c.Context(), id, *groupID, req.Description, req.Date, req.Notes); err != nil {
 		return apperrors.NotFoundResource("transaction", id)
 	}
@@ -280,6 +284,10 @@ func (h *TransactionHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
+	// Verify transaction exists before delete
+	if _, err := h.txRepo.FindGroupByID(c.Context(), id, *groupID); err != nil {
+		return apperrors.NotFoundResource("transaction", id)
+	}
 	if err := h.txService.DeleteTransaction(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("transaction", id)
 	}

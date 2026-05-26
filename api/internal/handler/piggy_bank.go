@@ -210,6 +210,10 @@ func (h *PiggyBankHandler) Update(c *fiber.Ctx) error {
 		targetAmount = &amt
 	}
 
+	// Verify piggy bank exists before update
+	if _, err := h.repo.FindByID(c.Context(), id, groupID); err != nil {
+		return apperrors.NotFoundResource("piggy_bank", id)
+	}
 	if err := h.repo.Update(c.Context(), id, groupID, req.Name, targetAmount, nil, nil, req.Notes); err != nil {
 		return apperrors.NotFoundResource("piggy_bank", id)
 	}
@@ -231,6 +235,10 @@ func (h *PiggyBankHandler) Delete(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"id": {"invalid id format"}})
 	}
 
+	// Verify piggy bank exists before delete
+	if _, err := h.repo.FindByID(c.Context(), id, groupID); err != nil {
+		return apperrors.NotFoundResource("piggy_bank", id)
+	}
 	if err := h.repo.Delete(c.Context(), id, groupID); err != nil {
 		return apperrors.NotFoundResource("piggy_bank", id)
 	}
