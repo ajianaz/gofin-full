@@ -77,16 +77,44 @@
 		}
 	}
 
-	onMount(async () => {
-		try {
-			preferences = await preferenceService.list();
-		} catch (e) {
-			errorMsg = t('common.error');
-			console.error(e);
-		} finally {
-			isLoading = false;
+const DEFAULT_PREFERENCES: Record<string, string> = {
+	language: 'id',
+	currency: 'IDR',
+	date_format: 'DD MMM YYYY',
+	group_style: 'default',
+	budget_indicator: 'false',
+	show_news: 'true',
+	fiscal_year_start: '01',
+	transaction_count_per_page: '25',
+	two_factor_enabled: 'false',
+	email_digest: 'weekly'
+};
+
+onMount(async () => {
+	try {
+		const loaded = await preferenceService.list();
+		// Merge with defaults so new users see all preference rows
+		const savedNames = new Set(loaded.map((p) => p.name));
+		for (const [name, defaultData] of Object.entries(DEFAULT_PREFERENCES)) {
+			if (!savedNames.has(name)) {
+				loaded.push({
+					id: `default-${name}`,
+					name,
+					data: defaultData
+				});
+			}
 		}
-	});
+		// Render in prefConfig key order
+		const ordered = Object.keys(prefConfig);
+		loaded.sort((a, b) => ordered.indexOf(a.name) - ordered.indexOf(b.name));
+		preferences = loaded;
+	} catch (e) {
+		errorMsg = t('common.error');
+		console.error(e);
+	} finally {
+		isLoading = false;
+	}
+});
 </script>
 
 <div class="flex flex-col gap-4">

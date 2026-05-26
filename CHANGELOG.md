@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Auth: call `setupGroup()` after login, register, and restore to ensure JWT has groupID — fixes "no active group" 400 errors on all protected endpoints (closes #36, #37, #38, #39)
 - Dashboard: add individual wallet cards section showing name, currency, and balance (closes #40)
 - API Key auth: fallback to first group_membership when `user_group_id` is NULL — fixes "No active group" error for API key authentication (closes #44)
+- Preferences: show default values for new users with no saved preferences — fixes empty Settings > Preferences page (closes #43)
 
 ### Added
 - Wallet creation: optional opening balance field — auto-sets virtual_balance (closes #34)
