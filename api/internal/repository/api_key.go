@@ -58,6 +58,8 @@ func (r *APIKeyRepository) Create(ctx context.Context, userID uuid.UUID, name st
 
 // FindByHash looks up an API key by its SHA-256 hash.
 // Returns the userID, keyID, and the user's active group ID, or an error if not found or soft-deleted.
+// If the user's user_group_id is NULL, it falls back to the first group from group_memberships
+// and auto-repairs the user record so subsequent calls avoid the fallback query.
 func (r *APIKeyRepository) FindByHash(ctx context.Context, keyHash string) (uuid.UUID, uuid.UUID, *uuid.UUID, error) {
 	var userID, keyID uuid.UUID
 	var groupID *uuid.UUID
@@ -71,6 +73,28 @@ func (r *APIKeyRepository) FindByHash(ctx context.Context, keyHash string) (uuid
 	if err != nil {
 		return uuid.Nil, uuid.Nil, nil, fmt.Errorf("api key not found")
 	}
+
+	// Fallback: if user_group_id is NULL, resolve from group_memberships
+	if groupID == nil {
+		var fallbackGroupID uuid.UUID
+		err := r.db.QueryRow(ctx,
+			`SELECT user_group_id FROM group_memberships
+			 WHERE user_id = $1
+			 ORDER BY created_at ASC
+			 LIMIT 1`,
+			userID,
+		).Scan(&fallbackGroupID)
+		if err == nil && fallbackGroupID != uuid.Nil {
+			groupID = &fallbackGroupID
+			// Auto-repair: persist the resolved group so future calls skip this query
+			_, _ = r.db.Exec(ctx,
+				`UPDATE users SET user_group_id = $1, updated_at = NOW()
+				 WHERE id = $2 AND user_group_id IS NULL`,
+				fallbackGroupID, userID,
+			)
+		}
+	}
+
 	return userID, keyID, groupID, nil
 }
 
