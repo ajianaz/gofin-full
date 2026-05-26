@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- Auth: call `setupGroup()` after login, register, and restore to ensure JWT has groupID — fixes "no active group" 400 errors on all protected endpoints (closes #36, #37, #38, #39)
+- Dashboard: add individual wallet cards section showing name, currency, and balance (closes #40)
+
 ### Added
 - Wallet creation: optional opening balance field — auto-sets virtual_balance (closes #34)
 - Dashboard: empty state with CTA buttons for new users (closes #30)

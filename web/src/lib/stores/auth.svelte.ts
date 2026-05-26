@@ -71,6 +71,7 @@ function createAuthStore() {
 			const tokens = await authService.login({ email, password });
 			setTokens(tokens);
 			await fetchUser();
+			await setupGroup();
 			return tokens;
 		} finally {
 			isLoading = false;
@@ -83,6 +84,7 @@ function createAuthStore() {
 			const tokens = await authService.register({ email, password });
 			setTokens(tokens);
 			await fetchUser();
+			await setupGroup();
 			return tokens;
 		} finally {
 			isLoading = false;
@@ -114,6 +116,7 @@ function createAuthStore() {
 		isLoading = true;
 		try {
 			await fetchUser();
+			await setupGroup();
 		} finally {
 			isLoading = false;
 		}
