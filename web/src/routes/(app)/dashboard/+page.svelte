@@ -114,6 +114,22 @@ const isEmpty = $derived(wallets.length === 0);
 		<StatCard title={t('dashboard.savings')} value={formatCurrency(Math.max(0, totalIncome - totalExpense).toString(), totalBalanceSymbol)} icon={PiggyBank} />
 	</div>
 
+	<div class="grid gap-4 lg:grid-cols-3 mb-6">
+		{#each wallets as w}
+			<Card>
+				<CardContent class="p-5">
+					<div class="flex items-center justify-between">
+						<div class="min-w-0 flex-1">
+							<p class="text-sm font-medium text-foreground truncate">{w.name}</p>
+							<p class="text-xs text-muted-foreground">{w.currency_code || 'USD'}</p>
+						</div>
+						<AmountDisplay amount={w.balance || '0'} symbol={w.currency_symbol || '$'} class="text-lg font-semibold" />
+					</div>
+				</CardContent>
+			</Card>
+		{/each}
+	</div>
+
 	<div class="grid gap-4 lg:grid-cols-3">
 		<Card class="lg:col-span-2">
 			<CardHeader>
