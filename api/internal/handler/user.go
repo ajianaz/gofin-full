@@ -96,6 +96,7 @@ func (h *UserHandler) Show(c *fiber.Ctx) error {
 			"id":   u.ID,
 			"attributes": fiber.Map{
 				"email":     u.Email,
+				"name":      u.Name,
 				"blocked":   u.Blocked,
 				"demo_user": u.DemoUser,
 			},
@@ -112,6 +113,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 
 	var req struct {
 		Email string `json:"email"`
+		Name  string `json:"name"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{
@@ -136,7 +138,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		}
 	}
 
-	if err := h.repo.Update(c.Context(), user.ID, req.Email, ""); err != nil {
+	if err := h.repo.Update(c.Context(), user.ID, req.Email, req.Name); err != nil {
 		return apperrors.ErrInternal
 	}
 
@@ -146,6 +148,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 			"id":   user.ID,
 			"attributes": fiber.Map{
 				"email": req.Email,
+				"name":  req.Name,
 			},
 		},
 	})

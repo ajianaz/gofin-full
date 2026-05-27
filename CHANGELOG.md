@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - Remaining blank dropdown text on Transactions list (4 filter dropdowns), PiggyBanks list, and PiggyBanks create pages — added missing `SelectValue` component and removed duplicate ChevronDown overlays (closes #72)
 - Wallet creation: convert `opening_balance` from number to string before sending to API — fixes 422 error when creating wallet with balance via UI (closes #77)
+- User profile: add `name` field support — new migration adds `name` column to users table, `GET/PUT /users/me` now includes name in attributes (closes #75)
 
 ## [0.1.1] - 2026-05-27
 
