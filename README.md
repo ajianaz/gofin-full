@@ -10,27 +10,43 @@
 
 No build required — just Docker Compose + env file.
 
-```bash
-# 1. Download compose file and env template
-mkdir gofin && cd gofin
-curl -O https://raw.githubusercontent.com/ajianaz/gofin/develop/deployments/docker/docker-compose.selfhost.yml
-curl -o .env https://raw.githubusercontent.com/ajianaz/gofin/develop/api/.env.example
+### Production (Docker Hub + Caddy)
 
-# 2. Edit .env — REQUIRED settings:
-#    AUTH_JWT_SECRET=<random-string-min-32-chars>
-#    DOMAIN=your-domain.com
-#    STATIC_CRON_TOKEN=<random-string>
+```bash
+# 1. Clone the repository
+git clone https://github.com/ajianaz/gofin-full.git
+cd gofin-full
+
+# 2. Configure
+cp api/.env.example .env
+# Edit .env — REQUIRED: AUTH_JWT_SECRET, DOMAIN, STATIC_CRON_TOKEN
 
 # 3. Start
-DOCKER_IMAGE_API=ajianaz/gofin-api:develop \
-DOCKER_IMAGE_WEB=ajianaz/gofin-web:develop \
-docker compose -f docker-compose.selfhost.yml up -d
+docker compose -f deployments/docker/docker-compose.selfhost.yml up -d
 ```
 
 Open `https://your-domain` — Caddy handles HTTPS automatically.
 
-> **Develop images** (`:develop`) are built from the `develop` branch on every push.
-> For stable releases, use `:latest` (built from `main`).
+> Default images: `ajianaz/gofin-api:latest` / `ajianaz/gofin-web:latest` (Docker Hub).
+> Override with GHCR: `DOCKER_IMAGE_API=ghcr.io/ajianaz/gofin-api:latest`
+
+### Development (GHCR + External Traefik)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/ajianaz/gofin-full.git
+cd gofin-full
+
+# 2. Configure
+cp api/.env.example .env
+# Edit .env — REQUIRED: AUTH_JWT_SECRET, DOMAIN, STATIC_CRON_TOKEN
+
+# 3. Start (images pulled from GHCR)
+docker compose -f deployments/docker/docker-compose.traefik.yml up -d
+```
+
+> Default images: `ghcr.io/ajianaz/gofin-api:develop` / `ghcr.io/ajianaz/gofin-web:develop` (GHCR).
+> Requires external Traefik reverse proxy. Set `TRAEFIK_NETWORK` to match your Traefik network name.
 
 <details>
 <summary>⚙️ All Configuration Options</summary>
@@ -44,9 +60,20 @@ Open `https://your-domain` — Caddy handles HTTPS automatically.
 | `ADMIN_PASSWORD` | — | Optional | Admin password (min 8 chars) |
 | `DB_PASSWORD` | `gofin_secret` | Optional | PostgreSQL password |
 | `AUTH_ALLOW_REGISTRATION` | `false` | Optional | Allow self-registration |
-| `DOCKER_IMAGE_API` | `ajianaz/gofin-api:latest` | Optional | Override API image |
-| `DOCKER_IMAGE_WEB` | `ajianaz/gofin-web:latest` | Optional | Override web image |
+| `RATE_LIMIT_ENABLED` | `false` | Optional | Enable API rate limiting |
+| `LOGIN_RATE_LIMIT_ENABLED` | `false` | Optional | Enable login attempt rate limiting |
+| `DISABLE_PROMETHEUS` | `true` | Optional | Disable Prometheus metrics |
+| `DOCKER_IMAGE_API` | *(see below)* | Optional | Override API image |
+| `DOCKER_IMAGE_WEB` | *(see below)* | Optional | Override web image |
 | `TZ` | `UTC` | Optional | Timezone (e.g. `Asia/Jakarta`) |
+| `TRAEFIK_NETWORK` | `traefik-public` | Optional | External Traefik network (dev only) |
+
+**Default images by compose file:**
+
+| Compose File | Default API Image | Default Web Image |
+|-------------|-------------------|-------------------|
+| `selfhost.yml` (prod) | `ajianaz/gofin-api:latest` | `ajianaz/gofin-web:latest` |
+| `traefik.yml` (dev) | `ghcr.io/ajianaz/gofin-api:develop` | `ghcr.io/ajianaz/gofin-web:develop` |
 
 </details>
 
