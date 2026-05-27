@@ -150,8 +150,17 @@ func (h *TransactionHandler) Store(c *fiber.Ctx) error {
 	if input.DestinationID == uuid.Nil {
 		fieldErrors["destination_id"] = append(fieldErrors["destination_id"], "destination_id is required")
 	}
-	if input.Date.IsZero() {
-		input.Date = time.Now().UTC()
+	// Parse date from string (accepts YYYY-MM-DD or RFC3339)
+	if input.Date != "" {
+		for _, layout := range []string{"2006-01-02", time.RFC3339, "2006-01-02T15:04:05Z07:00"} {
+			if t, err := time.Parse(layout, input.Date); err == nil {
+				input.ParsedDate = t
+				break
+			}
+		}
+	}
+	if input.ParsedDate.IsZero() {
+		input.ParsedDate = time.Now().UTC()
 	}
 	if len(fieldErrors) > 0 {
 		return apperrors.NewValidationError(fieldErrors)
@@ -191,7 +200,7 @@ func (h *TransactionHandler) StoreSplit(c *fiber.Ctx) error {
 
 	var req struct {
 		Type     string                      `json:"type"`
-		Date     time.Time                   `json:"date"`
+		Date     string                      `json:"date"`
 		Title    string                      `json:"group_title"`
 		Journals []service.SplitJournalInput `json:"journals"`
 	}
@@ -206,14 +215,24 @@ func (h *TransactionHandler) StoreSplit(c *fiber.Ctx) error {
 	if len(req.Journals) < 2 {
 		fieldErrors["journals"] = append(fieldErrors["journals"], "at least 2 journals required")
 	}
-	if req.Date.IsZero() {
-		req.Date = time.Now().UTC()
+	// Parse date from string (accepts YYYY-MM-DD or RFC3339)
+	var reqDate time.Time
+	if req.Date != "" {
+		for _, layout := range []string{"2006-01-02", time.RFC3339, "2006-01-02T15:04:05Z07:00"} {
+			if t, err := time.Parse(layout, req.Date); err == nil {
+				reqDate = t
+				break
+			}
+		}
+	}
+	if reqDate.IsZero() {
+		reqDate = time.Now().UTC()
 	}
 	if len(fieldErrors) > 0 {
 		return apperrors.NewValidationError(fieldErrors)
 	}
 
-	result, err := h.txService.CreateSplitTransaction(c.Context(), user.ID, *groupID, req.Type, req.Date, req.Title, req.Journals)
+	result, err := h.txService.CreateSplitTransaction(c.Context(), user.ID, *groupID, req.Type, reqDate, req.Title, req.Journals)
 	if err != nil {
 		log.Printf("create split transaction failed: %v", err)
 		return apperrors.New(422, "Split transaction could not be created. Check your account balances.")

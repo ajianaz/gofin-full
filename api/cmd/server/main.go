@@ -192,6 +192,7 @@ func main() {
 		MemberRepo:           walletMemberRepo,
 		KeyLookup:            apiKeyRepo,
 		RoleLookup:           userRepo,
+		TokenVersionLookup:   userRepo,
 		JWTManager:           jwtMgr,
 		SSEHub:               sseHub,
 		RateLimitMax:         cfg.RateLimitMax,

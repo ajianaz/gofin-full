@@ -27,8 +27,9 @@ func NewTransactionService(txRepo *repository.TransactionRepository, walletRepo 
 type CreateTransactionInput struct {
 	Type          string      `json:"type"`
 	Description   string      `json:"description"`
-	Date          time.Time   `json:"date"`
-	Amount        string      `json:"amount"` // decimal string, positive
+	Date          string      `json:"date"`        // Raw date string from API (YYYY-MM-DD or RFC3339)
+	ParsedDate    time.Time   `json:"-"`            // Parsed time.Time, set by handler
+	Amount        string      `json:"amount"`       // decimal string, positive
 	SourceID      uuid.UUID   `json:"source_id"`
 	DestinationID uuid.UUID   `json:"destination_id"`
 	CurrencyID    string      `json:"currency_id"`
@@ -108,7 +109,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, userID, grou
 		GroupTitle: title,
 		Journal: &domain.TransactionJournal{
 			TransactionTypeID: typeID,
-			Date:              input.Date,
+			Date:              input.ParsedDate,
 			Description:       input.Description,
 			CurrencyID:        input.CurrencyID,
 			BudgetID:          input.BudgetID,
