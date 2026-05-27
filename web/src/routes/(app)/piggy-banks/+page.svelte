@@ -4,14 +4,14 @@
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Progress } from '$lib/components/ui/progress/index.js';
-	import { Plus, ChevronDown, Trash2, PiggyBank as PiggyBankIcon } from '@lucide/svelte';
+	import { Plus, Trash2, PiggyBank as PiggyBankIcon } from '@lucide/svelte';
 	import { piggyBankService, walletService } from '$lib/services/index.js';
 	import { formatCurrency, formatPercentage } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { PiggyBank, Account } from '$lib/types/domain.js';
 	import { ConfirmDialog } from '$lib/components/shared/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
@@ -89,18 +89,18 @@
 		<div class="flex items-center gap-3">
 			<div class="relative">
 				<Select bind:value={accountFilter}>
-		<SelectTrigger class="w-44">
-		</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="all">{t('piggyBanks.list.allWallets')}</SelectItem>
-		{#each accounts as id}
+				<SelectTrigger class="w-44">
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+				<SelectItem value="all">{t('piggyBanks.list.allWallets')}</SelectItem>
+				{#each accounts as id}
 {@const w = items.find((pb) => pb.account_id === id)}
 <SelectItem value={id}>{w?.account_name ?? id}</SelectItem>
 {/each}
-		</SelectContent>
-</Select>
-				<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-			</div>
+				</SelectContent>
+			</Select>
+				</div>
 			<Button size="sm" onclick={() => goto('/piggy-banks/create')}>
 				<Plus class="size-4" />
 				{t('piggyBanks.list.add')}
