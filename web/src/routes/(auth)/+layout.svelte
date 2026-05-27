@@ -15,6 +15,9 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{t('app.name')}</title>
+</svelte:head>
 <div class="flex min-h-screen">
 	<div class="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12">
 		<div class="text-center space-y-6">
