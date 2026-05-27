@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { api } from '$lib/services/client.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -11,6 +12,7 @@
 	let email = $state('');
 	let error = $state<string | null>(null);
 	let success = $state(false);
+	let submitting = $state(false);
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
@@ -21,10 +23,22 @@
 			return;
 		}
 
-		success = true;
+		submitting = true;
+		try {
+			await api.post('/auth/forgot-password', { email });
+			success = true;
+		} catch (err: any) {
+			const msg = err?.message || err?.detail;
+			if (msg) {
+				error = msg;
+			} else {
+				error = t('auth.forgotPassword.error');
+			}
+		} finally {
+			submitting = false;
+		}
 	}
 </script>
-
 <Card>
 	<CardHeader class="text-center px-8 pt-8">
 		<CardTitle class="text-xl font-bold">{t('auth.forgotPassword.title')}</CardTitle>
@@ -62,8 +76,8 @@
 				</div>
 			{/if}
 
-			<Button type="submit" class="w-full" size="lg" disabled={success}>
-				{t('auth.forgotPassword.submit')}
+			<Button type="submit" class="w-full" size="lg" disabled={success || submitting}>
+				{submitting ? t('common.processing') : t('auth.forgotPassword.submit')}
 			</Button>
 
 			<p class="text-center text-sm text-muted-foreground">

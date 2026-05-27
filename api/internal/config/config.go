@@ -88,8 +88,16 @@ type Config struct {
 	BusinessMaxUploadSize       int64 `mapstructure:"MAX_UPLOAD_SIZE"`
 	BusinessAllowWebhooks       bool  `mapstructure:"ALLOW_WEBHOOKS"`
 	BusinessWebhookMaxAttempts  int   `mapstructure:"WEBHOOK_MAX_ATTEMPTS"`
-	BusinessEnableExternalRates bool  `mapstructure:"ENABLE_EXTERNAL_RATES"`
-	BusinessEnableExchangeRates bool  `mapstructure:"ENABLE_EXCHANGE_RATES"`
+	BusinessEnableExternalRates bool `mapstructure:"ENABLE_EXTERNAL_RATES"`
+	BusinessEnableExchangeRates bool `mapstructure:"ENABLE_EXCHANGE_RATES"`
+
+	// SMTP
+	SMTPHost   string `mapstructure:"SMTP_HOST"`
+	SMTPPort   int    `mapstructure:"SMTP_PORT"`
+	SMTPUser   string `mapstructure:"SMTP_USER"`
+	SMTPPass   string `mapstructure:"SMTP_PASS"`
+	SMTPFrom   string `mapstructure:"MAIL_FROM"`
+	SMTPUseTLS bool   `mapstructure:"SMTP_TLS"`
 }
 
 // Convenience accessors that group related fields.
@@ -112,6 +120,8 @@ func (c Config) KeycloakJWKSURL() string {
 func (c Config) KeycloakTokenURL() string {
 	return c.KeycloakRealmURL() + "/protocol/openid-connect/token"
 }
+func (c Config) SMTPConfigured() bool { return c.SMTPHost != "" }
+func (c Config) SMTPAddr() string    { return fmt.Sprintf("%s:%d", c.SMTPHost, c.SMTPPort) }
 
 func Load() (*Config, error) {
 	v := viper.New()
@@ -218,4 +228,10 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("WEBHOOK_MAX_ATTEMPTS", 3)
 	v.SetDefault("ENABLE_EXTERNAL_RATES", false)
 	v.SetDefault("ENABLE_EXCHANGE_RATES", false)
+	v.SetDefault("SMTP_HOST", "")
+	v.SetDefault("SMTP_PORT", 587)
+	v.SetDefault("SMTP_USER", "")
+	v.SetDefault("SMTP_PASS", "")
+	v.SetDefault("MAIL_FROM", "noreply@gofin.local")
+	v.SetDefault("SMTP_TLS", true)
 }
