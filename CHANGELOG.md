@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Security: GroupRoleMiddleware now fails closed (401) on DB error instead of proceeding without permission check (closes #80)
 - Security: Configuration read endpoints (`GET /configurations`) now require admin role — previously accessible by any authenticated user (closes #81)
 - Security: Preference API rejects unknown preference keys — only the 10 defined keys are accepted via `POST /preferences` (closes #76)
+- Service layer: preserve API response values instead of hardcoding defaults — budgets, categories, piggy banks, recurring, and transactions now display real data (closes #86)
+- Export page: replace native `<option>` with shadcn `<Select>` components — format and wallet dropdowns now render correctly (closes #87)
+- `formatCurrency` default decimal places changed from 0 to 2 — amounts now display cents correctly (closes #91)
+- i18n: add missing `common.create` key, replace hardcoded English error strings with `t('common.error')` in reports and export pages (closes #92)
 
 ## [0.1.1] - 2026-05-27
 

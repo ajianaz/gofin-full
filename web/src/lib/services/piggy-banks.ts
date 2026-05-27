@@ -8,9 +8,9 @@ export const piggyBankService = {
 		return unwrapMany<PiggyBank>(res).map((p) => ({
 			...p,
 			account_id: (p as any).wallet_id || walletId,
-			account_name: '',
-			current_amount: '0',
-			status: 'active'
+			account_name: (p as any).account_name || '',
+			current_amount: (p as any).current_amount ?? '0',
+			status: (p as any).status || 'active'
 		}));
 	},
 
@@ -25,7 +25,7 @@ export const piggyBankService = {
 		}
 		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>(`/wallets/${data.wallet_id}/piggy_banks`, payload);
 		const p = unwrapOne<PiggyBank>(res);
-		return { ...p, account_id: data.wallet_id, account_name: '', current_amount: '0', status: 'active' };
+		return { ...p, account_id: data.wallet_id, account_name: (p as any).account_name || '', current_amount: (p as any).current_amount ?? '0', status: (p as any).status || 'active' };
 	},
 
 	async update(walletId: string, id: string, data: { name?: string; target_amount?: string }): Promise<void> {

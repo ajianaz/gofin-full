@@ -22,7 +22,7 @@ export const transactionService = {
 			amount: (t as any).amount || '0',
 			date: (t as any).date || (t as any).created_at || '',
 			description: (t as any).description || (t as any).group_title || '',
-			tags: []
+			tags: (t as any).tags ?? []
 		}));
 		return { data: items, meta: res.meta };
 	},

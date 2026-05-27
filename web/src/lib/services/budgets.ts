@@ -7,16 +7,16 @@ export const budgetService = {
 		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] }>('/budgets');
 		return unwrapMany<Budget>(res).map((b) => ({
 			...b,
-			spend_amount: '0',
-			budget_amount: '0',
-			limits: []
+			spend_amount: (b as any).spend_amount ?? '0',
+			budget_amount: (b as any).budget_amount ?? '0',
+			limits: (b as any).limits ?? []
 		}));
 	},
 
 	async create(data: { name: string; order?: number }): Promise<Budget> {
 		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/budgets', data);
 		const b = unwrapOne<Budget>(res);
-		return { ...b, spend_amount: '0', budget_amount: '0', limits: [] };
+		return { ...b, spend_amount: (b as any).spend_amount ?? '0', budget_amount: (b as any).budget_amount ?? '0', limits: (b as any).limits ?? [] };
 	},
 
 	async update(id: string, data: { name?: string; active?: boolean }): Promise<void> {
