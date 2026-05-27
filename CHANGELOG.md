@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Auth: group switch returns 422 for invalid UUID format, 404 for non-existent group — better error feedback (closes #62)
 - Category: validate name max length (100 chars) to prevent 500 on long names — trim whitespace on create (closes #64)
 - Frontend: add page titles (dynamic per route), favicon (SVG "G" logo), meta description, and theme-color to `app.html` (closes #65)
+- i18n: add missing locale keys for categories, currencies, tags page titles (closes #67)
 
 ### Changed
 
