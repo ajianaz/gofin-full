@@ -24,6 +24,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - FE: User header now waits for client-side mount before displaying auth store data — fixes SSR hydration showing "User" instead of actual user name (closes #101)
 - FE: `/savings` route now redirects (308) to `/piggy-banks` for back-compatibility (closes #103)
 - Security: API key authentication now restricted to read-only (GET/HEAD) access; write operations (POST, PUT, DELETE, PATCH) return 403. Sensitive GET endpoints (`/auth/logout`, `/admin/*`, `/notifications/stream`, `/metrics`) are also blocked for API keys (closes #98)
+- Security: Token invalidation after logout now works in production — `TokenVersionLookup` dependency injected into RouterConfig in `main.go` (was only wired in test helpers) (closes #106)
+- Security: Transaction date parsing now accepts YYYY-MM-DD, RFC3339, and RFC3339Z formats — previously only RFC3339 worked, causing 422 from frontend (closes #107)
+- FE: Period filter on Transactions page now calculates correct date ranges using `getDateRange()` utility (closes #88)
+- FE: Rules form — fixed missing field bindings for condition and action inputs (closes #89)
+- FE: Dashboard multi-currency support — each wallet card now displays its own currency symbol instead of locale default (closes #90)
+- FE: Settings tabs — sidebar navigation correctly highlights active tab, routes properly mapped (closes #93)
+- FE: Logout cleanup — clear auth store and redirect to login on logout, no stale session data (closes #94)
+- FE: Report sub-routes created — `/reports/category`, `/reports/income-expense`, `/reports/period` pages with proper data fetching (closes #104)
+- User profile: `PUT /users/me` no longer crashes (500) when only `name` field is provided — repository `Update()` now builds dynamic SET clause, handler re-fetches user data for response (closes #108)
 
 ## [0.1.1] - 2026-05-27
 
