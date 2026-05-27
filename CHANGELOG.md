@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- Docker publish: GHCR only for develop, GHCR + Docker Hub for main/tags (closes #113)
+
 ## [0.1.5] - 2026-05-27
 
 ### Added
