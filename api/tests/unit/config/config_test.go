@@ -28,7 +28,8 @@ func TestLoad_Defaults(t *testing.T) {
 		"LOG_LEVEL", "LOG_FORMAT",
 		"FEATURE_EXPORT", "FEATURE_WEBHOOKS", "FEATURE_HANDLE_DEBTS", "FEATURE_EXPRESSION_ENGINE", "FEATURE_RUNNING_BALANCE",
 		"BUSINESS_MAX_UPLOAD_SIZE", "BUSINESS_ALLOW_WEBHOOKS", "BUSINESS_WEBHOOK_MAX_ATTEMPTS", "BUSINESS_ENABLE_EXTERNAL_RATES", "BUSINESS_ENABLE_EXCHANGE_RATES",
-		"RATE_LIMIT_MAX", "RATE_LIMIT_WINDOW_SECONDS", "MAX_REQUEST_BODY_BYTES", "CORS_ALLOWED_ORIGINS", "ALLOW_2FA_BYPASS",
+		"RATE_LIMIT_MAX", "RATE_LIMIT_WINDOW_SECONDS", "RATE_LIMIT_ENABLED", "LOGIN_RATE_LIMIT_ENABLED", "LOGIN_MAX_ATTEMPTS", "LOGIN_LOCKOUT_MINUTES",
+		"MAX_REQUEST_BODY_BYTES", "CORS_ALLOWED_ORIGINS", "ALLOW_2FA_BYPASS",
 	}
 	for _, k := range envVars {
 		t.Setenv(k, "")
@@ -94,8 +95,12 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.False(t, cfg.BusinessEnableExchangeRates)
 
 	// Security defaults
+	assert.True(t, cfg.RateLimitEnabled)
+	assert.True(t, cfg.LoginRateLimitEnabled)
 	assert.Equal(t, 100, cfg.RateLimitMax)
 	assert.Equal(t, 60, cfg.RateLimitWindowSeconds)
+	assert.Equal(t, 5, cfg.LoginMaxAttempts)
+	assert.Equal(t, 15, cfg.LoginLockoutMinutes)
 	assert.Equal(t, int64(10485760), cfg.MaxRequestBodyBytes)
 	assert.Equal(t, "http://localhost:5173", cfg.CORSAllowedOrigins)
 	assert.False(t, cfg.Allow2FABypass)
