@@ -6,8 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-05-27
+
 ### Added
-- Email verification on registration — verification token via Redis, BE endpoints, FE verify-email page, i18n (closes #109 P3)
+- Email verification on registration — optional, auto-verify without SMTP (closes #109 P3)
+- Migration 000015: `verified` column on users table (existing users = true)
+- `POST /auth/verify-email` — validate token, set user verified
+- `POST /auth/resend-verification` — resend verification email (protected)
+- `AUTH_REQUIRE_VERIFICATION` config (default: false) — block unverified login
+- FE `/verify-email` page + login not-verified notice
 
 ## [0.1.4] - 2026-05-27
 
