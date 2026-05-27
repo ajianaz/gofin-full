@@ -321,6 +321,7 @@
   "rules.createGroup.stopOnMatch": "Stop processing if rule matches",
   "rules.createGroup.description": "Description",
   "rules.createGroup.descriptionPlaceholder": "Rule group description (optional)",
+  "rules.createGroup.success": "Rule group created successfully",
   "rules.createRule.title": "Create New Rule",
   "rules.createRule.ruleName": "Rule Title",
   "rules.createRule.ruleNamePlaceholder": "Rule name",
@@ -603,5 +604,7 @@
   "dashboard.emptyState.description": "Start tracking your finances by creating your first wallet. You can add transactions, set budgets, and monitor your spending.",
   "dashboard.emptyState.createWallet": "Create First Wallet",
   "dashboard.emptyState.addTransaction": "Add Transaction",
-  "currencies.exchangeRates.addTitle": "Add Exchange Rate"
+  "dashboard.multipleCurrencyWarning": "You have wallets in multiple currencies. Totals are shown per currency.",
+  "currencies.exchangeRates.addTitle": "Add Exchange Rate",
+  "reports.transactionCount": "{count} transactions"
 }

@@ -15,7 +15,7 @@ export const ruleService = {
 		}));
 	},
 
-	async createGroup(data: { title: string }): Promise<RuleGroup> {
+	async createGroup(data: { title: string; active?: boolean; stop_processing?: boolean }): Promise<RuleGroup> {
 		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/rule-groups', data);
 		const r = unwrapOne<RuleGroup>(res);
 		return { ...r, stop_processing: false, rule_count: 0 };

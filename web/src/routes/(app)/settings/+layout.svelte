@@ -7,16 +7,18 @@
 
 	const items = $derived([
 		{ label: t('settings.profile'), href: '/settings/profile' },
+		{ label: t('settings.account.title'), href: '/settings/account' },
 		{ label: t('settings.preferences'), href: '/settings/preferences' },
+		{ label: t('settings.groups.title'), href: '/settings/groups' },
 		{ label: t('settings.notifications'), href: '/settings/notifications' },
 		{ label: t('settings.apiKeys'), href: '/settings/api-keys' }
 	]);
 </script>
 
 <div class="flex flex-col gap-4">
-	<nav class="flex items-center gap-1 border-b pb-0">
+	<nav class="flex items-center gap-1 border-b pb-0 overflow-x-auto">
 		{#each items as item}
-			{@const active = $page.url.pathname === item.href}
+			{@const active = $page.url.pathname.startsWith(item.href)}
 			<a
 				href={item.href}
 				class="px-4 py-2.5 text-sm font-medium transition-colors {active

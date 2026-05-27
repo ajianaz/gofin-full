@@ -89,7 +89,7 @@
 				<CardHeader class="pb-1"><CardTitle class="text-sm font-semibold">{t('reports.income')}</CardTitle></CardHeader>
 				<CardContent>
 					<p class="text-xl font-bold text-green-600">{formatCurrency(totalIncome.toString(), currencySymbol, decimalPlaces)}</p>
-					<p class="text-xs text-muted-foreground">{transactionCount} transactions</p>
+					<p class="text-xs text-muted-foreground">{t('reports.transactionCount', { count: transactionCount })}</p>
 				</CardContent>
 			</Card>
 			<Card>

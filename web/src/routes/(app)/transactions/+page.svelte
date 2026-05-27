@@ -40,16 +40,46 @@
 		items = items.filter((t) => t.id !== id);
 	}
 
+	function getDateRange(period: string): { start?: string; end?: string } {
+		const now = new Date();
+		const y = now.getFullYear();
+		const m = now.getMonth();
+		switch (period) {
+			case 'this_month':
+				return { start: new Date(y, m, 1).toISOString().split('T')[0], end: now.toISOString().split('T')[0] };
+			case 'last_month':
+				return { start: new Date(y, m - 1, 1).toISOString().split('T')[0], end: new Date(y, m, 0).toISOString().split('T')[0] };
+			case 'this_week': {
+				const day = now.getDay() || 7;
+				const monday = new Date(now);
+				monday.setDate(now.getDate() - day + 1);
+				return { start: monday.toISOString().split('T')[0], end: now.toISOString().split('T')[0] };
+			}
+			case 'this_year':
+				return { start: new Date(y, 0, 1).toISOString().split('T')[0], end: now.toISOString().split('T')[0] };
+			default:
+				return {};
+		}
+	}
+
+	async function loadTransactions() {
+		const range = getDateRange(periodFilter);
+		const txRes = await transactionService.list({
+			start: range.start,
+			end: range.end
+		});
+		items = txRes.data;
+	}
+
 	onMount(async () => {
 		try {
-			const [txRes, walletList, catList] = await Promise.all([
-				transactionService.list(),
+			const [walletList, catList] = await Promise.all([
 				walletService.list(),
 				categoryService.list()
 			]);
-			items = txRes.data;
 			wallets = walletList;
 			categories = catList;
+			await loadTransactions();
 		} catch (e) {
 			errorMsg = t('common.error');
 			console.error('Failed to load transactions:', e);
@@ -93,8 +123,16 @@
 		typeFilter;
 		accountFilter;
 		categoryFilter;
-		periodFilter;
 		currentPage = 1;
+	});
+
+	// Re-fetch transactions when period filter changes
+	$effect(() => {
+		periodFilter;
+		if (mounted) {
+			currentPage = 1;
+			loadTransactions();
+		}
 	});
 
 	function acctName(tx: Transaction): string {

@@ -31,7 +31,7 @@ export function formatCurrency(
 /**
  * Format a balance from a wallet, using its own currency symbol.
  */
-export function formatBalance(balance: string, currencySymbol?: string, decimalPlaces: number = 0): string {
+export function formatBalance(balance: string, currencySymbol?: string, decimalPlaces: number = 2): string {
 	const sym = currencySymbol || getDefaultSymbol();
 	const num = parseFloat(balance);
 	if (isNaN(num)) return `${sym}0`;

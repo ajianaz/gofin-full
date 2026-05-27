@@ -12,6 +12,7 @@
 
 	let isLoading = $state(false);
 	let errorMsg = $state('');
+	let successMsg = $state('');
 
 	let title = $state('');
 	let order = $state('1');
@@ -23,9 +24,15 @@
 		e.preventDefault();
 		isLoading = true;
 		errorMsg = '';
+		successMsg = '';
 		try {
-			await ruleService.createGroup({ title });
-			goto('/rules');
+			await ruleService.createGroup({
+				title,
+				active,
+				stop_processing: stopProcessing
+			});
+			successMsg = t('rules.createGroup.success');
+			setTimeout(() => goto('/rules'), 1200);
 		} catch (err: any) {
 			errorMsg = err.detail || err.message || t('common.errorSave');
 		} finally {
@@ -39,10 +46,6 @@
 		<CardHeader>
 			<div class="flex items-center justify-between">
 				<CardTitle class="text-base">{t('rules.createGroup.title')}</CardTitle>
-				<div class="flex gap-2">
-					<Button size="sm" onclick={() => goto('/rules')}>{t('common.save')}</Button>
-					<Button size="sm" variant="outline" onclick={() => goto('/rules')}>{t('common.cancel')}</Button>
-				</div>
 			</div>
 		</CardHeader>
 		<CardContent>
@@ -73,6 +76,9 @@
 				</div>
 				{#if errorMsg}
 					<p class="text-sm text-destructive">{errorMsg}</p>
+				{/if}
+				{#if successMsg}
+					<p class="text-sm text-green-600">{successMsg}</p>
 				{/if}
 				<div class="flex gap-2 pt-2">
 					<Button type="submit" class="flex-1" disabled={isLoading}>{isLoading ? t('common.saving') : t('common.save')}</Button>

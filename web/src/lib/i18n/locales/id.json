@@ -321,6 +321,7 @@
   "rules.createGroup.stopOnMatch": "Hentikan pemrosesan jika aturan cocok",
   "rules.createGroup.description": "Deskripsi",
   "rules.createGroup.descriptionPlaceholder": "Deskripsi grup aturan (opsional)",
+  "rules.createGroup.success": "Grup aturan berhasil dibuat",
   "rules.createRule.title": "Buat Aturan Baru",
   "rules.createRule.ruleName": "Judul Aturan",
   "rules.createRule.ruleNamePlaceholder": "Nama aturan",
@@ -603,5 +604,7 @@
   "dashboard.emptyState.description": "Mulai kelola keuanganmu dengan membuat dompet pertama. Kamu bisa menambah transaksi, menyetel anggaran, dan memantau pengeluaran.",
   "dashboard.emptyState.createWallet": "Buat Dompet Pertama",
   "dashboard.emptyState.addTransaction": "Tambah Transaksi",
-  "currencies.exchangeRates.addTitle": "Tambah Nilai Tukar"
+  "dashboard.multipleCurrencyWarning": "Anda memiliki dompet dengan mata uang berbeda. Total ditampilkan per mata uang.",
+  "currencies.exchangeRates.addTitle": "Tambah Nilai Tukar",
+  "reports.transactionCount": "{count} transaksi"
 }

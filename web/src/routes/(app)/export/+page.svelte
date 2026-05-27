@@ -86,10 +86,13 @@
 		<div class="grid gap-2">
 			<Label for="wallet">{t('export.wallet')}</Label>
 			<Select bind:value={walletId} id="wallet" disabled={isLoading}>
-				<option value="">{t('export.allWallets')}</option>
-				{#each wallets as w}
-					<option value={w.id}>{w.name}</option>
-				{/each}
+				<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
+				<SelectContent>
+					<SelectItem value="">{t('export.allWallets')}</SelectItem>
+					{#each wallets as w}
+						<SelectItem value={w.id}>{w.name}</SelectItem>
+					{/each}
+				</SelectContent>
 			</Select>
 			{#if isLoading}
 				<p class="text-sm text-muted-foreground">{t('common.loading')}</p>

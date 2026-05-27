@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { authStore } from '$lib/stores/auth.svelte.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -111,7 +111,11 @@
 		// Attach logout handler via DOM (Svelte event binding lost inside SidebarFooter)
 		const logoutEl = document.getElementById('logout-btn');
 		if (logoutEl) {
-			logoutEl.addEventListener('click', () => handleLogout());
+			const handler = () => handleLogout();
+			logoutEl.addEventListener('click', handler);
+			onDestroy(() => {
+				logoutEl.removeEventListener('click', handler);
+			});
 		}
 	});
 
@@ -234,7 +238,7 @@
 							</AvatarFallback>
 					</Avatar>
 					<div class="flex flex-col justify-center">
-						<span class="text-sm font-medium text-sidebar-foreground">{mounted && authStore.user?.name ? authStore.user.name : 'User'}</span>
+						<span class="text-sm font-medium text-sidebar-foreground">{mounted && authStore.user?.name ? authStore.user.name : ''}</span>
 						<span class="text-xs text-sidebar-foreground">{mounted && authStore.user?.email ? authStore.user.email : ''}</span>
 					</div>
 				</div>
