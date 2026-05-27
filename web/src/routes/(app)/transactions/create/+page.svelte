@@ -10,7 +10,7 @@
 	import type { Category } from '$lib/types/domain.js';
 	import type { Tag } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import FormCard from '$lib/components/shared/FormCard.svelte';
 	const t = localeStore.t;
 
@@ -70,15 +70,15 @@
 							<Label for="type">{t('transactions.create.type')}</Label>
 							<div class="relative">
 								<Select bind:value={type} id="type">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="withdrawal">{t('transactions.create.expense')}</SelectItem>
 		<SelectItem value="deposit">{t('transactions.create.income')}</SelectItem>
 		<SelectItem value="transfer">{t('transactions.create.transfer')}</SelectItem>
 		</SelectContent>
 </Select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
 
@@ -91,8 +91,9 @@
 							<Label for="source">{t('transactions.create.sourceWallet')}</Label>
 							<div class="relative">
 								<Select bind:value={sourceAccount} id="source">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
 		{#each wallets as w}
@@ -100,7 +101,6 @@
 {/each}
 		</SelectContent>
 </Select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
 
@@ -109,8 +109,9 @@
 								<Label for="dest">{t('transactions.create.destWallet')}</Label>
 								<div class="relative">
 									<Select bind:value={destAccount} id="dest">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
 		{#each wallets as w}
@@ -118,7 +119,6 @@
 {/each}
 		</SelectContent>
 </Select>
-									<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 								</div>
 							</div>
 						{/if}
@@ -127,8 +127,9 @@
 							<Label for="category">{t('transactions.create.category')}</Label>
 							<div class="relative">
 								<Select bind:value={category} id="category">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="">{t('common.selectCategory')}</SelectItem>
 		{#each categories as cat}
@@ -136,7 +137,6 @@
 {/each}
 		</SelectContent>
 </Select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							</div>
 						</div>
 					</div>
@@ -160,9 +160,9 @@
 						<div class="flex flex-col gap-2">
 							<Label for="tags">{t('transactions.create.tag')}</Label>
 							<Select value="">
-								<SelectTrigger class="w-full">
-									{t('transactions.create.selectTag')}
-								</SelectTrigger>
+<SelectTrigger class="w-full">
+												<SelectValue />
+											</SelectTrigger>
 								<SelectContent>
 									{#each tags as tag}
 										<SelectItem value={tag.tag}>{tag.tag}</SelectItem>

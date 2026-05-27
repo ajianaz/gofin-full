@@ -7,7 +7,7 @@
 	import { ChevronDown } from '@lucide/svelte';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { walletService, currencyService } from '$lib/services/index.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import FormCard from '$lib/components/shared/FormCard.svelte';
 	import type { Currency } from '$lib/types/domain.js';
 	const t = localeStore.t;
@@ -49,8 +49,9 @@
 					<Label for="type">{t('wallets.create.type')}</Label>
 					<div class="relative">
 						<Select bind:value={type} id="type">
-							<SelectTrigger class="w-full">
-							</SelectTrigger>
+<SelectTrigger class="w-full">
+													<SelectValue />
+												</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="asset">{t('wallets.create.bankAccount')}</SelectItem>
 								<SelectItem value="cash">{t('wallets.create.cash')}</SelectItem>
@@ -58,10 +59,9 @@
 								<SelectItem value="expense">{t('wallets.create.ewallet')}</SelectItem>
 								<SelectItem value="revenue">{t('wallets.create.investment')}</SelectItem>
 							</SelectContent>
-						</Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-					</div>
-				</div>
+</Select>
+											</div>
+										</div>
 
 				<div class="flex flex-col gap-2">
 					<Label for="currency">{t('wallets.create.currency')}</Label>
@@ -70,15 +70,14 @@
 							<Input disabled value={t('common.loading')} />
 						{:else}
 							<Select bind:value={currencyId} id="currency">
-								<SelectTrigger class="w-full"></SelectTrigger>
+								<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 								<SelectContent>
 									{#each currencies as c}
 										<SelectItem value={c.id}>{c.code} ({c.symbol}) — {c.name}</SelectItem>
 									{/each}
 								</SelectContent>
-							</Select>
-							<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-						{/if}
+</Select>
+										{/if}
 					</div>
 				</div>
 

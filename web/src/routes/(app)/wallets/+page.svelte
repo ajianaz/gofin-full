@@ -11,7 +11,7 @@
 	import { getDefaultSymbol } from '$lib/utils/format.js';
 	import { ConfirmDialog } from '$lib/components/shared/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
@@ -132,6 +132,7 @@
 			<div class="relative">
 				<Select bind:value={typeFilter}>
 					<SelectTrigger class="w-40">
+						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">{t('wallets.list.allTypes')}</SelectItem>
@@ -141,7 +142,6 @@
 						<SelectItem value="expense">{t('wallets.list.ewallet')}</SelectItem>
 					</SelectContent>
 				</Select>
-				<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 			</div>
 			<Button size="sm" onclick={() => goto('/wallets/create')}>
 				<Plus class="size-4" />
@@ -213,7 +213,7 @@
 					<div class="flex flex-col gap-2">
 						<Label for="edit-currency">{t('wallets.edit.currency')}</Label>
 						<Select bind:value={editCurrencyId} id="edit-currency">
-							<SelectTrigger class="w-full"></SelectTrigger>
+							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 							<SelectContent>
 								{#each currencies as c}
 									<SelectItem value={c.code}>{c.code} ({c.symbol}) — {c.name}</SelectItem>

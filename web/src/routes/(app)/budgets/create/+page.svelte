@@ -7,7 +7,7 @@
 	import { ChevronDown } from '@lucide/svelte';
 	import { budgetService } from '$lib/services/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import FormCard from '$lib/components/shared/FormCard.svelte';
 	const t = localeStore.t;
 
@@ -49,8 +49,9 @@
 					<Label for="auto-type">{t('budgets.create.autoBudgetType')}</Label>
 					<div class="relative">
 						<Select bind:value={autoBudgetType} id="auto-type">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="none">{t('budgets.create.autoBudgetNone')}</SelectItem>
 		<SelectItem value="reset">{t('budgets.create.autoBudgetReset')}</SelectItem>
@@ -59,7 +60,6 @@
 		<SelectItem value="adjust">{t('budgets.create.autoBudgetAdjust')}</SelectItem>
 		</SelectContent>
 </Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 
@@ -72,8 +72,9 @@
 					<Label for="period">{t('budgets.create.period')}</Label>
 					<div class="relative">
 						<Select bind:value={period} id="period">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="daily">{t('budgets.create.periodDaily')}</SelectItem>
 		<SelectItem value="weekly">{t('budgets.create.periodWeekly')}</SelectItem>
@@ -82,7 +83,6 @@
 		<SelectItem value="yearly">{t('budgets.create.periodYearly')}</SelectItem>
 		</SelectContent>
 </Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 

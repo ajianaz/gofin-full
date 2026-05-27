@@ -8,7 +8,7 @@
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { ChevronDown } from '@lucide/svelte';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	const t = localeStore.t;
 
 	let groupId = $derived($page.params.groupId);
@@ -52,8 +52,9 @@
 							<Label for="trigger-type">{t('rules.createRule.triggerType')}</Label>
 							<div class="relative">
 								<Select bind:value={triggerType} id="trigger-type">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="description_contains">{t('rules.createRule.triggerDescContains')}</SelectItem>
 		<SelectItem value="amount_less_than">{t('rules.createRule.triggerAmountLess')}</SelectItem>
@@ -61,15 +62,16 @@
 		<SelectItem value="deposit">{t('rules.createRule.triggerDeposit')}</SelectItem>
 		</SelectContent>
 </Select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+								
 							</div>
 						</div>
 						<div class="flex flex-col gap-2">
 							<Label for="trigger-op">{t('rules.createRule.operator')}</Label>
 							<div class="relative">
 								<Select bind:value={triggerOperator} id="trigger-op">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="contains">{t('rules.createRule.opContains')}</SelectItem>
 		<SelectItem value="equals">{t('rules.createRule.opEquals')}</SelectItem>
@@ -77,7 +79,7 @@
 		<SelectItem value="ends_with">{t('rules.createRule.opEndsWith')}</SelectItem>
 		</SelectContent>
 </Select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+								
 							</div>
 						</div>
 						<div class="flex flex-col gap-2">
@@ -95,8 +97,9 @@
 							<Label for="action-type">{t('rules.createRule.actionType')}</Label>
 							<div class="relative">
 								<Select bind:value={actionType} id="action-type">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="set_category">{t('rules.createRule.actionSetCategory')}</SelectItem>
 		<SelectItem value="add_tag">{t('rules.createRule.actionAddTag')}</SelectItem>
@@ -104,7 +107,7 @@
 		<SelectItem value="set_budget">{t('rules.createRule.actionSetBudget')}</SelectItem>
 		</SelectContent>
 </Select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+								
 							</div>
 						</div>
 						<div class="flex flex-col gap-2">

@@ -9,7 +9,7 @@
 	import { onMount } from 'svelte';
 	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import FormCard from '$lib/components/shared/FormCard.svelte';
 	const t = localeStore.t;
 
@@ -67,29 +67,30 @@
 						<div class="flex flex-col gap-2">
 							<Label for="account">{t('bills.create.relatedWallet')}</Label>
 							<div class="relative">
-								<Select bind:value={accountId} id="account">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<Select bind:value={accountId} id="account">
+	<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
 		{#each wallets as w}
 <SelectItem value={w.id}>{w.name}</SelectItem>
 {/each}
-		</SelectContent>
+	</SelectContent>
 </Select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-							</div>
-						</div>
-						<div class="flex flex-col gap-2">
-							<Label for="max">{t('bills.create.maxAmount')}</Label>
+					</div>
+				</div>
+				<div class="flex flex-col gap-2">
+					<Label for="max">{t('bills.create.maxAmount')}</Label>
 							<Input id="max" type="number" placeholder="0" bind:value={amountMax} />
 						</div>
 						<div class="flex flex-col gap-2">
 							<Label for="freq">{t('bills.create.frequency')}</Label>
 							<div class="relative">
-								<Select bind:value={repeatFreq} id="freq">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<Select bind:value={repeatFreq} id="freq">
+	<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="weekly">{t('bills.create.freqWeekly')}</SelectItem>
 		<SelectItem value="monthly">{t('bills.create.freqMonthly')}</SelectItem>
@@ -97,10 +98,9 @@
 		<SelectItem value="yearly">{t('bills.create.freqYearly')}</SelectItem>
 		</SelectContent>
 </Select>
-								<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-							</div>
-						</div>
-						<div class="flex items-center gap-2 pt-2">
+					</div>
+				</div>
+				<div class="flex items-center gap-2 pt-2">
 							<Checkbox id="active" bind:checked={active} />
 							<Label for="active">{t('bills.create.active')}</Label>
 						</div>
