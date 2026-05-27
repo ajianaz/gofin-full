@@ -9,7 +9,7 @@
 	import type { PreferenceItem } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	const t = localeStore.t;
 
 	let preferences = $state<PreferenceItem[]>([]);
@@ -156,16 +156,16 @@ onMount(async () => {
 									value={String(value)}
 								onValueChange={(v) => handleSelectChange(pref, v)}
 								>
-								<SelectTrigger class="h-9 w-40">
-								</SelectTrigger>
+<SelectTrigger class="h-9 w-40">
+										<SelectValue />
+									</SelectTrigger>
 								<SelectContent>
 									{#each config.options as opt (opt)}
 										<SelectItem value={opt}>{opt}</SelectItem>
 									{/each}
 								</SelectContent>
-								</Select>
-								<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-							</div>
+</Select>
+									</div>
 						{:else if config.type === 'number'}
 							<Input
 								type="number"

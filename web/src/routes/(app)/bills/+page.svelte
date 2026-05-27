@@ -11,7 +11,7 @@
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { ConfirmDialog } from '$lib/components/shared/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 	const t = localeStore.t;
 
@@ -53,17 +53,17 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<div class="relative">
-				<Select bind:value={accountFilter}>
-		<SelectTrigger class="w-44">
-		</SelectTrigger>
+<Select bind:value={accountFilter}>
+	<SelectTrigger class="w-44">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="all">{t('bills.list.allWallets')}</SelectItem>
 		<SelectItem value="active">{t('bills.list.activeOnly')}</SelectItem>
 		</SelectContent>
 </Select>
-				<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-			</div>
-			<Button size="sm" onclick={() => goto('/bills/create')}>
+		</div>
+		<Button size="sm" onclick={() => goto('/bills/create')}>
 				<Plus class="size-4" />
 				{t('bills.list.add')}
 			</Button>

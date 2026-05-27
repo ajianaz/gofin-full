@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Category: validate name max length (100 chars) to prevent 500 on long names — trim whitespace on create (closes #64)
 - Frontend: add page titles (dynamic per route), favicon (SVG "G" logo), meta description, and theme-color to `app.html` (closes #65)
 - i18n: add missing locale keys for categories, currencies, tags page titles (closes #67)
+- Frontend: add SelectValue component and use it in all SelectTrigger instances — fixes blank dropdown text across 10 pages (preferences, wallets, transactions, budgets, bills, recurring, currencies, rules)
 
 ### Changed
 

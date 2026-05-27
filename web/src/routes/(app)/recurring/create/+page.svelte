@@ -11,7 +11,7 @@
 	import type { Account } from '$lib/types/domain.js';
 	import type { Category } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	const t = localeStore.t;
 
 	let isLoading = $state(false);
@@ -77,8 +77,9 @@
 					<Label for="source">{t('recurring.create.sourceWallet')}</Label>
 					<div class="relative">
 						<Select bind:value={sourceAccount} id="source">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
 		{#each wallets as w}
@@ -86,7 +87,6 @@
 {/each}
 		</SelectContent>
 </Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
@@ -103,8 +103,9 @@
 					<Label for="repeat">{t('recurring.create.repeatType')}</Label>
 					<div class="relative">
 						<Select bind:value={repeatFreq} id="repeat">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="daily">{t('recurring.list.freqDaily')}</SelectItem>
 		<SelectItem value="weekly">{t('recurring.list.freqWeekly')}</SelectItem>
@@ -113,15 +114,15 @@
 		<SelectItem value="yearly">{t('recurring.list.freqYearly')}</SelectItem>
 		</SelectContent>
 </Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
 					<Label for="dest">{t('recurring.create.destWallet')}</Label>
 					<div class="relative">
 						<Select bind:value={destAccount} id="dest">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="">{t('recurring.create.selectDestWallet')}</SelectItem>
 		{#each wallets as w}
@@ -129,15 +130,15 @@
 {/each}
 		</SelectContent>
 </Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
 					<Label for="category">{t('recurring.create.category')}</Label>
 					<div class="relative">
 						<Select bind:value={categoryId} id="category">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
+<SelectTrigger class="w-full">
+		<SelectValue />
+	</SelectTrigger>
 		<SelectContent>
 		<SelectItem value="">{t('common.selectCategory')}</SelectItem>
 		{#each categories as cat}
@@ -145,7 +146,6 @@
 {/each}
 		</SelectContent>
 </Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">

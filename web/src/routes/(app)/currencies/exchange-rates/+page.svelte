@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import { currencyService } from '$lib/services/index.js';
 	import { formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -109,28 +109,26 @@
 					<Label>{t('currencies.exchangeRates.from')}</Label>
 					<div class="relative">
 						<Select bind:value={addFrom}>
-							<SelectTrigger class="w-full"></SelectTrigger>
+							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 							<SelectContent>
 								{#each currencies as c}
 									<SelectItem value={c.id}>{c.code}</SelectItem>
 								{/each}
 							</SelectContent>
 						</Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
 					<Label>{t('currencies.exchangeRates.to')}</Label>
 					<div class="relative">
 						<Select bind:value={addTo}>
-							<SelectTrigger class="w-full"></SelectTrigger>
+							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 							<SelectContent>
 								{#each currencies as c}
 									<SelectItem value={c.id}>{c.code}</SelectItem>
 								{/each}
 							</SelectContent>
 						</Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
