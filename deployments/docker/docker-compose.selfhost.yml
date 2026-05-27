@@ -1,5 +1,7 @@
-# Self-hosted deployment: Postgres + Redis + Caddy (HTTPS) + Gofin + Web UI + Backup.
-# Uses pre-built Docker images from Docker Hub.
+# PROD deployment: Postgres + Redis + Caddy (HTTPS) + Gofin + Web UI + Backup.
+# All-in-one — includes reverse proxy, no external dependencies needed.
+#
+# For development, use docker-compose.traefik.yml (GHCR + external Traefik) instead.
 #
 # Quick start:
 #   cp api/.env.example .env
@@ -7,13 +9,15 @@
 #   # RECOMMENDED: set ADMIN_EMAIL, ADMIN_PASSWORD
 #   docker compose -f deployments/docker/docker-compose.selfhost.yml up -d
 #
-# Images (dual registry — Docker Hub + GHCR):
-#   Docker Hub: ajianaz/gofin-api:latest / ajianaz/gofin-web:latest
-#   GHCR:       ghcr.io/ajianaz/gofin-api:latest / ghcr.io/ajianaz/gofin-web:latest
+# Default images (Docker Hub):
+#   ajianaz/gofin-api:latest / ajianaz/gofin-web:latest
+#
+# Alternative (GHCR — same images, different registry):
+#   ghcr.io/ajianaz/gofin-api:latest / ghcr.io/ajianaz/gofin-web:latest
 #
 # Override via env vars:
-#   DOCKER_IMAGE_API=ghcr.io/ajianaz/gofin-api:develop
-#   DOCKER_IMAGE_WEB=ghcr.io/ajianaz/gofin-web:develop
+#   DOCKER_IMAGE_API=ghcr.io/ajianaz/gofin-api:v0.1.5
+#   DOCKER_IMAGE_WEB=ghcr.io/ajianaz/gofin-web:v0.1.5
 #
 # Requirements:
 #   - DOMAIN env var must be set (your public domain or IP)
@@ -70,17 +74,19 @@ services:
       REDIS_PORT: 6379
       AUTH_PROVIDER: local
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?AUTH_JWT_SECRET must be set (min 32 chars)}
-      AUTH_JWT_EXPIRY_MINUTES: 60
-      AUTH_REFRESH_EXPIRY_DAYS: 30
+      AUTH_JWT_EXPIRY_MINUTES: ${AUTH_JWT_EXPIRY_MINUTES:-60}
+      AUTH_REFRESH_EXPIRY_DAYS: ${AUTH_REFRESH_EXPIRY_DAYS:-30}
       AUTH_ALLOW_REGISTRATION: "${AUTH_ALLOW_REGISTRATION:-false}"
       STATIC_CRON_TOKEN: ${STATIC_CRON_TOKEN:?STATIC_CRON_TOKEN must be set}
-      LOG_LEVEL: info
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_FORMAT: json
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-20}
-      RATE_LIMIT_WINDOW_SECONDS: 60
-      MAX_REQUEST_BODY_BYTES: 10485760
+      RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS:-60}
+      RATE_LIMIT_ENABLED: "${RATE_LIMIT_ENABLED:-false}"
+      LOGIN_RATE_LIMIT_ENABLED: "${LOGIN_RATE_LIMIT_ENABLED:-false}"
+      MAX_REQUEST_BODY_BYTES: ${MAX_REQUEST_BODY_BYTES:-10485760}
       CORS_ALLOWED_ORIGINS: https://${DOMAIN:-localhost}
-      DISABLE_PROMETHEUS: "true"
+      DISABLE_PROMETHEUS: "${DISABLE_PROMETHEUS:-true}"
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     depends_on:
