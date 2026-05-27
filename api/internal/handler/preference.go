@@ -1,16 +1,32 @@
 package handler
 
 import (
+	"fmt"
 	"log"
-"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
 
 type PreferenceHandler struct {
 	repo *repository.PreferenceRepository
+}
+
+// allowedPreferenceKeys defines which preference names the API accepts.
+var allowedPreferenceKeys = map[string]bool{
+	"language":                 true,
+	"currency":                 true,
+	"date_format":              true,
+	"group_style":              true,
+	"budget_indicator":         true,
+	"show_news":                true,
+	"fiscal_year_start":        true,
+	"transaction_count_per_page": true,
+	"two_factor_enabled":       true,
+	"email_digest":             true,
 }
 
 func NewPreferenceHandler(repo *repository.PreferenceRepository) *PreferenceHandler {
@@ -74,6 +90,11 @@ func (h *PreferenceHandler) Set(c *fiber.Ctx) error {
 	}
 	if req.Name == "" {
 		return apperrors.NewValidationError(map[string][]string{"name": {"name is required"}})
+	}
+	if !allowedPreferenceKeys[req.Name] {
+		return apperrors.NewValidationError(map[string][]string{
+			"name": {fmt.Sprintf("unknown preference key: %s", req.Name)},
+		})
 	}
 
 	p, err := h.repo.Set(c.Context(), user.ID, req.Name, req.Data)

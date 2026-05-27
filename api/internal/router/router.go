@@ -278,9 +278,9 @@ func New(cfg RouterConfig) *fiber.App {
 	protected.Post("/preferences", cfg.PreferenceHandler.Set)
 	protected.Delete("/preferences/:name", cfg.PreferenceHandler.Delete)
 
-	// Configurations (system-level) — read: view_memberships, write: admin only
-	protected.Get("/configurations", cfg.ConfigurationHandler.Index)
-	protected.Get("/configurations/:name", cfg.ConfigurationHandler.Show)
+	// Configurations (system-level) — admin only for both read and write
+	protected.Get("/configurations", auth.AdminMiddleware(), cfg.ConfigurationHandler.Index)
+	protected.Get("/configurations/:name", auth.AdminMiddleware(), cfg.ConfigurationHandler.Show)
 	protected.Post("/configurations", auth.AdminMiddleware(), cfg.ConfigurationHandler.Set)
 
 	// Object groups — read: no RBAC, write: manage_meta
