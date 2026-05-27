@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -157,20 +158,41 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 	return err
 }
 
-// Update updates user fields.
+// Update updates user fields. Only non-empty values are written.
 func (r *UserRepository) Update(ctx context.Context, id uuid.UUID, email, name string) error {
+	setClauses := []string{}
+	args := []interface{}{}
+	argIdx := 1
+
 	if name != "" {
-		_, err := r.db.Exec(ctx,
-			`UPDATE users SET email = $1, name = $2, updated_at = $3 WHERE id = $4 AND deleted_at IS NULL`,
-			email, name, time.Now().UTC(), id,
-		)
-		return err
+		setClauses = append(setClauses, fmt.Sprintf("name = $%d", argIdx))
+		args = append(args, name)
+		argIdx++
+	}
+	if email != "" {
+		setClauses = append(setClauses, fmt.Sprintf("email = $%d", argIdx))
+		args = append(args, email)
+		argIdx++
 	}
 
-	_, err := r.db.Exec(ctx,
-		`UPDATE users SET email = $1, updated_at = $2 WHERE id = $3 AND deleted_at IS NULL`,
-		email, time.Now().UTC(), id,
-	)
+	if len(setClauses) == 0 {
+		return nil // nothing to update
+	}
+
+	setClauses = append(setClauses, fmt.Sprintf("updated_at = $%d", argIdx))
+	args = append(args, time.Now().UTC())
+	argIdx++
+
+	setClauses = append(setClauses, fmt.Sprintf("id = $%d", argIdx))
+	args = append(args, id)
+
+	query := fmt.Sprintf("UPDATE users SET %s WHERE %s AND deleted_at IS NULL",
+		strings.Join(setClauses, ", "), setClauses[len(setClauses)-2])
+	// Fix: WHERE clause should use just "id = $N"
+	query = fmt.Sprintf("UPDATE users SET %s WHERE id = $%d AND deleted_at IS NULL",
+		strings.Join(setClauses[:len(setClauses)-1], ", "), argIdx-1)
+
+	_, err := r.db.Exec(ctx, query, args...)
 	return err
 }
 

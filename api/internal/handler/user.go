@@ -142,13 +142,19 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 
+	// Return current user data (fetch to get actual values after update)
+	u, err := h.repo.FindByID(c.Context(), user.ID)
+	if err != nil {
+		return apperrors.ErrInternal
+	}
+
 	return c.JSON(fiber.Map{
 		"data": fiber.Map{
 			"type": "users",
 			"id":   user.ID,
 			"attributes": fiber.Map{
-				"email": req.Email,
-				"name":  req.Name,
+				"email": u.Email,
+				"name":  u.Name,
 			},
 		},
 	})
