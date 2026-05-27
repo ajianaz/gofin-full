@@ -128,6 +128,8 @@ authGroup.Post("/refresh", cfg.AuthHandler.Refresh)
 	if cfg.KeyLookup != nil {
 		protected.Use(auth.APIKeyMiddleware(cfg.KeyLookup))
 	}
+	// Restrict API-key requests to read-only access.
+	protected.Use(auth.APIKeyScopeMiddleware())
 	// Inject token version lookup into context for AuthMiddleware
 	if cfg.TokenVersionLookup != nil {
 		protected.Use(func(c *fiber.Ctx) error {

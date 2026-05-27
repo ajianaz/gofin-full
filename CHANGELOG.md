@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Security: Wallet name max length increased from 100 to 255 chars; IBAN, BIC, and notes fields also sanitized (closes #96)
 - FE: User header now waits for client-side mount before displaying auth store data — fixes SSR hydration showing "User" instead of actual user name (closes #101)
 - FE: `/savings` route now redirects (308) to `/piggy-banks` for back-compatibility (closes #103)
+- Security: API key authentication now restricted to read-only (GET/HEAD) access; write operations (POST, PUT, DELETE, PATCH) return 403. Sensitive GET endpoints (`/auth/logout`, `/admin/*`, `/notifications/stream`, `/metrics`) are also blocked for API keys (closes #98)
 
 ## [0.1.1] - 2026-05-27
 
