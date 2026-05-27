@@ -9,6 +9,7 @@ import (
 type User struct {
 	ID           uuid.UUID  `json:"id" db:"id"`
 	Email        string     `json:"email" db:"email"`
+	Name         string     `json:"name,omitempty" db:"name"`
 	Password     string     `json:"-" db:"password"`
 	Blocked      bool       `json:"blocked" db:"blocked"`
 	BlockedCode  *string    `json:"blocked_code,omitempty" db:"blocked_code"`

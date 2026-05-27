@@ -116,9 +116,9 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Us
 	var deletedAt *time.Time
 
 	err := r.db.QueryRow(ctx,
-		`SELECT id, email, password, blocked, user_group_id, created_at, updated_at, deleted_at
+		`SELECT id, email, name, password, blocked, user_group_id, created_at, updated_at, deleted_at
 		 FROM users WHERE id = $1`, id,
-	).Scan(&u.ID, &u.Email, &u.Password, &u.Blocked, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt, &deletedAt)
+	).Scan(&u.ID, &u.Email, &u.Name, &u.Password, &u.Blocked, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt, &deletedAt)
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
@@ -135,9 +135,9 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 	var deletedAt *time.Time
 
 	err := r.db.QueryRow(ctx,
-		`SELECT id, email, password, blocked, user_group_id, created_at, updated_at, deleted_at
+		`SELECT id, email, name, password, blocked, user_group_id, created_at, updated_at, deleted_at
 		 FROM users WHERE email = $1`, email,
-	).Scan(&u.ID, &u.Email, &u.Password, &u.Blocked, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt, &deletedAt)
+	).Scan(&u.ID, &u.Email, &u.Name, &u.Password, &u.Blocked, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt, &deletedAt)
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
@@ -158,11 +158,11 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 }
 
 // Update updates user fields.
-func (r *UserRepository) Update(ctx context.Context, id uuid.UUID, email, password string) error {
-	if password != "" {
+func (r *UserRepository) Update(ctx context.Context, id uuid.UUID, email, name string) error {
+	if name != "" {
 		_, err := r.db.Exec(ctx,
-			`UPDATE users SET email = $1, password = $2, updated_at = $3 WHERE id = $4 AND deleted_at IS NULL`,
-			email, password, time.Now().UTC(), id,
+			`UPDATE users SET email = $1, name = $2, updated_at = $3 WHERE id = $4 AND deleted_at IS NULL`,
+			email, name, time.Now().UTC(), id,
 		)
 		return err
 	}
@@ -251,8 +251,8 @@ func (r *UserRepository) SetActiveGroup(ctx context.Context, userID, groupID uui
 // ListAll returns all users (admin use).
 func (r *UserRepository) ListAll(ctx context.Context) ([]domain.User, error) {
 	rows, err := r.db.Query(ctx,
-		`SELECT id, email, blocked, user_group_id, created_at, updated_at
-			 FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC`)
+		`SELECT id, email, name, blocked, user_group_id, created_at, updated_at
+			FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list users: %w", err)
 	}
@@ -261,7 +261,7 @@ func (r *UserRepository) ListAll(ctx context.Context) ([]domain.User, error) {
 	var users []domain.User
 	for rows.Next() {
 		var u domain.User
-		if err := rows.Scan(&u.ID, &u.Email, &u.Blocked, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Email, &u.Name, &u.Blocked, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, err
 		}
 		users = append(users, u)
