@@ -6,6 +6,32 @@
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { themeStore } from '$lib/stores/theme.svelte.js';
 	import { LanguageSwitcher } from '$lib/components/shared/index.js';
+
+	const titleMap: Record<string, string> = {
+		'/dashboard': 'layout.sidebar.dashboard',
+		'/transactions': 'layout.sidebar.transactions',
+		'/wallets': 'layout.sidebar.wallets',
+		'/budgets': 'layout.sidebar.budgets',
+		'/piggy-banks': 'layout.sidebar.piggyBanks',
+		'/bills': 'layout.sidebar.bills',
+		'/recurring': 'layout.sidebar.recurring',
+		'/rules': 'layout.sidebar.rules',
+		'/reports': 'layout.sidebar.reports',
+		'/settings': 'layout.sidebar.settings',
+		'/currencies': 'layout.sidebar.currencies',
+		'/categories': 'layout.sidebar.categories',
+		'/tags': 'layout.sidebar.tags'
+	};
+
+	const pageTitle = $derived(() => {
+		const path = $page.url.pathname;
+		// Exact match first
+		if (titleMap[path]) return t(titleMap[path]);
+		// Prefix match for sub-routes (e.g., /settings/account → Settings)
+		const base = '/' + path.split('/').filter(Boolean)[0];
+		if (titleMap[base]) return t(titleMap[base]);
+		return t('app.name');
+	});
 	import {
 		Sidebar,
 		SidebarContent,
@@ -100,6 +126,10 @@
 		goto('/login');
 	}
 </script>
+
+<svelte:head>
+	<title>{pageTitle()} · Gofin</title>
+</svelte:head>
 
 <SidebarProvider>
 	<Sidebar>
