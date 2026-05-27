@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-05-27
+
+### Added
+- Google OAuth login — FE buttons on login/register pages, OAuth callback handler (closes #109 P1)
+- Forgot/reset password — SMTP mail service, reset token via Redis, BE endpoints, FE forms (closes #109 P2)
+
 ## [0.1.3] - 2026-05-27
 
 ### Fixed
