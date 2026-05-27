@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Remaining blank dropdown text on Transactions list (4 filter dropdowns), PiggyBanks list, and PiggyBanks create pages — added missing `SelectValue` component and removed duplicate ChevronDown overlays (closes #72)
 - Wallet creation: convert `opening_balance` from number to string before sending to API — fixes 422 error when creating wallet with balance via UI (closes #77)
 - User profile: add `name` field support — new migration adds `name` column to users table, `GET/PUT /users/me` now includes name in attributes (closes #75)
+- Security: GroupRoleMiddleware now fails closed (401) on DB error instead of proceeding without permission check (closes #80)
+- Security: Configuration read endpoints (`GET /configurations`) now require admin role — previously accessible by any authenticated user (closes #81)
+- Security: Preference API rejects unknown preference keys — only the 10 defined keys are accepted via `POST /preferences` (closes #76)
 
 ## [0.1.1] - 2026-05-27
 

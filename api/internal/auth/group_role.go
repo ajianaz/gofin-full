@@ -31,10 +31,12 @@ func GroupRoleMiddleware(roleLookup RoleLookup) fiber.Handler {
 
 		role, err := roleLookup.GetUserRoleInGroup(c.Context(), user.ID, *groupID)
 		if err != nil {
-			// DB error — log it but still proceed (fail-open for availability).
-			// RBACMiddleware will reject with 403 since role is unset.
+			// DB error — fail closed to prevent unauthorised access.
 			log.Printf("GroupRoleMiddleware: failed to lookup role for user %s in group %s: %v", user.ID, *groupID, err)
-			return c.Next()
+			return c.Status(401).JSON(fiber.Map{
+				"status": 401,
+				"title":  "Unable to verify permissions",
+			})
 		}
 
 		c.Locals("user_group_role", role)
