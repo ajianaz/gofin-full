@@ -1,10 +1,21 @@
 # Deployment
 
-Production deployment guide for Gofin.
+Production and development deployment guides for Gofin.
 
-## Docker Self-Host (Recommended)
+## Docker Images
 
-The easiest way to deploy Gofin. Everything runs in Docker Compose.
+Gofin publishes pre-built images to two registries:
+
+| Registry | Images | Use Case |
+|----------|--------|----------|
+| **Docker Hub** | `ajianaz/gofin-api`, `ajianaz/gofin-web` | Production (`:latest`, `:v0.x.x`) |
+| **GHCR** | `ghcr.io/ajianaz/gofin-api`, `ghcr.io/ajianaz/gofin-web` | Development (`:develop`) and production |
+
+Both registries carry the same multi-arch images (amd64 + arm64). Choose based on your preference.
+
+## Production — Self-Host (Caddy)
+
+All-in-one deployment with built-in reverse proxy. No external dependencies.
 
 ### Architecture
 
@@ -21,19 +32,21 @@ Internet → Caddy (443) → API (8080)
 ```bash
 git clone https://github.com/ajianaz/gofin-full.git
 cd gofin-full
-cp .env.example .env
+cp api/.env.example .env
 # Edit .env — see Configuration page
-make docker-selfhost
+docker compose -f deployments/docker/docker-compose.selfhost.yml up -d
 ```
 
-### What `make docker-selfhost` Does
+> Default images: `ajianaz/gofin-api:latest` / `ajianaz/gofin-web:latest` (Docker Hub).
+> Switch to GHCR: `DOCKER_IMAGE_API=ghcr.io/ajianaz/gofin-api:latest`
 
-1. Builds the API from source (Go 1.25)
-2. Builds the web frontend (SvelteKit → static)
-3. Starts 6 Docker containers via `docker-compose.selfhost.yml`
-4. Runs database migrations automatically
-5. Seeds the admin user (if `ADMIN_EMAIL` is set)
-6. Starts Caddy for HTTPS auto-provisioning
+### What's Started
+
+1. Pulls pre-built images (no build required)
+2. Starts 6 Docker containers via `docker-compose.selfhost.yml`
+3. Runs database migrations automatically
+4. Seeds the admin user (if `ADMIN_EMAIL` is set)
+5. Caddy provisions HTTPS via Let's Encrypt
 
 ### Docker Compose Override
 
@@ -105,6 +118,50 @@ Caddy needs port 80 and 443 accessible from the internet for certificate provisi
 1. Point your domain's A record to your server's public IP
 2. Ensure ports 80 (HTTP) and 443 (HTTPS) are open in your firewall
 3. Caddy handles the rest automatically
+
+## Development — Traefik (GHCR)
+
+Lightweight dev deployment behind an external Traefik reverse proxy. Images pulled from GHCR (no Docker Hub rate limits).
+
+### Architecture
+
+```
+Internet → Traefik (existing) → API (8080)
+                              → Web (3000)
+                         PostgreSQL (5432)
+```
+
+### Quick Deploy
+
+```bash
+git clone https://github.com/ajianaz/gofin-full.git
+cd gofin-full
+cp api/.env.example .env
+# Edit .env — REQUIRED: AUTH_JWT_SECRET, DOMAIN, STATIC_CRON_TOKEN
+# Optional: TRAEFIK_NETWORK=your-traefik-network-name
+docker compose -f deployments/docker/docker-compose.traefik.yml up -d
+```
+
+> Default images: `ghcr.io/ajianaz/gofin-api:develop` / `ghcr.io/ajianaz/gofin-web:develop` (GHCR).
+> Requires an existing Traefik instance. Set `TRAEFIK_NETWORK` to match your Traefik network.
+
+### What's Included
+
+- PostgreSQL (with health check + volume persistence)
+- API server (behind Traefik labels)
+- Web frontend (behind Traefik labels)
+- No Redis (optional — set `REDIS_HOST` if available)
+- No backup container
+
+### Traefik Network
+
+The compose file connects to an external Docker network for Traefik routing:
+
+```bash
+# Default: traefik-public
+# Override via env:
+TRAEFIK_NETWORK=my-proxy docker compose -f deployments/docker/docker-compose.traefik.yml up -d
+```
 
 ## Database Migrations
 
@@ -186,23 +243,27 @@ Available metrics:
 ```bash
 cd gofin-full
 git pull origin main
-make docker-selfhost
+docker compose -f deployments/docker/docker-compose.selfhost.yml pull
+docker compose -f deployments/docker/docker-compose.selfhost.yml up -d
 ```
 
-Docker Compose recreates containers with the latest code. Data volumes persist.
+Docker Compose pulls the latest images and restarts containers. Data volumes persist.
 
 ### Zero-Downtime Update
 
-For production environments, use rolling updates:
+For production environments, update one service at a time:
 
 ```bash
-# Pull latest images/code
+cd gofin-full
 git pull origin main
 
-# Rebuild and restart one service at a time
-docker compose -f deployments/docker/docker-compose.selfhost.yml up -d --build api
-# Wait for API to be healthy, then:
-docker compose -f deployments/docker/docker-compose.selfhost.yml up -d --build web
+# Pull latest images
+docker compose -f deployments/docker/docker-compose.selfhost.yml pull
+
+# Restart API first, wait for healthy, then web
+docker compose -f deployments/docker/docker-compose.selfhost.yml up -d api
+# Wait for API health check to pass, then:
+docker compose -f deployments/docker/docker-compose.selfhost.yml up -d web
 ```
 
 ## Troubleshooting
