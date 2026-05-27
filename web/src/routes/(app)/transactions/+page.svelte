@@ -5,14 +5,14 @@
 	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from '@lucide/svelte';
+	import { Search, Plus, ChevronLeft, ChevronRight, Trash2 } from '@lucide/svelte';
 	import { transactionService, walletService, categoryService } from '$lib/services/index.js';
 	import { formatAmount, formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { Transaction, Account, Category } from '$lib/types/domain.js';
 	import { ConfirmDialog } from '$lib/components/shared/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
 
 	let mounted = $state(false);
@@ -138,56 +138,56 @@
 		{#if mounted}
 		<div class="relative">
 			<Select bind:value={typeFilter}>
-		<SelectTrigger class="w-40">
-		</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="all">{t('transactions.list.allTypes')}</SelectItem>
-		<SelectItem value="withdrawal">{t('transactions.list.expense')}</SelectItem>
-		<SelectItem value="deposit">{t('transactions.list.income')}</SelectItem>
-		<SelectItem value="transfer">{t('transactions.list.transfer')}</SelectItem>
-		</SelectContent>
-</Select>
-			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+			<SelectTrigger class="w-40">
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+			<SelectItem value="all">{t('transactions.list.allTypes')}</SelectItem>
+			<SelectItem value="withdrawal">{t('transactions.list.expense')}</SelectItem>
+			<SelectItem value="deposit">{t('transactions.list.income')}</SelectItem>
+			<SelectItem value="transfer">{t('transactions.list.transfer')}</SelectItem>
+			</SelectContent>
+		</Select>
 		</div>
 		<div class="relative">
 			<Select bind:value={accountFilter}>
-		<SelectTrigger class="w-44">
-		</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="all">{t('transactions.list.allWallets')}</SelectItem>
-		{#each wallets as w}
+			<SelectTrigger class="w-44">
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+			<SelectItem value="all">{t('transactions.list.allWallets')}</SelectItem>
+			{#each wallets as w}
 <SelectItem value={w.id}>{w.name}</SelectItem>
 {/each}
-		</SelectContent>
-</Select>
-			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+			</SelectContent>
+		</Select>
 		</div>
 		<div class="relative">
 			<Select bind:value={categoryFilter}>
-		<SelectTrigger class="w-44">
-		</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="all">{t('transactions.list.allCategories')}</SelectItem>
-		{#each categories as cat}
+			<SelectTrigger class="w-44">
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+			<SelectItem value="all">{t('transactions.list.allCategories')}</SelectItem>
+			{#each categories as cat}
 <SelectItem value={cat.id}>{cat.name}</SelectItem>
 {/each}
-		</SelectContent>
-</Select>
-			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+			</SelectContent>
+		</Select>
 		</div>
 		<div class="relative">
 			<Select bind:value={periodFilter}>
-		<SelectTrigger class="w-44">
-		</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="this_month">{t('transactions.list.thisMonth')}</SelectItem>
-		<SelectItem value="last_month">{t('transactions.list.lastMonth')}</SelectItem>
-		<SelectItem value="this_week">{t('transactions.list.thisWeek')}</SelectItem>
-		<SelectItem value="this_year">{t('transactions.list.thisYear')}</SelectItem>
-		<SelectItem value="all">{t('transactions.list.allPeriods')}</SelectItem>
+			<SelectTrigger class="w-44">
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+			<SelectItem value="this_month">{t('transactions.list.thisMonth')}</SelectItem>
+			<SelectItem value="last_month">{t('transactions.list.lastMonth')}</SelectItem>
+			<SelectItem value="this_week">{t('transactions.list.thisWeek')}</SelectItem>
+			<SelectItem value="this_year">{t('transactions.list.thisYear')}</SelectItem>
+			<SelectItem value="all">{t('transactions.list.allPeriods')}</SelectItem>
 		</SelectContent>
-</Select>
-			<ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+		</Select>
 		</div>
 		{/if}
 	</div>

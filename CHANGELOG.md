@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- Remaining blank dropdown text on Transactions list (4 filter dropdowns), PiggyBanks list, and PiggyBanks create pages — added missing `SelectValue` component and removed duplicate ChevronDown overlays (closes #72)
+
 ## [0.1.1] - 2026-05-27
 
 ### Fixed

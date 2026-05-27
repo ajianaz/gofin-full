@@ -4,12 +4,12 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import { ChevronDown } from '@lucide/svelte';
+
 	import { piggyBankService, walletService } from '$lib/services/index.js';
 	import { onMount } from 'svelte';
 	import type { Account } from '$lib/types/domain.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
-	import { Select, SelectTrigger, SelectContent, SelectItem } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	const t = localeStore.t;
 
 	let name = $state('');
@@ -62,17 +62,17 @@
 				<div class="flex flex-col gap-2">
 					<Label for="account">{t('piggyBanks.create.relatedWallet')}</Label>
 					<div class="relative">
-						<Select bind:value={accountId} id="account">
-		<SelectTrigger class="w-full">
-		</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
-		{#each wallets as w}
+					<Select bind:value={accountId} id="account">
+						<SelectTrigger class="w-full">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+						<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+						{#each wallets as w}
 <SelectItem value={w.id}>{w.name}</SelectItem>
 {/each}
-		</SelectContent>
-</Select>
-						<ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+						</SelectContent>
+					</Select>
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
