@@ -253,7 +253,7 @@ func (h *TransactionHandler) Update(c *fiber.Ctx) error {
 	if _, err := h.txRepo.FindGroupByID(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("transaction", id)
 	}
-	if err := h.txRepo.UpdateJournal(c.Context(), id, *groupID, req.Description, req.Date, req.Notes); err != nil {
+	if err := h.txRepo.UpdateJournal(c.Context(), id, *groupID, sanitizeStr(req.Description), req.Date, sanitizePtr(req.Notes)); err != nil {
 		return apperrors.NotFoundResource("transaction", id)
 	}
 

@@ -132,9 +132,9 @@ func (h *WalletHandler) Store(c *fiber.Ctx) error {
 			"name": {"Name is required."},
 		})
 	}
-	if len(req.Name) > 100 {
+	if len(req.Name) > 255 {
 		return apperrors.NewValidationError(map[string][]string{
-			"name": {"Name must be 100 characters or less."},
+			"name": {"Name must be 255 characters or less."},
 		})
 	}
 
@@ -163,23 +163,26 @@ func (h *WalletHandler) Store(c *fiber.Ctx) error {
 	wallet := &domain.Wallet{
 		UserID:          user.ID,
 		UserGroupID:     *groupID,
-		Name:            req.Name,
+		Name:            sanitizeStr(req.Name),
 		AccountType:     req.WalletType,
 		Active:          active,
 		VirtualBalance:  virtualBalance,
 		IncludeNetWorth: true,
 	}
 	if req.IBAN != "" {
-		wallet.IBAN = &req.IBAN
+		iban := sanitizeStr(req.IBAN)
+		wallet.IBAN = &iban
 	}
 	if req.BIC != "" {
-		wallet.BIC = &req.BIC
+		bic := sanitizeStr(req.BIC)
+		wallet.BIC = &bic
 	}
 	if req.CurrencyID != "" {
 		wallet.CurrencyID = &req.CurrencyID
 	}
 	if req.Notes != "" {
-		wallet.Notes = &req.Notes
+		notes := sanitizeStr(req.Notes)
+		wallet.Notes = &notes
 	}
 
 	created, err := h.repo.Create(c.Context(), wallet)
@@ -222,12 +225,19 @@ func (h *WalletHandler) Update(c *fiber.Ctx) error {
 		})
 	}
 
+	if len(req.Name) > 255 {
+		return apperrors.NewValidationError(map[string][]string{
+			"name": {"Name must be 255 characters or less."},
+		})
+	}
+
 	// Verify wallet exists before update
 	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("wallet", id)
 	}
 
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Name, req.Active, req.IncludeNetWorth, req.CurrencyID, req.Notes); err != nil {
+	sanitizedName := sanitizeStr(req.Name)
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizedName, req.Active, req.IncludeNetWorth, req.CurrencyID, sanitizePtr(req.Notes)); err != nil {
 		return apperrors.ErrInternal
 	}
 

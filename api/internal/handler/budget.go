@@ -91,7 +91,7 @@ func (h *BudgetHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"name": {"name is required"}})
 	}
 
-	b, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Name, req.Order)
+	b, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Name), req.Order)
 	if err != nil {
 		log.Printf("handler/Index: failed to create budget: %v", err)
 		return apperrors.ErrInternal
@@ -127,7 +127,7 @@ func (h *BudgetHandler) Update(c *fiber.Ctx) error {
 	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("budget", id)
 	}
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Name, req.Active); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Name), req.Active); err != nil {
 		return apperrors.NotFoundResource("budget", id)
 	}
 

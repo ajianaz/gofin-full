@@ -59,7 +59,7 @@ func (h *RuleGroupHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"title": {"title is required"}})
 	}
 
-	g, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.Order)
+	g, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.Order)
 	if err != nil {
 		log.Printf("handler/Index: failed to create rule group: %v", err)
 		return apperrors.ErrInternal
@@ -114,7 +114,7 @@ func (h *RuleGroupHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.Active); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Title), req.Active); err != nil {
 		return apperrors.NotFoundResource("rule_group", id)
 	}
 
@@ -219,7 +219,7 @@ func (h *RuleHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"title": {"title is required"}})
 	}
 
-	rule, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.Priority, req.RuleGroupID)
+	rule, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.Priority, req.RuleGroupID)
 	if err != nil {
 		log.Printf("handler/Index: failed to create rule: %v", err)
 		return apperrors.ErrInternal
@@ -262,7 +262,7 @@ func (h *RuleHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.Active, req.Strict, req.StopProcessing); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Title), req.Active, req.Strict, req.StopProcessing); err != nil {
 		return apperrors.NotFoundResource("rule", id)
 	}
 

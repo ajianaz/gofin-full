@@ -85,7 +85,7 @@ func (h *TagHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"tag": {"tag is required"}})
 	}
 
-	t, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Tag, req.Date)
+	t, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Tag), req.Date)
 	if err != nil {
 		log.Printf("handler/Index: failed to create tag: %v", err)
 		return apperrors.ErrInternal
@@ -125,7 +125,7 @@ func (h *TagHandler) Update(c *fiber.Ctx) error {
 	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("tag", id)
 	}
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Tag, req.Date); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Tag), req.Date); err != nil {
 		return apperrors.NotFoundResource("tag", id)
 	}
 

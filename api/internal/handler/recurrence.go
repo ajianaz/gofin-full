@@ -110,7 +110,7 @@ func (h *RecurrenceHandler) Store(c *fiber.Ctx) error {
 		req.RepeatFreq = "monthly"
 	}
 
-	rec, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.FirstDate, req.RepeatFreq)
+	rec, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.FirstDate, req.RepeatFreq)
 	if err != nil {
 		log.Printf("handler/Index: failed to create recurrence: %v", err)
 		return apperrors.ErrInternal
@@ -150,7 +150,7 @@ func (h *RecurrenceHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.RepeatFreq, req.Active, req.Description, req.RepeatUntil); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Title), req.RepeatFreq, req.Active, sanitizePtr(req.Description), req.RepeatUntil); err != nil {
 		return apperrors.NotFoundResource("recurrence", id)
 	}
 

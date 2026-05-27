@@ -115,7 +115,7 @@ func (h *BillHandler) Store(c *fiber.Ctx) error {
 		req.RepeatFreq = "monthly"
 	}
 
-	b, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Name, amountMin, amountMax, date, req.RepeatFreq, req.CurrencyID, req.Order)
+	b, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Name), amountMin, amountMax, date, req.RepeatFreq, req.CurrencyID, req.Order)
 	if err != nil {
 		log.Printf("handler/Index: failed to create bill: %v", err)
 		return apperrors.ErrInternal
@@ -147,7 +147,7 @@ func (h *BillHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Name, req.Active, req.Notes); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Name), req.Active, sanitizePtr(req.Notes)); err != nil {
 		return apperrors.NotFoundResource("bill", id)
 	}
 
