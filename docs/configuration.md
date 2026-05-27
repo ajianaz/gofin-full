@@ -60,7 +60,6 @@ Set `APP_ENV=local` for development. It relaxes CORS and enables debug mode.
 | `AUTH_REFRESH_EXPIRY_DAYS` | `30` | Refresh token expiry |
 | `AUTH_ALLOW_REGISTRATION` | `false` | Allow public self-registration |
 | `STATIC_CRON_TOKEN` | *(required)* | Token for internal cron endpoints |
-| `ALLOW_2FA_BYPASS` | `false` | Allow skipping 2FA (not recommended) |
 
 ::: warning Required
 `AUTH_JWT_SECRET` and `STATIC_CRON_TOKEN` have no safe defaults. The server will **refuse to start** if `AUTH_JWT_SECRET` is not changed from the placeholder.
@@ -87,6 +86,29 @@ Set `APP_ENV=local` for development. It relaxes CORS and enables debug mode.
 | `GITHUB_CLIENT_ID` | *(empty)* | GitHub OAuth2 client ID |
 | `GITHUB_CLIENT_SECRET` | *(empty)* | GitHub OAuth2 client secret |
 
+## Email Verification
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTH_REQUIRE_VERIFICATION` | `false` | Block login for unverified users |
+
+::: tip
+When `AUTH_REQUIRE_VERIFICATION=true`, users must verify their email before logging in. Without SMTP configured, users are auto-verified on registration.
+:::
+
+## SMTP (Email)
+
+Used for email verification, forgot/reset password, and other email notifications. If not configured, email features are disabled and users are auto-verified.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SMTP_HOST` | *(empty)* | SMTP server hostname |
+| `SMTP_PORT` | `587` | SMTP server port |
+| `SMTP_USER` | *(empty)* | SMTP username |
+| `SMTP_PASS` | *(empty)* | SMTP password |
+| `MAIL_FROM` | `noreply@gofin.local` | From address for emails |
+| `SMTP_TLS` | `true` | Enable TLS for SMTP connection |
+
 ## Keycloak OIDC
 
 | Variable | Default | Description |
@@ -100,11 +122,16 @@ Set `APP_ENV=local` for development. It relaxes CORS and enables debug mode.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `RATE_LIMIT_MAX` | `100` | Max requests per window |
+| `RATE_LIMIT_ENABLED` | `false` | Enable API rate limiting |
+| `RATE_LIMIT_MAX` | `20` | Max requests per window |
 | `RATE_LIMIT_WINDOW_SECONDS` | `60` | Rate limit window (seconds) |
+| `LOGIN_RATE_LIMIT_ENABLED` | `false` | Enable login attempt rate limiting |
+| `LOGIN_MAX_ATTEMPTS` | `5` | Max failed login attempts before lockout |
+| `LOGIN_LOCKOUT_MINUTES` | `15` | Minutes to lock account after max attempts |
 | `MAX_REQUEST_BODY_BYTES` | `10485760` | Max request body (10 MB) |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated allowed origins |
-| `DISABLE_PROMETHEUS` | `false` | Disable `/metrics` endpoint |
+| `DISABLE_PROMETHEUS` | `true` | Disable `/metrics` endpoint |
+| `ALLOW_2FA_BYPASS` | `false` | Allow skipping 2FA (not recommended) |
 
 ## Logging
 

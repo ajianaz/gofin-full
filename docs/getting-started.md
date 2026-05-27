@@ -28,7 +28,7 @@ cd gofin-full
 ### 2. Configure environment
 
 ```bash
-cp .env.example .env
+cp api/.env.example .env
 ```
 
 Edit `.env` and set at minimum:

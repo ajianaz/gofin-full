@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Sync compose files: dev (traefik + GHCR) vs prod (selfhost + Docker Hub), consistent env vars (closes #115)
 - Update README + deployment docs: dev vs prod quick start, registry table, new env vars (closes #115)
 
+### Added
+- SMTP + email verification config to .env.example and configuration docs
+- Rate limiting vars (RATE_LIMIT_ENABLED, LOGIN_RATE_LIMIT_ENABLED, etc.) to configuration docs
+
 ## [0.1.5] - 2026-05-27
 
 ### Added
