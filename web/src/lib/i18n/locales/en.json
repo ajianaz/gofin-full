@@ -606,5 +606,10 @@
   "dashboard.emptyState.addTransaction": "Add Transaction",
   "dashboard.multipleCurrencyWarning": "You have wallets in multiple currencies. Totals are shown per currency.",
   "currencies.exchangeRates.addTitle": "Add Exchange Rate",
-  "reports.transactionCount": "{count} transactions"
+  "reports.transactionCount": "{count} transactions",
+  "auth.oauth.continueWith": "or continue with",
+  "auth.oauth.loginWith": "Sign in with {provider}",
+  "auth.oauth.registerWith": "Sign up with {provider}",
+  "auth.oauth.callbackError": "Authentication failed. Please try again.",
+  "auth.oauth.processing": "Signing in..."
 }
