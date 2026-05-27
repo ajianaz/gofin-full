@@ -606,5 +606,10 @@
   "dashboard.emptyState.addTransaction": "Tambah Transaksi",
   "dashboard.multipleCurrencyWarning": "Anda memiliki dompet dengan mata uang berbeda. Total ditampilkan per mata uang.",
   "currencies.exchangeRates.addTitle": "Tambah Nilai Tukar",
-  "reports.transactionCount": "{count} transaksi"
+  "reports.transactionCount": "{count} transaksi",
+  "auth.oauth.continueWith": "atau lanjutkan dengan",
+  "auth.oauth.loginWith": "Masuk dengan {provider}",
+  "auth.oauth.registerWith": "Daftar dengan {provider}",
+  "auth.oauth.callbackError": "Autentikasi gagal. Silakan coba lagi.",
+  "auth.oauth.processing": "Memproses masuk..."
 }

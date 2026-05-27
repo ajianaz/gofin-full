@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { authStore } from '$lib/stores/auth.svelte.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -17,6 +18,45 @@
 	let password = $state('');
 	let remember = $state(false);
 	let error = $state<string | null>(null);
+
+	let oauthProvider = $state<string | null>(null);
+	let oauthLoading = $state(false);
+
+	onMount(async () => {
+		try {
+			const res = await fetch('/api/v1/auth/provider');
+			if (res.ok) {
+				const data = await res.json();
+				const provider = (data.provider || '').toLowerCase();
+				if (provider !== 'local' && provider !== 'disabled') {
+					oauthProvider = data.provider;
+				}
+			}
+		} catch {
+			// Silently ignore — just don't show OAuth button
+		}
+	});
+
+	async function handleOAuth() {
+		if (!oauthProvider) return;
+		oauthLoading = true;
+		try {
+			const redirectUrl = `${window.location.origin}/oauth/callback`;
+			const res = await fetch(`/api/v1/auth/${oauthProvider.toLowerCase()}/url?redirect=${encodeURIComponent(redirectUrl)}`);
+			if (res.ok) {
+				const data = await res.json();
+				if (data.url) {
+					window.location.href = data.url;
+					return;
+				}
+			}
+			error = t('auth.login.errorFailed');
+		} catch {
+			error = t('auth.login.errorFailed');
+		} finally {
+			oauthLoading = false;
+		}
+	}
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
@@ -91,15 +131,17 @@
 				{authStore.isLoading ? t('auth.login.submitting') : t('auth.login.submit')}
 			</Button>
 
-			<div class="flex items-center gap-3">
-				<Separator class="flex-1" />
-				<span class="text-xs text-muted-foreground">{t('common.or')}</span>
-				<Separator class="flex-1" />
-			</div>
+			{#if oauthProvider}
+				<div class="flex items-center gap-3">
+					<Separator class="flex-1" />
+					<span class="text-xs text-muted-foreground">{t('auth.oauth.continueWith')}</span>
+					<Separator class="flex-1" />
+				</div>
 
-			<Button variant="outline" class="w-full" size="lg" type="button">
-				{t('auth.login.google')}
-			</Button>
+				<Button variant="outline" class="w-full" size="lg" type="button" onclick={handleOAuth} disabled={oauthLoading || authStore.isLoading}>
+					{oauthLoading ? t('auth.oauth.processing') : t('auth.oauth.loginWith', { provider: oauthProvider })}
+				</Button>
+			{/if}
 
 			<p class="text-center text-sm text-muted-foreground">
 				{t('auth.login.noAccount')}
