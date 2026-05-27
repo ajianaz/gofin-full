@@ -89,7 +89,7 @@ func (h *ObjectGroupHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"title": {"title is required"}})
 	}
 
-	g, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.Order)
+	g, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.Order)
 	if err != nil {
 		log.Printf("handler/Index: failed to create object group: %v", err)
 		return apperrors.ErrInternal
@@ -125,7 +125,7 @@ func (h *ObjectGroupHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Title, req.Order); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Title), req.Order); err != nil {
 		return apperrors.NotFoundResource("object_group", id)
 	}
 

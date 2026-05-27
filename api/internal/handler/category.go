@@ -87,7 +87,7 @@ func (h *CategoryHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"name": {"name must be 100 characters or less"}})
 	}
 
-	cat, err := h.repo.Create(c.Context(), user.ID, *groupID, strings.TrimSpace(req.Name))
+	cat, err := h.repo.Create(c.Context(), user.ID, *groupID, strings.TrimSpace(sanitizeStr(req.Name)))
 	if err != nil {
 		log.Printf("handler/Index: failed to create category: %v", err)
 		return apperrors.ErrInternal
@@ -130,7 +130,7 @@ func (h *CategoryHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NotFoundResource("category", id)
 	}
 
-	if err := h.repo.Update(c.Context(), id, *groupID, req.Name); err != nil {
+	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Name)); err != nil {
 		return apperrors.NotFoundResource("category", id)
 	}
 

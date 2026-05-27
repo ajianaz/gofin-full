@@ -103,10 +103,9 @@ func New(cfg RouterConfig) *fiber.App {
 		authGroup.Use(rl)
 	}
 	authGroup.Get("/provider", cfg.AuthHandler.Provider)
-	authGroup.Post("/login", cfg.AuthHandler.Login)
-	authGroup.Post("/register", cfg.AuthHandler.Register)
-	authGroup.Post("/logout", cfg.AuthHandler.Logout)
-	authGroup.Post("/refresh", cfg.AuthHandler.Refresh)
+authGroup.Post("/login", cfg.AuthHandler.Login)
+authGroup.Post("/register", cfg.AuthHandler.Register)
+authGroup.Post("/refresh", cfg.AuthHandler.Refresh)
 
 	// OAuth routes (public)
 	authGroup.Get("/:provider/url", cfg.AuthHandler.OAuthURL)
@@ -138,6 +137,9 @@ func New(cfg RouterConfig) *fiber.App {
 	}
 	protected.Use(auth.AuthMiddleware(cfg.JWTManager))
 	protected.Use(auth.GroupRoleMiddleware(cfg.RoleLookup))
+
+	// Auth operations requiring authentication
+	protected.Post("/auth/logout", cfg.AuthHandler.Logout)
 
 	// Current user
 	protected.Get("/users/me", cfg.UserHandler.Show)

@@ -17,6 +17,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Export page: replace native `<option>` with shadcn `<Select>` components — format and wallet dropdowns now render correctly (closes #87)
 - `formatCurrency` default decimal places changed from 0 to 2 — amounts now display cents correctly (closes #91)
 - i18n: add missing `common.create` key, replace hardcoded English error strings with `t('common.error')` in reports and export pages (closes #92)
+- Security: HTML-escape all user-provided text fields (names, titles, descriptions, notes) across wallets, budgets, bills, piggy banks, recurrences, rules, categories, tags, notes, and object groups — prevents stored XSS (closes #96)
+- Security: Move `POST /auth/logout` from public authGroup to protected group — logout now requires valid authentication (closes #97)
+- Security: Wallet name max length increased from 100 to 255 chars; IBAN, BIC, and notes fields also sanitized (closes #96)
+- FE: User header now waits for client-side mount before displaying auth store data — fixes SSR hydration showing "User" instead of actual user name (closes #101)
+- FE: `/savings` route now redirects (308) to `/piggy-banks` for back-compatibility (closes #103)
 
 ## [0.1.1] - 2026-05-27
 

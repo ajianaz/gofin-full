@@ -96,7 +96,7 @@ func (h *NoteHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"noteable_type": {"noteable_type is required"}})
 	}
 
-	n, err := h.repo.Create(c.Context(), user.ID, *groupID, req.NoteableType, req.NoteableID, req.Note)
+	n, err := h.repo.Create(c.Context(), user.ID, *groupID, req.NoteableType, req.NoteableID, sanitizeStr(req.Note))
 	if err != nil {
 		log.Printf("handler: failed to create note: %v", err)
 		return apperrors.ErrInternal
@@ -136,7 +136,7 @@ func (h *NoteHandler) Update(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
 	}
 
-	if err := h.repo.Update(c.Context(), id, user.ID, req.Note); err != nil {
+	if err := h.repo.Update(c.Context(), id, user.ID, sanitizeStr(req.Note)); err != nil {
 		return apperrors.NotFoundResource("note", id)
 	}
 

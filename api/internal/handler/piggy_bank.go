@@ -159,10 +159,10 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 	targetAmt, _ := decimal.NewFromString(req.TargetAmount)
 	pb := &domain.PiggyBank{
 		AccountID:    req.WalletID,
-		Name:         req.Name,
+		Name:         sanitizeStr(req.Name),
 		TargetAmount: targetAmt,
 		Order:        req.Order,
-		Notes:        req.Notes,
+		Notes:        sanitizePtr(req.Notes),
 	}
 
 	pb, err = h.repo.Create(c.Context(), pb, groupID)
@@ -214,7 +214,7 @@ func (h *PiggyBankHandler) Update(c *fiber.Ctx) error {
 	if _, err := h.repo.FindByID(c.Context(), id, groupID); err != nil {
 		return apperrors.NotFoundResource("piggy_bank", id)
 	}
-	if err := h.repo.Update(c.Context(), id, groupID, req.Name, targetAmount, nil, nil, req.Notes); err != nil {
+	if err := h.repo.Update(c.Context(), id, groupID, sanitizeStr(req.Name), targetAmount, nil, nil, sanitizePtr(req.Notes)); err != nil {
 		return apperrors.NotFoundResource("piggy_bank", id)
 	}
 

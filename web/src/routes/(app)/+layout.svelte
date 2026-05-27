@@ -69,6 +69,7 @@
 
 	let { children } = $props();
 	const t = localeStore.t;
+	let mounted = $state(false);
 
 	const menuNav = $derived([
 		{ label: t('layout.sidebar.dashboard'), href: '/dashboard', icon: LayoutDashboard },
@@ -99,6 +100,7 @@
 	);
 
 	onMount(async () => {
+		mounted = true;
 		if (!authStore.isAuthenticated) {
 			await authStore.restore();
 			if (!authStore.isAuthenticated) {
@@ -230,11 +232,10 @@
 							<AvatarFallback class="bg-sidebar-accent text-sidebar-accent-foreground text-xs">
 								{userInitials}
 							</AvatarFallback>
-						</Avatar>
-						<div class="flex flex-col justify-center">
-							<span class="text-sm font-medium text-sidebar-foreground">{authStore.user?.name ?? 'User'}</span>
-							<span class="text-xs text-sidebar-foreground">{authStore.user?.email ?? ''}</span>
-						</div>
+					</Avatar>
+					<div class="flex flex-col justify-center">
+						<span class="text-sm font-medium text-sidebar-foreground">{mounted && authStore.user?.name ? authStore.user.name : 'User'}</span>
+						<span class="text-xs text-sidebar-foreground">{mounted && authStore.user?.email ? authStore.user.email : ''}</span>
 					</div>
 				</div>
 				<div class="flex items-center justify-between px-2">
