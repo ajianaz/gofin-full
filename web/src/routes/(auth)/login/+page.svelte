@@ -72,7 +72,11 @@
 			goto('/dashboard');
 		} catch (err) {
 			const apiErr = err as ApiError;
-			error = apiErr.detail || apiErr.message || t('auth.login.errorFailed');
+			if (apiErr.status === 403 && apiErr.verified === false) {
+				error = t('auth.login.notVerified');
+			} else {
+				error = apiErr.detail || apiErr.message || t('auth.login.errorFailed');
+			}
 		}
 	}
 </script>

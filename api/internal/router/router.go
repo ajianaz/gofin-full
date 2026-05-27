@@ -108,6 +108,7 @@ authGroup.Post("/register", cfg.AuthHandler.Register)
 authGroup.Post("/refresh", cfg.AuthHandler.Refresh)
 authGroup.Post("/forgot-password", cfg.AuthHandler.ForgotPassword)
 authGroup.Post("/reset-password", cfg.AuthHandler.ResetPassword)
+authGroup.Post("/verify-email", cfg.AuthHandler.VerifyEmail)
 
 	// OAuth routes (public)
 	authGroup.Get("/:provider/url", cfg.AuthHandler.OAuthURL)
@@ -144,6 +145,7 @@ authGroup.Post("/reset-password", cfg.AuthHandler.ResetPassword)
 
 	// Auth operations requiring authentication
 	protected.Post("/auth/logout", cfg.AuthHandler.Logout)
+	protected.Post("/auth/resend-verification", cfg.AuthHandler.ResendVerification)
 
 	// Current user
 	protected.Get("/users/me", cfg.UserHandler.Show)

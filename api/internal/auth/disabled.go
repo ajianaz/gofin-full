@@ -25,9 +25,10 @@ func (p *disabledProvider) SetDB(_ *pgxpool.Pool) {}
 
 func (p *disabledProvider) Authenticate(_ context.Context, _ Credentials) (*UserIdentity, error) {
 	return &UserIdentity{
-		ID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
-		Email:    "admin@local",
-		Blocked:  false,
-		DemoUser: false,
+		ID:        uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		Email:     "admin@local",
+		Blocked:   false,
+		Verified:  true,
+		DemoUser:  false,
 	}, nil
 }

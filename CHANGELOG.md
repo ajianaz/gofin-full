@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- Email verification on registration — verification token via Redis, BE endpoints, FE verify-email page, i18n (closes #109 P3)
+
 ## [0.1.4] - 2026-05-27
 
 ### Added

@@ -39,4 +39,5 @@ export interface ApiError {
 	detail?: string;
 	message?: string;
 	body?: string[];
+	verified?: boolean;
 }

@@ -54,8 +54,9 @@ type Config struct {
 	AuthJWTSecret         string `mapstructure:"AUTH_JWT_SECRET"`
 	AuthJWTExpiry         int    `mapstructure:"AUTH_JWT_EXPIRY_MINUTES"`
 	AuthRefreshExpiry     int    `mapstructure:"AUTH_REFRESH_EXPIRY_DAYS"`
-	AuthAllowRegistration bool   `mapstructure:"AUTH_ALLOW_REGISTRATION"`
-	StaticCronToken       string `mapstructure:"STATIC_CRON_TOKEN"`
+	AuthAllowRegistration   bool   `mapstructure:"AUTH_ALLOW_REGISTRATION"`
+	AuthRequireVerification bool   `mapstructure:"AUTH_REQUIRE_VERIFICATION"`
+	StaticCronToken         string `mapstructure:"STATIC_CRON_TOKEN"`
 
 	// OAuth - Google
 	GoogleClientID     string `mapstructure:"GOOGLE_CLIENT_ID"`
@@ -199,6 +200,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("AUTH_JWT_EXPIRY_MINUTES", 60)
 	v.SetDefault("AUTH_REFRESH_EXPIRY_DAYS", 30)
 	v.SetDefault("AUTH_ALLOW_REGISTRATION", false)
+	v.SetDefault("AUTH_REQUIRE_VERIFICATION", false)
 	v.SetDefault("STATIC_CRON_TOKEN", "PLEASE_REPLACE_WITH_32_CHAR_CODE")
 	v.SetDefault("GOOGLE_CLIENT_ID", "")
 	v.SetDefault("GOOGLE_CLIENT_SECRET", "")

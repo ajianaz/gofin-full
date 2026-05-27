@@ -72,8 +72,9 @@ func (p *googleProvider) Authenticate(ctx context.Context, creds Credentials) (*
 	}
 
 	return &UserIdentity{
-		Email:   userInfo.Email,
-		Blocked: false,
+		Email:    userInfo.Email,
+		Blocked:  false,
+		Verified: true,
 	}, nil
 }
 

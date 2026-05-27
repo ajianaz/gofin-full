@@ -613,5 +613,9 @@
   "auth.oauth.callbackError": "Authentication failed. Please try again.",
   "auth.oauth.processing": "Signing in...",
   "auth.forgotPassword.error": "Could not send reset email. Password reset may not be configured.",
-  "auth.resetPassword.errorToken": "Invalid or expired reset link."
+  "auth.resetPassword.errorToken": "Invalid or expired reset link.",
+  "auth.verifyEmail.title": "Verify Email",
+  "auth.verifyEmail.success": "Email verified successfully. You can now log in.",
+  "auth.verifyEmail.error": "Invalid or expired verification link.",
+  "auth.login.notVerified": "Your email has not been verified. Please check your inbox."
 }
