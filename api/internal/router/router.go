@@ -106,6 +106,8 @@ func New(cfg RouterConfig) *fiber.App {
 authGroup.Post("/login", cfg.AuthHandler.Login)
 authGroup.Post("/register", cfg.AuthHandler.Register)
 authGroup.Post("/refresh", cfg.AuthHandler.Refresh)
+authGroup.Post("/forgot-password", cfg.AuthHandler.ForgotPassword)
+authGroup.Post("/reset-password", cfg.AuthHandler.ResetPassword)
 
 	// OAuth routes (public)
 	authGroup.Get("/:provider/url", cfg.AuthHandler.OAuthURL)

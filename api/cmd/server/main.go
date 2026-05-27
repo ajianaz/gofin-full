@@ -108,12 +108,17 @@ func main() {
 	refreshRepo := repository.NewRefreshTokenRepository(db)
 	// Create services
 	txService := service.NewTransactionService(txRepo, walletRepo)
+	mailService := service.NewMailService(cfg)
 
 	// Create handlers
 	healthHandler := handler.NewHealthHandler(db, rdb)
 	authHandler := handler.NewAuthHandler(jwtMgr, authProvider, cfg, userRepo, oauthStateRepo, refreshRepo)
 	if rdb != nil {
 		authHandler.SetRedis(rdb)
+	}
+	if mailService.Configured() {
+		authHandler.SetMail(mailService)
+		log.Info().Str("from", cfg.SMTPFrom).Msg("SMTP mail service configured")
 	}
 	userHandler := handler.NewUserHandler(userRepo)
 	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr)

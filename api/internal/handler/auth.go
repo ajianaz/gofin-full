@@ -44,6 +44,9 @@ func (h *AuthHandler) loginLockoutDuration() time.Duration {
 	return time.Duration(defaultLoginLockoutMinutes) * time.Minute
 }
 
+// passwordResetKeyPrefix is the Redis key prefix for password reset tokens.
+const passwordResetKeyPrefix = "password_reset:"
+
 // AuthHandler handles authentication endpoints.
 type AuthHandler struct {
 	jwtMgr      *auth.JWTManager
@@ -53,6 +56,13 @@ type AuthHandler struct {
 	oauthState  *repository.OAuthStateRepository
 	refreshRepo *repository.RefreshTokenRepository
 	rdb         redis.Cmdable // optional Redis for login attempt tracking
+	mail        MailSender    // optional mail service for password reset
+}
+
+// MailSender is an interface for sending emails.
+type MailSender interface {
+	Configured() bool
+	SendEmail(to, subject, body string) error
 }
 
 // NewAuthHandler creates a new auth handler.
@@ -63,6 +73,11 @@ func NewAuthHandler(jwtMgr *auth.JWTManager, provider auth.AuthProvider, cfg *co
 // SetRedis injects an optional Redis client for login attempt tracking.
 func (h *AuthHandler) SetRedis(rdb redis.Cmdable) {
 	h.rdb = rdb
+}
+
+// SetMail injects an optional mail service for password reset.
+func (h *AuthHandler) SetMail(mail MailSender) {
+	h.mail = mail
 }
 
 // Login handles POST /api/v1/auth/login.
@@ -658,4 +673,182 @@ func validatePasswordStrength(password string) []string {
 		errors = append(errors, "Password must include at least 3 of: uppercase, lowercase, digit, special character.")
 	}
 	return errors
+}
+
+// generateResetToken creates a cryptographically random 32-byte hex token.
+func generateResetToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to generate reset token: %w", err)
+	}
+	return fmt.Sprintf("%x", b), nil
+}
+
+// ForgotPassword handles POST /api/v1/auth/forgot-password.
+// Always returns 200 to prevent email enumeration.
+func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
+	// Check if SMTP is configured
+	if h.mail == nil || !h.mail.Configured() {
+		return c.Status(503).JSON(fiber.Map{
+			"message": "Password reset is not configured.",
+		})
+	}
+
+	// Check if Redis is available
+	if h.rdb == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"message": "Password reset is not available.",
+		})
+	}
+
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return apperrors.NewValidationError(map[string][]string{
+			"body": {"Invalid request body."},
+		})
+	}
+
+	if strings.TrimSpace(req.Email) == "" {
+		return apperrors.NewValidationError(map[string][]string{
+			"email": {"Email is required."},
+		})
+	}
+
+	if !isValidEmail(req.Email) {
+		return apperrors.NewValidationError(map[string][]string{
+			"email": {"Invalid email format."},
+		})
+	}
+
+	// Check if user exists — but don't reveal the result
+	user, err := h.userRepo.FindByEmail(c.Context(), req.Email)
+	if err != nil || user == nil {
+		// User not found — return success anyway to prevent enumeration
+		return c.JSON(fiber.Map{
+			"message": "If an account with this email exists, a password reset link has been sent.",
+		})
+	}
+
+	// Generate reset token
+	token, err := generateResetToken()
+	if err != nil {
+		log.Printf("failed to generate reset token: %v", err)
+		return apperrors.ErrInternal
+	}
+
+	// Store token in Redis with 1 hour TTL
+	key := passwordResetKeyPrefix + token
+	if err := h.rdb.Set(c.Context(), key, req.Email, 1*time.Hour).Err(); err != nil {
+		log.Printf("failed to store reset token in redis: %v", err)
+		return apperrors.ErrInternal
+	}
+
+	// Build reset link
+	appURL := h.cfg.AppURL
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", strings.TrimSuffix(appURL, "/"), token)
+
+	// Send email
+	subject := "Password Reset Request"
+	body := fmt.Sprintf(
+		"Hello,\n\nYou have requested a password reset for your GoFin account.\n\n"+
+			"Click the link below to reset your password:\n%s\n\n"+
+			"This link will expire in 1 hour.\n\n"+
+			"If you did not request this, you can safely ignore this email.\n",
+		resetLink,
+	)
+
+	if err := h.mail.SendEmail(req.Email, subject, body); err != nil {
+		log.Printf("failed to send reset email: %v", err)
+		// Still return success to prevent enumeration
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "If an account with this email exists, a password reset link has been sent.",
+	})
+}
+
+// ResetPassword handles POST /api/v1/auth/reset-password.
+func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
+	// Check if Redis is available
+	if h.rdb == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"message": "Password reset is not available.",
+		})
+	}
+
+	var req struct {
+		Token          string `json:"token"`
+		Password       string `json:"password"`
+		ConfirmPassword string `json:"confirm_password"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return apperrors.NewValidationError(map[string][]string{
+			"body": {"Invalid request body."},
+		})
+	}
+
+	if strings.TrimSpace(req.Token) == "" {
+		return apperrors.NewValidationError(map[string][]string{
+			"token": {"Reset token is required."},
+		})
+	}
+
+	if strings.TrimSpace(req.Password) == "" {
+		return apperrors.NewValidationError(map[string][]string{
+			"password": {"Password is required."},
+		})
+	}
+
+	if len(req.Password) < 8 {
+		return apperrors.NewValidationError(map[string][]string{
+			"password": {"Password must be at least 8 characters."},
+		})
+	}
+
+	if req.Password != req.ConfirmPassword {
+		return apperrors.NewValidationError(map[string][]string{
+			"confirm_password": {"Passwords do not match."},
+		})
+	}
+
+	// Look up token in Redis
+	key := passwordResetKeyPrefix + req.Token
+	email, err := h.rdb.Get(c.Context(), key).Result()
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid or expired reset link.",
+		})
+	}
+
+	// Find user by email
+	user, err := h.userRepo.FindByEmail(c.Context(), email)
+	if err != nil || user == nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid or expired reset link.",
+		})
+	}
+
+	// Hash new password
+	hash, err := auth.HashPassword(req.Password)
+	if err != nil {
+		return apperrors.ErrInternal
+	}
+
+	// Update user password in DB
+	if err := h.userRepo.UpdatePassword(c.Context(), user.ID, hash); err != nil {
+		log.Printf("failed to update password: %v", err)
+		return apperrors.ErrInternal
+	}
+
+	// Delete token from Redis (single use)
+	_ = h.rdb.Del(c.Context(), key)
+
+	// Invalidate all existing JWT tokens
+	_ = h.userRepo.IncrementTokenVersion(c.Context(), user.ID)
+
+	return c.JSON(fiber.Map{
+		"message": "Password has been reset successfully.",
+	})
 }
