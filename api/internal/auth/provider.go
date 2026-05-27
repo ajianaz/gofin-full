@@ -14,6 +14,7 @@ type UserIdentity struct {
 	ID           uuid.UUID
 	Email        string
 	Blocked      bool
+	Verified     bool
 	DemoUser     bool
 	UserGroupID  *uuid.UUID
 	TokenVersion int

@@ -613,5 +613,9 @@
   "auth.oauth.callbackError": "Autentikasi gagal. Silakan coba lagi.",
   "auth.oauth.processing": "Memproses masuk...",
   "auth.forgotPassword.error": "Tidak dapat mengirim email reset. Fitur reset password mungkin belum dikonfigurasi.",
-  "auth.resetPassword.errorToken": "Link reset tidak valid atau sudah kadaluarsa."
+  "auth.resetPassword.errorToken": "Link reset tidak valid atau sudah kadaluarsa.",
+  "auth.verifyEmail.title": "Verifikasi Email",
+  "auth.verifyEmail.success": "Email berhasil diverifikasi.",
+  "auth.verifyEmail.error": "Link verifikasi tidak valid atau sudah kadaluarsa.",
+  "auth.login.notVerified": "Email belum diverifikasi. Periksa inbox Anda."
 }

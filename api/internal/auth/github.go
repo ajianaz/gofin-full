@@ -69,8 +69,9 @@ func (p *gitHubProvider) Authenticate(ctx context.Context, creds Credentials) (*
 	}
 
 	return &UserIdentity{
-		Email:   email,
-		Blocked: false,
+		Email:    email,
+		Blocked:  false,
+		Verified: true,
 	}, nil
 }
 

@@ -117,9 +117,9 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Us
 	var deletedAt *time.Time
 
 	err := r.db.QueryRow(ctx,
-		`SELECT id, email, name, password, blocked, user_group_id, created_at, updated_at, deleted_at
+		`SELECT id, email, name, password, blocked, COALESCE(verified, true), user_group_id, created_at, updated_at, deleted_at
 		 FROM users WHERE id = $1`, id,
-	).Scan(&u.ID, &u.Email, &u.Name, &u.Password, &u.Blocked, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt, &deletedAt)
+	).Scan(&u.ID, &u.Email, &u.Name, &u.Password, &u.Blocked, &u.Verified, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt, &deletedAt)
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
@@ -136,9 +136,9 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 	var deletedAt *time.Time
 
 	err := r.db.QueryRow(ctx,
-		`SELECT id, email, name, password, blocked, user_group_id, created_at, updated_at, deleted_at
+		`SELECT id, email, name, password, blocked, COALESCE(verified, true), user_group_id, created_at, updated_at, deleted_at
 		 FROM users WHERE email = $1`, email,
-	).Scan(&u.ID, &u.Email, &u.Name, &u.Password, &u.Blocked, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt, &deletedAt)
+	).Scan(&u.ID, &u.Email, &u.Name, &u.Password, &u.Blocked, &u.Verified, &u.UserGroupID, &u.CreatedAt, &u.UpdatedAt, &deletedAt)
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
@@ -310,6 +310,15 @@ func (r *UserRepository) IncrementTokenVersion(ctx context.Context, userID uuid.
 	_, err := r.db.Exec(ctx,
 		`UPDATE users SET token_version = token_version + 1, updated_at = $2 WHERE id = $1 AND deleted_at IS NULL`,
 		userID, time.Now().UTC(),
+	)
+	return err
+}
+
+// SetVerified marks a user's email as verified.
+func (r *UserRepository) SetVerified(ctx context.Context, id uuid.UUID) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE users SET verified = true, updated_at = $2 WHERE id = $1 AND deleted_at IS NULL`,
+		id, time.Now().UTC(),
 	)
 	return err
 }

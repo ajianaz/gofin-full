@@ -14,6 +14,7 @@ type User struct {
 	Blocked      bool       `json:"blocked" db:"blocked"`
 	BlockedCode  *string    `json:"blocked_code,omitempty" db:"blocked_code"`
 	DemoUser     bool       `json:"demo_user" db:"demo_user"`
+	Verified     bool       `json:"verified" db:"verified"`
 	UserGroupID  *uuid.UUID `json:"user_group_id,omitempty" db:"user_group_id"`
 	TokenVersion int        `json:"token_version" db:"token_version"`
 	CreatedAt    time.Time  `json:"created_at" db:"created_at"`

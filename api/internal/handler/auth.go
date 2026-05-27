@@ -47,6 +47,9 @@ func (h *AuthHandler) loginLockoutDuration() time.Duration {
 // passwordResetKeyPrefix is the Redis key prefix for password reset tokens.
 const passwordResetKeyPrefix = "password_reset:"
 
+// emailVerifyKeyPrefix is the Redis key prefix for email verification tokens.
+const emailVerifyKeyPrefix = "email_verify:"
+
 // AuthHandler handles authentication endpoints.
 type AuthHandler struct {
 	jwtMgr      *auth.JWTManager
@@ -128,6 +131,14 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	if identity.Blocked {
 		return apperrors.NewWithDetail(403, "Forbidden", "User account is blocked.")
+	}
+
+	// Check email verification if required
+	if h.cfg.AuthRequireVerification && !identity.Verified {
+		return c.Status(403).JSON(fiber.Map{
+			"message":  "Please verify your email address.",
+			"verified": false,
+		})
 	}
 
 	// Successful login — clear failed attempt counter
@@ -357,6 +368,18 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		expiresAt := time.Now().UTC().Add(time.Duration(h.cfg.AuthRefreshExpiry) * 24 * time.Hour)
 		tokenHash := auth.HashRefreshToken(tokens.RefreshToken)
 		_ = h.refreshRepo.Store(c.Context(), user.ID, tokenHash, expiresAt)
+	}
+
+	// Email verification: if SMTP is configured, send verification email;
+	// otherwise auto-verify the user.
+	if h.mail != nil && h.mail.Configured() && h.rdb != nil {
+		if err := h.sendVerificationEmail(c.Context(), user.Email); err != nil {
+			log.Printf("failed to send verification email: %v", err)
+			// Non-fatal: still return tokens, user can verify later
+		}
+	} else {
+		// No SMTP configured — auto-verify
+		_ = h.userRepo.SetVerified(c.Context(), user.ID)
 	}
 
 	return c.Status(201).JSON(tokens)
@@ -851,4 +874,123 @@ func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "Password has been reset successfully.",
 	})
+}
+
+// VerifyEmail handles POST /api/v1/auth/verify-email.
+func (h *AuthHandler) VerifyEmail(c *fiber.Ctx) error {
+	if h.rdb == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"message": "Email verification is not available.",
+		})
+	}
+
+	var req struct {
+		Token string `json:"token"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return apperrors.NewValidationError(map[string][]string{
+			"body": {"Invalid request body."},
+		})
+	}
+
+	if strings.TrimSpace(req.Token) == "" {
+		return apperrors.NewValidationError(map[string][]string{
+			"token": {"Verification token is required."},
+		})
+	}
+
+	// Look up token in Redis
+	key := emailVerifyKeyPrefix + req.Token
+	email, err := h.rdb.Get(c.Context(), key).Result()
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid or expired verification link.",
+		})
+	}
+
+	// Find user by email
+	user, err := h.userRepo.FindByEmail(c.Context(), email)
+	if err != nil || user == nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid or expired verification link.",
+		})
+	}
+
+	// Set verified = true
+	if err := h.userRepo.SetVerified(c.Context(), user.ID); err != nil {
+		log.Printf("failed to set user verified: %v", err)
+		return apperrors.ErrInternal
+	}
+
+	// Delete token from Redis (single use)
+	_ = h.rdb.Del(c.Context(), key)
+
+	return c.JSON(fiber.Map{
+		"message": "Email verified successfully. You can now log in.",
+	})
+}
+
+// ResendVerification handles POST /api/v1/auth/resend-verification.
+// Requires authentication.
+func (h *AuthHandler) ResendVerification(c *fiber.Ctx) error {
+	user := auth.GetUser(c)
+	if user == nil {
+		return apperrors.ErrUnauthorized
+	}
+
+	// Check if already verified
+	dbUser, err := h.userRepo.FindByEmail(c.Context(), user.Email)
+	if err != nil || dbUser == nil {
+		return apperrors.ErrInternal
+	}
+	if dbUser.Verified {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Email is already verified.",
+		})
+	}
+
+	if h.mail == nil || !h.mail.Configured() || h.rdb == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"message": "Email verification is not configured.",
+		})
+	}
+
+	if err := h.sendVerificationEmail(c.Context(), user.Email); err != nil {
+		log.Printf("failed to resend verification email: %v", err)
+		return apperrors.ErrInternal
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Verification email has been sent.",
+	})
+}
+
+// sendVerificationEmail generates a token, stores it in Redis, and sends the verification email.
+func (h *AuthHandler) sendVerificationEmail(ctx context.Context, email string) error {
+	token, err := generateResetToken()
+	if err != nil {
+		return fmt.Errorf("failed to generate verification token: %w", err)
+	}
+
+	// Store token in Redis with 24h TTL
+	key := emailVerifyKeyPrefix + token
+	if err := h.rdb.Set(ctx, key, email, 24*time.Hour).Err(); err != nil {
+		return fmt.Errorf("failed to store verification token: %w", err)
+	}
+
+	// Build verification link
+	appURL := h.cfg.AppURL
+	verifyLink := fmt.Sprintf("%s/verify-email?token=%s", strings.TrimSuffix(appURL, "/"), token)
+
+	// Send email
+	subject := "Verify Your Email Address"
+	body := fmt.Sprintf(
+		"Hello,\n\nPlease verify your email address for your GoFin account.\n\n"+
+			"Click the link below to verify:\n%s\n\n"+
+			"This link will expire in 24 hours.\n\n"+
+			"If you did not create an account, you can safely ignore this email.\n",
+		verifyLink,
+	)
+
+	return h.mail.SendEmail(email, subject, body)
 }
