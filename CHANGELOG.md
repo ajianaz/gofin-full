@@ -6,383 +6,104 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-### Fixed
-- Login rate limiting (`LOGIN_RATE_LIMIT_ENABLED`) enabled by default with secure defaults: max 5 attempts, 15 min lockout (closes #100)
-- Remaining blank dropdown text on Transactions list (4 filter dropdowns), PiggyBanks list, and PiggyBanks create pages — added missing `SelectValue` component and removed duplicate ChevronDown overlays (closes #72)
-- Wallet creation: convert `opening_balance` from number to string before sending to API — fixes 422 error when creating wallet with balance via UI (closes #77)
-- User profile: add `name` field support — new migration adds `name` column to users table, `GET/PUT /users/me` now includes name in attributes (closes #75)
-- Security: GroupRoleMiddleware now fails closed (401) on DB error instead of proceeding without permission check (closes #80)
-- Security: Configuration read endpoints (`GET /configurations`) now require admin role — previously accessible by any authenticated user (closes #81)
-- Security: Preference API rejects unknown preference keys — only the 10 defined keys are accepted via `POST /preferences` (closes #76)
-- Service layer: preserve API response values instead of hardcoding defaults — budgets, categories, piggy banks, recurring, and transactions now display real data (closes #86)
-- Export page: replace native `<option>` with shadcn `<Select>` components — format and wallet dropdowns now render correctly (closes #87)
-- `formatCurrency` default decimal places changed from 0 to 2 — amounts now display cents correctly (closes #91)
-- i18n: add missing `common.create` key, replace hardcoded English error strings with `t('common.error')` in reports and export pages (closes #92)
-- Security: HTML-escape all user-provided text fields (names, titles, descriptions, notes) across wallets, budgets, bills, piggy banks, recurrences, rules, categories, tags, notes, and object groups — prevents stored XSS (closes #96)
-- Security: Move `POST /auth/logout` from public authGroup to protected group — logout now requires valid authentication (closes #97)
-- Security: Wallet name max length increased from 100 to 255 chars; IBAN, BIC, and notes fields also sanitized (closes #96)
-- FE: User header now waits for client-side mount before displaying auth store data — fixes SSR hydration showing "User" instead of actual user name (closes #101)
-- FE: `/savings` route now redirects (308) to `/piggy-banks` for back-compatibility (closes #103)
-- Security: API key authentication now restricted to read-only (GET/HEAD) access; write operations (POST, PUT, DELETE, PATCH) return 403. Sensitive GET endpoints (`/auth/logout`, `/admin/*`, `/notifications/stream`, `/metrics`) are also blocked for API keys (closes #98)
-- Security: Token invalidation after logout now works in production — `TokenVersionLookup` dependency injected into RouterConfig in `main.go` (was only wired in test helpers) (closes #106)
-- Security: Transaction date parsing now accepts YYYY-MM-DD, RFC3339, and RFC3339Z formats — previously only RFC3339 worked, causing 422 from frontend (closes #107)
-- FE: Period filter on Transactions page now calculates correct date ranges using `getDateRange()` utility (closes #88)
-- FE: Rules form — fixed missing field bindings for condition and action inputs (closes #89)
-- FE: Dashboard multi-currency support — each wallet card now displays its own currency symbol instead of locale default (closes #90)
-- FE: Settings tabs — sidebar navigation correctly highlights active tab, routes properly mapped (closes #93)
-- FE: Logout cleanup — clear auth store and redirect to login on logout, no stale session data (closes #94)
-- FE: Report sub-routes created — `/reports/category`, `/reports/income-expense`, `/reports/period` pages with proper data fetching (closes #104)
-- User profile: `PUT /users/me` no longer crashes (500) when only `name` field is provided — repository `Update()` now builds dynamic SET clause, handler re-fetches user data for response (closes #108)
-
-## [0.1.1] - 2026-05-27
+## [0.1.6] - 2026-05-27
 
 ### Fixed
-- Auth: call `setupGroup()` after login, register, and restore to ensure JWT has groupID — fixes "no active group" 400 errors on all protected endpoints (closes #36, #37, #38, #39)
-- Dashboard: add individual wallet cards section showing name, currency, and balance (closes #40)
-- API Key auth: fallback to first group_membership when `user_group_id` is NULL — fixes "No active group" error for API key authentication (closes #44)
-- Preferences: show default values for new users with no saved preferences — fixes empty Settings > Preferences page (closes #43)
-- Security: API Key auth can no longer create or delete API keys — JWT required for key management (closes #47)
-- Input validation: wallet name required + max 100 chars, opening_balance must be non-negative, piggy bank target_amount non-negative, exchange rate must be positive (closes #48, #49)
-- CRUD IDOR: wallet/category/budget/tag/transaction/exchange-rate Update & Delete return 404 for non-existent resources (closes #52, #53, #54)
-- Exchange rate: reject zero, negative, empty, and non-numeric rate values (closes #55)
-- Configurable rate limiting: `RATE_LIMIT_ENABLED` (global API middleware), `LOGIN_RATE_LIMIT_ENABLED` (login lockout), `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES` — all default to true/secure values
-- IDOR: all CRUD handlers (category, budget, tag, transaction, exchange-rate, piggy-bank) return 404 for non-existent resources on Update and Delete — existence check before mutation (closes #59)
-- Auth: login returns 422 for empty email/password instead of 401 — validation runs before authentication (closes #61)
-- Auth: group switch returns 422 for invalid UUID format, 404 for non-existent group — better error feedback (closes #62)
-- Category: validate name max length (100 chars) to prevent 500 on long names — trim whitespace on create (closes #64)
-- Frontend: add page titles (dynamic per route), favicon (SVG "G" logo), meta description, and theme-color to `app.html` (closes #65)
-- i18n: add missing locale keys for categories, currencies, tags page titles (closes #67)
-- Frontend: add SelectValue component and use it in all SelectTrigger instances — fixes blank dropdown text across 10 pages (preferences, wallets, transactions, budgets, bills, recurring, currencies, rules)
+- User header hydration — waits for client mount before showing auth data (closes #101)
+- `/savings` → `/piggy-banks` redirect (308) for back-compatibility (closes #103)
+- Report sub-routes — `/reports/category`, `/reports/income-expense`, `/reports/period` (closes #104)
+- Period filter date range fix on Transactions page (closes #88)
+- Rules form missing field bindings (closes #89)
+- Dashboard multi-currency per wallet card (closes #90)
+- Settings tabs sidebar navigation (closes #93)
+- Logout cleanup — clear auth store, redirect to login (closes #94)
+- `PUT /users/me` no longer 500 when only name provided — dynamic SET clause (closes #108)
 
-### Changed
+## [0.1.5] - 2026-05-26
+
+### Fixed
+- GroupRoleMiddleware fails closed (401) on DB error (closes #80)
+- Config read endpoints require admin role (closes #81)
+- Preference API rejects unknown keys — only 10 defined keys accepted (closes #76)
+- HTML-escape user text across 11 handlers — prevents stored XSS (closes #96)
+- `POST /auth/logout` moved to protected group (closes #97)
+- API key restricted to read-only (GET/HEAD) — write ops 403 (closes #98)
+- Login rate limiting enabled by default (closes #100)
+- Token invalidation after logout — `TokenVersionLookup` injected in production (closes #106)
+- Transaction date accepts YYYY-MM-DD, RFC3339, RFC3339Z formats (closes #107)
+- Service layer: preserve API response values instead of hardcoding defaults (closes #86)
+- formatCurrency: default decimal places 0→2 (closes #91)
+- i18n: add missing keys, replace hardcoded English strings (closes #92)
+- Export: replace native `<option>` with shadcn `<Select>` (closes #87)
+
+## [0.1.4] - 2026-05-24
 
 ### Added
-- Wallet creation: optional opening balance field — auto-sets virtual_balance (closes #34)
+- Page titles (dynamic per route), favicon (SVG logo), meta description, theme-color (closes #65)
+- i18n: missing locale keys for categories, currencies, tags pages (closes #67)
+- SelectValue in all SelectTrigger instances — fixes blank dropdown text on 10+ pages
+
+### Changed
+- Removed all remaining hardcoded currency symbols
+
+### Fixed
+- Blank dropdown text on Transactions list (4 filters), PiggyBanks list, PiggyBanks create — added `SelectValue`, removed duplicate ChevronDown (closes #69, #72)
+- Wallet creation: `opening_balance` number→string conversion — fixes 422 from UI (closes #77)
+- User profile: `name` field — migration + API support (closes #75)
+
+## [0.1.3] - 2026-05-22
+
+### Added
+- Configurable rate limiting — global API middleware + login lockout with max attempts and lockout duration
+
+### Fixed
+- Auth: `setupGroup()` after login/register/restore — fixes "no active group" 400 errors (closes #36-#40)
+- API Key auth: fallback to first group_membership when `user_group_id` is NULL (closes #44)
+- Preferences: show default values for new users (closes #43)
+- Security: API Key auth can no longer create/delete API keys — JWT required (closes #47)
+- Input validation: wallet name max 100 chars, opening_balance non-negative, piggy bank target_amount non-negative, exchange rate positive (closes #48-#50)
+- CRUD IDOR: Update & Delete return 404 for non-existent resources (closes #52-#55)
+- IDOR existence checks on all remaining CRUD handlers (closes #59)
+- Auth: login 422 for empty fields, group switch 422/404 for invalid/non-existent group (closes #61-#62)
+- Category: name max length validation, trim whitespace (closes #64)
+
+## [0.1.2] - 2026-05-20
+
+### Added
+- Multi-currency support — Phase 1 (wallet currency selector) + Phase 2 (exchange rates UI)
 - Dashboard: empty state with CTA buttons for new users (closes #30)
+- Dashboard: individual wallet cards with name, currency, and balance (closes #40)
+- Wallet creation: optional opening balance field (closes #34)
 - Wallet list: edit wallet name and currency inline (closes #29)
-- Exchange rates: add and delete exchange rates from UI (closes #31)
-- CI: push Docker images to GHCR (GitHub Container Registry) alongside Docker Hub
-- CI: Trivy security scanning (CRITICAL/HIGH) after image publish
-- CI: SSH auto-deploy workflow — triggers after Publish Docker Images completes
+- Exchange rates: add and delete from UI (closes #31)
 - Docker: `docker-compose.traefik.yml` for external Traefik deployment
-- Dark/light mode toggle button in sidebar footer (closes #25)
-- Settings > Account page — shows email info and password change guidance (closes #22)
-- Settings > Groups page — list, create, and switch between groups (closes #23)
-- Wallet creation: currency selector — pick currency when creating a new wallet
-- API: currency endpoint now returns `code` field in attributes
-- API: wallet update now accepts `currency_id` field
+- CI: GHCR publish + Trivy security scanning (CRITICAL/HIGH)
+- CI: SSH auto-deploy workflow on develop push
 
 ### Changed
-- **Currency consistency fix**: All pages now use wallet/transaction currency symbol instead of locale default
-  - Dashboard: stat cards and recent transactions use wallet currency
-  - Reports: overview, spending-by-category, spending-by-period, net-worth use wallet currency
-  - Transactions: amount display uses transaction currency symbol
-  - Wallets: balance display uses wallet currency symbol
-- Dashboard: Savings card now calculated (income - expense), removed hardcoded value
-- Dashboard: removed fake trend badges (+12%, +5%, etc.)
+- Currency consistency: all pages use wallet/transaction currency symbol instead of locale default
+- Dashboard: savings card calculated (income - expense), removed fake trend badges
 
 ### Fixed
-- Transaction API: default currency resolved from source wallet instead of hardcoded EUR (closes #33)
-- **Critical**: CurrencyResolver failed on PostgreSQL — UUID column couldn't compare with string codes like "IDR". Now separates UUIDs from codes before querying
-- Wallets created without currency_id showed no currency info — fallback to locale default
-- Default locale now persisted to localStorage on first visit (closes #26)
-- Transactions page: guard Select components behind client-only render to prevent hydration error (closes #21)
-- E2E test flakiness: add waitForLoadState + waitForTimeout to helpers
+- CurrencyResolver handles both UUID and currency code inputs
+- Transaction default currency resolved from source wallet instead of hardcoded EUR (closes #33)
+- E2E test flakiness and assertion mismatches
+- CI: Trivy action versioning and deploy workflow fixes
 
-### Note
-- Issue #24 (login form validation) already fixed — `required` attributes and JS validation present
+## [0.1.1] - 2026-05-19
 
 ### Fixed
-- E2E test flakiness: add waitForLoadState + waitForTimeout to helpers
-- E2E test: admin users page heading locator matches both h1 and h2
-- E2E test: rules group detail empty state regex expanded with English fallback
-- Default locale now persisted to localStorage on first visit (closes #26)
-- Transactions page: guard Select components behind client-only render to prevent hydration error (closes #21)
-
-### Note
-- Issue #24 (login form validation) already fixed — `required` attributes and JS validation present
-- All API responses now use dynamic decimal places from `currency_decimal_places` instead of hardcoded `StringFixed(2)` — wallet balance, transaction amounts, piggy bank amounts, recurring transaction amounts, budget limits all resolve per-currency dp via `CurrencyResolver`
-- CurrencyResolver now handles both UUID and currency code (e.g. "IDR") inputs in a single query — no migration or FE changes required
-- Bill amounts now use `currency_decimal_places` from resolver instead of hardcoded `StringFixed(2)`
-- Wallet balance NaN fallback uses dynamic currency symbol + locale formatting instead of hardcoded `$ 0`
-- CodeRabbit: safe slice copy for duplicated query args in CurrencyResolver
-- CurrencyResolver: add `rows.Err()` check after iteration to catch silent partial results
-- i18n locale validation: use `validLocales` array lookup instead of hardcoded string comparison, remove duplicate `safeLocale` function
-- Svelte warnings: fix `state_referenced_locally` in EmptyState icon capture, remove quoted attributes on FormCard in 4 create pages
-- Add working logout button to sidebar footer (vanilla JS event listener via onMount, explicit localStorage cleanup)
-- E2E tests: add explicit Content-Type/Accept JSON headers to all API requests
-- Svelte warnings: fix `state_referenced_locally` in EmptyState icon capture, remove quoted attributes on FormCard in 4 create pages
-- E2E tests: update test password to `TestPass123!` to meet API complexity policy (3 of: uppercase, lowercase, digit, special char)
-- E2E tests: use unique email per test with Date.now() + random suffix
-- Add "Keluar"/"Logout" i18n key for sidebar
-- E2E selectors updated for develop UI (shadcn Select, data-slot sidebar)
-- E2E API schema fixes (amount as string, proper wallet types, ISO dates)
-- E2E graceful handling for insufficient balance (422) and rate limits (429)
-- Replace hardcoded mock credentials with real API registration in E2E tests
-### Changed
-- **CI: add develop branch triggers** — CI pipeline now runs on push/PR to both `main` and `develop` branches for earlier quality gate feedback
-
-### Fixed
-- **Dev compose header** — Added "NOT for production" header to `docker-compose.yml` to clarify it's a local dev/Keycloak testing stack; `docker-compose.selfhost.yml` remains the production deployment target
-
-### Security
-- **Integration test migration verification** — All 13 UP migrations verified: 52 tables, 171 statements, 0 errors against PostgreSQL 18
-- **Go vet** — Clean pass across all internal packages (no issues)
-- **npm audit** — 7 low-severity transitive dependency vulnerabilities (bits-ui → runed → svelte-toolbelt → @sveltejs/kit); requires upstream library updates
-
-### Added
-- **CONTRIBUTING.md** — Contribution guidelines covering setup, code style, testing, commit conventions, and PR workflow
-
-### Changed
-- **README improvements** — Fixed license badge (Apache-2.0, not MIT), removed duplicate "Svelte 5" in tech stack, added endpoint count to API reference link, added contributing link, added screenshots placeholder section
-
-### Fixed
-- **TestLoad_FromEnvVars expected wrong Redis port** — Test asserted `redis-host:6380` but `REDIS_PORT` was not set in that test case, so default `6379` was used. Fixed assertion to match actual default.
-- **TableCell colspan type mismatch (16 svelte-check errors)** — `colspan="N"` passed string to shadcn TableCell which expects `number`. Changed all 16 occurrences to `colspan={N}` across 9 files.
-- **E2E test helper type mismatch (10 svelte-check errors)** — `expectCreated()` manually typed Playwright `Response.body()` as `Promise<string>` but Playwright returns `Promise<Buffer>`. Fixed by using native `Response` type.
-
-### Documentation
-- **Security docs updated** — Login lockout now documents in-memory fallback when Redis unavailable, rate limiting fallback documented, bcrypt cost corrected from 12 to 10 (matches `bcrypt.DefaultCost`)
-- **Development docs updated** — `npm install` → `bun install`, component library reflects shadcn as primary, branch base corrected to `develop`
-
-### Fixed
-- **Change Password no longer wipes email** — `Update()` method was called with empty string `""` for email when only updating password, causing the user's email to be set to empty string. Added dedicated `UpdatePassword()` method that only updates the password column.
-- **Analytics SpendingByCategory SQL type mismatch** — `COALESCE(c.id, 0)` failed because `c.id` is UUID and `0` is integer. Fixed to use proper nil UUID literal `'00000000-0000-0000-0000-000000000000'::uuid`.
-- **Audit Logs query uses non-existent `uuid_nil()` function** — PostgreSQL doesn't have a `uuid_nil()` function. Replaced with nil UUID literal for entity filtering.
-- **Login lockout disabled when Redis unavailable** — `isAccountLocked()` returned `false` immediately when Redis was nil, completely bypassing login attempt tracking. Added in-memory sliding window fallback using `sync.Map` with periodic eviction goroutine.
-- **44 internal error details leaked to API clients** — `NewWithDetail(500, "msg", err.Error())` exposed database errors, SQL details, and internal stack traces to API responses. Replaced with generic `ErrInternal` responses; error details now logged server-side via `log.Printf()`.
-
-### Changed
-- **All raw `<table>` elements migrated to shadcn Table** — 11 pages (categories, tags, api-keys, users, audit-log, groups, currencies, exchange-rates, spending-by-period, transactions, wallet members) now use `Table/TableHeader/TableBody/TableRow/TableHead/TableCell` components for consistent styling via `cn-table-*` CSS utilities
-- **Responsive column hiding on mobile** — 8 table pages now hide less-critical columns on small screens using `hidden md:table-cell`: audit-log (changes), users (joined date), categories (transaction count), currencies (decimal places, status), exchange-rates (date), api-keys (created date), tags (date), transactions (category, wallet)
-- **Skeleton row duplication bug fixed** — categories, audit-log, users, currencies, groups, api-keys, tags, wallet-members pages had duplicated skeleton rows rendering 25+ rows instead of 5; fixed to render correct count
-- **Redundant CSS classes cleaned from Table components** — removed hardcoded `font-medium`, `text-muted-foreground`, `p-3`, `text-left` from `<TableHead>` and `p-3` from `<TableCell>` (already handled by `cn-table-head` and `cn-table-cell` utilities)
-- **Stale `overflow-x-auto` wrappers removed** — shadcn `Table` component includes `cn-table-container` with built-in horizontal scroll, making manual wrappers redundant
-- **ConfirmDialog replaces all `window.confirm()` calls** — 10 list pages (bills, budgets, categories, piggy-banks, recurring, rules, api-keys, tags, transactions, wallets) now use shadcn AlertDialog-based `ConfirmDialog` for delete confirmation, providing consistent UX and non-blocking UI
-- **Skeleton loading states on all list pages** — 20 pages now show animated skeleton placeholders instead of "Loading..." text: 8 table pages (categories, tags, api-keys, users, audit-log, groups, currencies, wallet members), 2 card grid pages (wallets, budgets), 3 list card pages (bills, piggy-banks, recurring), 1 transaction table page, 2 rule card pages, 1 dashboard page, 2 settings pages (preferences, profile), 1 exchange-rates page
-- **All raw `<select>` elements migrated to shadcn Select** — 26 selects across 12 pages now use `Select/SelectTrigger/SelectContent/SelectItem` components for consistent styling, keyboard navigation, and accessibility
-- **EmptyState component adopted across all list pages** — 17 pages now use shared `EmptyState` component instead of inline `<p>` or `<td>` text for "no data" display
-- **Non-clickable cards no longer show hover:shadow-md** — removed misleading shadow hover effect from wallet, budget, and rule cards that aren't interactive
-- **Create forms standardized to FormCard** — 4 pages (transactions, budgets, bills, wallets create) now use shared `FormCard` component for consistent form layout
-- **i18n key `common.deleteConfirm` added** — Indonesian and English locales now include confirmation dialog description text
-
-### Removed
-- **Card imports removed from FormCard-adopted pages** — bills/create, budgets/create, transactions/create, wallets/create no longer import raw Card components (using FormCard instead)
-- **Manual ChevronDown overlays removed** — select elements that had custom chevron icons now rely on shadcn Select's built-in chevron
-- **VitePress documentation site** — comprehensive docs with GitHub Pages deployment (Getting Started, Features, Architecture, Configuration, Deployment, Development, RBAC, Security, API Reference)
-- **Architecture diagram** — interactive dark-themed SVG diagram showing Docker stack, API layers, auth providers, and data flow
-- **GitHub Actions workflow** — auto-deploy docs to GitHub Pages on push to main (`.github/workflows/docs.yml`)
-- **README overhaul** — clean project overview with badges, quick start, feature list, and docs links
-- **Legacy docs archived** — moved research, plans, refactor notes, and old ARCHITECTURE.md to `docs/legacy/`
-
-### Security
-- **CORS no longer uses wildcard in non-production** — replaced `AllowOrigins: "*"` with localhost-only fallback (`localhost:5173`, `localhost:8080`); `CORS_ALLOWED_ORIGINS` env var now takes priority over all other settings
-- **Panic details hidden in production** — recovery middleware no longer exposes exception details to clients unless `APP_DEBUG=true`
-- **Login lockout uses email+IP key** — prevents account lockout denial-of-service by keying rate limit on `email:clientIP` instead of just `email`
-- **Password complexity validation** — registration and password change now require at least 3 of 4 character types (uppercase, lowercase, digit, special character)
-- **HSTS only sent in production** — `Strict-Transport-Security` header is now only set when `APP_ENV=production`; CSP is relaxed in debug mode for SPA compatibility
-- **Disabled auth provider shows startup warning** — logs a prominent warning when `AUTH_PROVIDER=disabled` is active
-- **Selfhost docker-compose requires security env vars** — `AUTH_JWT_SECRET` and `STATIC_CRON_TOKEN` must be explicitly set (no insecure defaults); docker-compose will fail fast if missing
-- **Random password generation uses rejection sampling** — fixed modulo bias in OAuth auto-provisioned password generation
-
-### Fixed
-- **Wallet owner can list wallet members** — `GET /wallets/:wallet_id/members` now checks `IsWalletOwner` before `GetWalletRole`, allowing wallet owners to access members endpoint (was returning 404/403)
-- **Test passwords meet password policy** — integration tests updated to use compliant passwords (`SecurePass1!`) matching the new 3-of-4 character type requirement
-- **Redis default port assertion corrected** — unit test updated to expect port 6380 (security hardening changed default from 6379)
-- **Export test mocks match implementation** — vitest tests for `downloadCSV` updated: `Content-Type` header now expected, `localStorage.getItem` mock changed from `mockReturnValueOnce` to `mockReturnValue` to cover dual-call pattern
-- **Audit log response includes user_email** — `GET /audit-logs` now joins with users table to return `user_email` alongside `user_id`; audit repository types fixed from int64 to UUID to match database schema
-- **Admin user list returns name, role, is_active** — `GET /admin/users` now includes `name` (email fallback), `role` (global role lookup), and `is_active` (NOT blocked) fields
-- **Export handlers respect query parameters** — CSV and OFX export now parse `start`, `end`, and `wallet_id` query parameters to filter exported transactions
-- **Transaction list includes amount and description** — `GET /transactions` now returns `description` and `amount` for each transaction group via lateral join
-- **Analytics accepts YYYY-MM-DD date format** — `parseDateRange` now tries RFC3339, plain YYYY-MM-DD, and ISO timestamp formats when parsing date query parameters
-
-### Changed
-- **OpenAPI spec updated** — license changed to Apache-2.0, added `POST /users/me/password` endpoint, fixed `POST /groups/switch` request body (`user_group_id`), added tokens to group switch response, secured `/metrics` with bearer auth, fixed RBAC notes on configurations and groups endpoints, added piggy bank alias routes, added RBAC note to reconcile export
-- **READMEs updated** — license changed from MIT to Apache 2.0 in root and api READMEs, added user endpoints and register endpoint to api README
-- **TODO cleaned up** — marked completed mock-to-real API pages (currencies, groups, reports, export, admin) as done
-- **License updated from MIT to Apache 2.0** — project license changed to Apache License, Version 2.0
-- **Group switch uses tokens from response** — `setupGroup()` and groups page `handleSwitch` now extract JWT tokens directly from the `POST /groups/switch` response instead of making a separate refresh call
-- **API client auto-refresh on 401** — transparent token refresh when a request returns 401; retries the original request with new tokens; redirects to login if refresh fails; deduplicates concurrent refresh calls to prevent infinite loops
-
-### Added
-- **JWT token version/invalidation mechanism (C6)** — `token_version` column on users table tracks token invalidation; JWT access and refresh tokens include `token_version` claim; `AuthMiddleware` compares claim version against DB and rejects mismatched tokens (401 "Token has been invalidated"); `IncrementTokenVersion` repository method for callers to invalidate all tokens for a user (called on logout, password change, group membership removal)
-- **Database migration** — `000012_token_version.up.sql` adds `token_version INTEGER NOT NULL DEFAULT 0` to users table
-- **Change password endpoint** — `POST /users/me/password` validates current password, hashes new password (min 8 chars), and invalidates all existing JWT tokens via `IncrementTokenVersion`
-- **Piggy bank alias routes** — `/wallets/:wallet_id/piggy_banks/:id/add` and `/remove` as aliases for `/add-money` and `/remove-money` for frontend compatibility
-- **Database migration** — `000013_notes_locations_ownership.up.sql` adds `user_id` and `user_group_id` columns to notes and locations tables for ownership tracking
-
-### Fixed
-- **Internal error details removed from non-500 responses** — 5 handlers (group switch, create transaction, create split transaction, piggy bank add/remove money) no longer expose raw internal error strings to clients; replaced with user-friendly messages while logging the actual errors server-side
-- **JWT re-issue on group switch** — `POST /api/v1/groups/switch` now returns a new JWT token pair with the updated `group_id` claim, so subsequent requests operate on the correct group without requiring re-authentication
-- **Withdrawal balance check (H8)** — `CreateTransaction` now verifies source wallet has sufficient `virtual_balance` before processing withdrawal; returns error with current and required amounts
-- **Split transaction balance check** — `CreateSplitTransaction` aggregates debits per source wallet and validates each has sufficient balance before processing
-- **Piggy bank withdraw balance check (H9)** — `RemoveMoney` now verifies piggy bank has sufficient current amount (from events) before allowing withdrawal
-- **Piggy bank add wallet balance check (H9b)** — `AddMoney` now verifies source wallet has sufficient `virtual_balance` before moving money to piggy bank
-- **Transaction split URL mismatch** — frontend `transactionService.split()` now sends correct payload (`type`, `date`, `journals`) to `POST /transactions/split` matching the backend API
-- **GroupRoleMiddleware DB error logging** — `GroupRoleMiddleware` now logs database errors from `GetUserRoleInGroup` instead of silently swallowing them, while still failing open for availability
-- **API key group resolution for RBAC** — `APIKeyMiddleware` now resolves the user's active group from the users table via JOIN and sets `active_group_id` in context, enabling `GroupRoleMiddleware` and `RBACMiddleware` to work correctly for API key authenticated requests
-- **User email update validation** — `PUT /users/me` now validates email format and checks for duplicates (returns 409) before updating
-- **Email validation strengthened** — registration now uses `net/mail.ParseAddress` for proper RFC 5322 email validation instead of weak string checks
-- **Removed unused import-usage hacks** — cleaned up `var _` declarations and unused `response` package import in auth handler
-- **Refresh endpoint comment accuracy** — fixed misleading comment that incorrectly stated the endpoint accepts expired access tokens
-
-### Fixed
-- **Group update restricted to owner role (C1)** — `PUT /groups/:id` now requires `RoleOwner` RBAC middleware, matching the delete route
-- **Wallet member Index group verification (C3)** — `GET /wallets/:wallet_id/members` now verifies the requesting user has a role on the wallet via `GetWalletRole`, returns 403 if unauthorized
-- **Attachment Show/Delete user ownership (C4+H1)** — `Show` and `Delete` attachment handlers now verify the attachment belongs to the requesting user via `UserID` comparison, preventing cross-user access
-- **DB transactions for money operations (C5)** — `CreateTransaction`, `CreateSplitTransaction`, and `DeleteTransaction` now wrap all multi-step operations (create group, journal, transactions, balance updates) in a single database transaction, preventing inconsistent state on partial failure
-- **Webhook URL validation (H3)** — webhook create/update now validates URLs: blocks internal IPs (loopback, private ranges, cloud metadata endpoints), requires http/https scheme
-- **JWT secret startup validation (H4)** — `config.Load()` rejects default JWT secret and secrets under 32 characters in production; development/testing/local environments are exempted
-- **Rate limiter fail-secure on Redis failure (H5)** — when Redis is unavailable, the rate limiter now falls back to an in-memory sliding window limiter instead of allowing all requests through
-- **Account lockout after failed logins (H6)** — after 5 consecutive failed login attempts, the account is temporarily locked for 15 minutes with a clear error message; counter resets on successful login; uses Redis INCR with TTL
-
-### Fixed (Security Audit)
-
-#### Critical
-- **Notes group/user ownership scoping (C1)** — notes handler and repository now require user authentication, pass `user_id` and `group_id` on create, and verify ownership before update/delete
-- **Locations group/user ownership scoping (C2)** — locations handler and repository now require user authentication, pass `user_id` and `group_id` on create, and verify ownership before delete
-- **Configurations endpoint privilege escalation (C3)** — `POST /configurations` changed from `RoleOwner` to `AdminMiddleware()` to prevent non-admin users from setting system configurations
-- **Attachments index group isolation (C4)** — attachment list now filters by `user_id`, preventing cross-user attachment visibility
-
-#### High
-- **Webhook messages IDOR (H1)** — `GET /webhooks/:id/messages` now verifies the webhook belongs to the requesting user's active group before returning messages
-- **Audit logs using actual groupID (H3)** — audit log handler now passes the real `groupID` instead of hardcoded `0`
-- **JWT invalidation on member removal (H4)** — removing a wallet member or deleting a group now calls `IncrementTokenVersion` to invalidate affected users' JWT tokens immediately
-- **SSRF DNS rebinding prevention (H5)** — webhook URL validation now resolves DNS at validation time (not just string matching), preventing attackers from using DNS rebinding to reach internal services
-- **Piggy bank TOCTOU race condition (H6)** — `AddMoney` now uses a DB transaction with `SELECT ... FOR UPDATE` row locking to prevent concurrent balance modifications
-- **Request size limit middleware (H8)** — fixed the no-op `RequestSizeLimit` middleware to actually check `Content-Length` header and return 413; wired it into the router with `MaxRequestBodyBytes` config
-
-#### Medium
-- **Health endpoint error detail hiding (M1)** — `/health` now returns generic "connection failed" messages instead of raw DB/Redis error strings; actual errors are logged server-side
-- **Password change rate limiting (H5)** — `POST /users/me/password` is now rate-limited at half the global rate limit to prevent brute-force of current password
-- **Metrics endpoint authentication (M1)** — `/metrics` Prometheus endpoint moved behind authentication middleware, no longer publicly accessible without a valid token
-- **Stop leaking internal error details (M2)** — replaced `NewWithDetail(500, ..., err.Error())` with server-side logging and generic `ErrInternal` responses in webhook, note, attachment, and audit handlers; prevents exposing DB schema, connection details, and file paths to API clients
-- **WalletRBAC stop leaking internal errors (M3)** — wallet ownership and membership checks now log DB errors server-side and return generic 500 responses instead of raw error strings
-- **Notes list user ownership filter (M4)** — `GET /notes` now filters results to only return notes owned by the requesting user, preventing cross-user note visibility within the same group
-- **Attachment store nil check and type validation (M5)** — `POST /attachments` now validates user is authenticated and restricts `attachable_type` to known entity types (Transaction, Journal, Bill, PiggyBank, Recurring, Budget)
-- **Login/OAuth error message hiding (M6)** — login failure now returns generic "Invalid email or password." instead of provider error details; OAuth callback failure returns generic "Authentication failed." to prevent provider-specific information leakage
-- **Group delete membership verification (M7)** — confirmed `DELETE /groups/:id` correctly checks membership in the target group (not active group); no fix needed
-
-#### Medium
-- **JWT secret validation in all environments (M3)** — removed the dev/local/testing bypass; JWT secret length and default value are always validated
-- **In-memory rate limiter memory leak (M4)** — added periodic eviction (every 5 minutes) to remove stale rate limit entries, preventing unbounded memory growth
-- **Export service token handling (M5)** — export service now uses consistent token retrieval pattern matching the central API client
-- **IPv6 SSRF bypass (M6)** — webhook URL validation now explicitly checks IPv6 private ranges (`::1/128`, `fe80::/10`, `fc00::/7`)
-- **CSV injection prevention (M3)** — user-controlled fields in CSV export (description, category, wallet names, notes, tags) are prefixed with a single quote when they start with formula characters (`=`, `+`, `-`, `@`, tab, carriage return)
-- **Exchange rate delete group filter (L3)** — `DELETE /exchange-rates/:id` now filters by `user_group_id`, preventing cross-group deletion
-
-### Fixed (Security Audit Round 2)
-
-#### High
-- **Note repository user_id filtering (H1)** — `FindByID`, `Update`, and `Delete` now require `user_id` parameter and filter by it in SQL, preventing cross-user note access via UUID guessing
-- **Location repository user_id filtering (H2)** — `FindByID`, `GetByEntity`, and `Delete` now require `user_id` parameter and filter by it in SQL, preventing cross-user location access
-- **Export reconcile RBAC (H3)** — `POST /export/reconcile` now requires `RoleManageTransactions` RBAC, preventing `read_only` users from creating transactions via reconcile
-
-#### Medium
-- **Attachment ListByEntityAndUser filter (M1)** — `ListByEntityAndUser` now actually filters by `user_id` in SQL; previously the parameter was accepted but not used in the query
-- **Disabled auth provider production guard (M2)** — `AUTH_PROVIDER=disabled` is now rejected at startup in production environment, preventing accidental authentication bypass
-- **Dead userID parameter removed (M3)** — removed unused `userID` parameter from `DeleteFullTransaction` repository method and all callers, reducing confusion about scoping
-- **DB transaction wrapping for money operations** — `CreateTransaction`, `CreateSplitTransaction`, and `DeleteTransaction` now execute all DB writes (group + journal + transactions + balance updates + soft deletes) in a single database transaction, preventing inconsistent state on partial failure
-
-### Added
-- **E2E tests for API integration validation** — 31 Playwright tests covering settings (api-keys, preferences, notifications, profile), wallet members, rules group detail, and full API endpoint validation
-- **E2E tests for all remaining pages** — 62 Playwright tests covering dashboard, wallets (list+create), transactions (list+create), categories (list+create), budgets (list+create), bills (list+create), recurring (list+create), piggy-banks (list+create), rules (list+create), tags (list+create), groups, currencies, exchange-rates, export, reports (4 pages), admin (users+audit-log), and full API endpoint validation for all 15 service endpoints
-
-### Fixed
-- **JWT secret startup validation** — `config.Load()` now rejects the default `AUTH_JWT_SECRET` value and secrets shorter than 32 characters in all non-development environments (previously only a warning in production)
-- **Webhook URL SSRF prevention** — webhook create and update endpoints now validate URLs, blocking internal IPs (localhost, 127.0.0.1, private ranges), cloud metadata endpoints (AWS, GCP, GKE), and requiring http/https scheme
-- **Null-safety in service helpers** — `JsonApiMany.data` now accepts `null` (Go backend returns `null` for empty slices), `unwrapMany` handles null gracefully
-- **Unit tests for all 19 service layer modules** (127 tests) — currencies, groups, reports, export, admin, wallets, transactions, categories, budgets, bills, tags, piggy-banks, recurring, rules, auth, api-keys, preferences, notifications, wallet-members
-- **Real API integration for settings/api-keys page** — `apiKeyService` (list, create, delete), loading/error states, copy-to-clipboard, create dialog showing raw key
-- **Real API integration for settings/preferences page** — `preferenceService` (list, get, set, delete), local preference config map for type/options metadata, optimistic updates with rollback
-- **Real API integration for settings/notifications page** — `notificationService` (list, markRead, markAllRead), read/unread badge display
-- **Real API integration for wallets/[id]/members page** — `walletMemberService` (list, add, updateRole, remove), role badges (owner/editor/viewer)
-- **Real API integration for rules/[groupId] page** — `ruleService.listRules()` and `ruleService.getGroup()`, simplified rule display (title, active status, priority)
-- **Real API integration for settings/profile page** — `authService.getMe()` for user data, `authService.updateProfile()` and `authService.changePassword()`, initials derived from name, password validation
-- **Complete ruleService** — added `listGroups`, `getGroup`, `listRules`, `getRule`, `createRule`, `updateRule`, `deleteRule` methods
-- **Additional service methods** — `piggyBankService.addMoney/removeMoney`, `transactionService.split`, `groupService.get/update/delete`, `authService.updateProfile/changePassword`
-- New domain types: `Notification`, `WalletMember`, `ApiKeyListItem`, `ApiKeyCreateResponse`, `PreferenceItem`
-- i18n keys: `settings.profile.saveSuccess`, `settings.profile.passwordMismatch`, `settings.profile.passwordRequired`, `settings.profile.passwordChanged`
-- Tests verify JSON:API response unwrapping, field mapping (backend attribute names to frontend fields), default values for missing fields, error handling, and query string construction
-- **Vitest unit test framework** — vitest + @vitest/coverage-v8 + jsdom for frontend unit testing
-- `vitest.config.ts` with jsdom environment, path aliases ($lib, $components, $app), and globals
-- Test scripts: `test` (single run), `test:watch` (watch mode), `test:coverage` (with v8 coverage)
-- **Real API integration for admin pages** — admin users and audit log pages now use `adminService` API calls instead of mock data
-- `adminService` in `web/src/lib/services/admin.ts` (listUsers, listAuditLogs methods)
-- **Real API integration for export page** — CSV/OFX download via `exportService`, wallet dropdown populated from API
-- `exportService` in `web/src/lib/services/export.ts` (downloadCSV, downloadOFX methods)
-- i18n key `export.exporting` for English and Indonesian
-- **Real API integration for all 4 reports pages** — reports overview, net-worth, spending-by-category, spending-by-period now use `reportService` API calls instead of mock data
-- `reportService` in `web/src/lib/services/reports.ts` (spendingByCategory, spendingByPeriod, netWorth methods)
-- **Real API integration for groups page** — replaced mock data with `groupService.list()`, added switch group functionality via `groupService.switch()`
-- `groupService` in `web/src/lib/services/groups.ts` (list, create, switch methods)
-- i18n key `groups.switch` for English and Indonesian
-- **Real API integration for currencies page** — replaced mock data with `currencyService.list()` call to `GET /api/v1/currencies`
-- **Real API integration for exchange rates page** — replaced mock data with `currencyService.exchangeRates()` call to `GET /api/v1/exchange-rates`
-- `currencyService` in `web/src/lib/services/currencies.ts`
-- **Full CRUD via Web UI** — Create, Read, Update, Delete for all 9 resources (wallets, transactions, categories, budgets, bills, tags, piggy banks, recurring transactions, rule groups)
-- `update()` and `delete()` methods in all service files
-- Delete buttons with confirm dialogs on all list pages
-- Error states and empty states on all list pages and dashboard
-- `aria-label` on all icon-only buttons (delete, copy)
-- i18n keys: `common.loading`, `common.saving`, `common.error`, `common.errorSave`
-- 21 E2E tests covering full CRUD lifecycle (register → 9 creates → list pages → 9 deletes)
-
-### Removed
-- 17 unused mock data files after all pages converted to real API (mock-audit-log, mock-bills, mock-budgets, mock-categories, mock-currencies, mock-exchange-rates, mock-groups, mock-notifications, mock-piggy-banks, mock-recurring, mock-tags, mock-transactions, mock-users, mock-wallets, mock-api-keys, mock-preferences, mock-rules)
-
-### Changed
-- **Settings/api-keys page uses real API** — replaced `mockApiKeys` with `apiKeyService.list()`, create shows raw key in alert, copy-to-clipboard for key prefix
-- **Settings/preferences page uses real API** — replaced `mockPreferences` with `preferenceService.list()`, changes persist immediately via `preferenceService.set()`
-- **Settings/notifications page uses real API** — replaced inline mock notifications with `notificationService.list()`, mark-all-read calls real API
-- **Settings/profile page uses real API** — replaced hardcoded user data with `authService.getMe()`, save and change-password wired to API
-- **Wallets/[id]/members page uses real API** — replaced inline mock members with `walletMemberService.list()`
-- **Rules/[groupId] page uses real API** — replaced `mockRuleGroups` and `mockRules` with `ruleService.getGroup()` and `ruleService.listRules()`
-- **Rules parent page** — updated `ruleService.list()` call to `ruleService.listGroups()` after service method rename
-- **Admin users page uses real API** — replaced `mockUsers` with `adminService.listUsers()`, added loading/error states
-- **Audit log page uses real API** — replaced `mockAuditLog` with `adminService.listAuditLogs()`, entity filter re-fetches from API, action filter is client-side
-- **Export page uses real API** — replaced `mockWallets` with `walletService.list()`, form submit triggers actual file download via `exportService`
-- **Reports pages use real API** — replaced `mockTransactions`, `mockWallets`, `mockCategories`, `mockBudgets` with `reportService` and `walletService` calls, added loading/error/empty states
-- **Currencies page uses real API** — replaced `mockCurrencies` with `currencyService.list()` including loading/error states
-- **Exchange rates page uses real API** — replaced `mockExchangeRates` with `currencyService.exchangeRates()` including loading/error/empty states
-- **Button hover feedback** — default, secondary, destructive buttons now use lightness shift instead of barely-perceptible opacity change
-- **Sidebar hover contrast** — dark mode sidebar-accent lightness increased for better visibility
-- **All hardcoded text replaced with i18n** — loading, saving, error, confirm dialogs, empty states now use `t()` keys
-- Wallet create form simplified to only API-accepted fields (removed unused balance/virtualBalance/iban/currency fields)
-
-### Fixed
-- Date fields serialized as ISO 8601 (RFC3339) for Go `time.Time` compatibility (tags, transactions, recurring)
-- Numeric fields (`amount_min`, `target_amount`) stringified for Go string-typed JSON fields (bills, piggy banks)
-- **Dark mode dropdown menus** — `cn-menu-translucent` now uses `var(--popover)` instead of hardcoded white (fixes white-on-white invisible text)
-- Playwright dialog handler collision across serial tests (switched to `page.once`)
-- `api-keys` page ghost button had `hover:text-destructive` duplicating base class (no hover feedback)
+- Auth: setupGroup after login/register/restore
+- Dashboard: wallet cards
+- API Key auth fallback for NULL user_group_id
+- Preferences default values for new users
+- API Key auth restriction for key management
+- Input validation for wallets, piggy banks, exchange rates
+- CRUD IDOR protection
+- Exchange rate validation
+- Configurable rate limiting
 
 ## [0.1.0] - 2026-04-22
 
 ### Added
-- Go API backend with Fiber v2 — 125+ endpoints covering personal finance domain
-- SvelteKit 5 frontend with Tailwind CSS v4, shadcn-svelte, dark mode, i18n (id/en)
-- Double-entry bookkeeping with split transactions
-- Hierarchical RBAC with 21 group-level roles and 3 wallet-level roles
-- UUID v7 primary keys for all entities
-- Real-time notifications via Server-Sent Events (SSE)
-- JWT authentication with refresh tokens
-- OAuth2 login (Google, GitHub)
-- Optional Keycloak (OIDC) integration
-- Budget tracking, bill management, piggy banks, recurring transactions
-- Rules engine, currency management, exchange rates
-- CSV/OFX export and reconciliation
-- Analytics: spending by category, period, net worth
-- Audit trail and webhook support
-- Prometheus metrics endpoint
-- Self-hosted Docker Compose deployment with Caddy (HTTPS), PostgreSQL 17, Redis 7
-- Automated daily database backup with retention
-- Auto-seed admin user on first startup
-- E2E tests (Playwright) and unit/integration tests
-
-### Documentation
-- Comprehensive README (monorepo overview, self-host quick start)
-- API and Web READMEs
-- Architecture overview, production runbook
-- OpenAPI 3.0 specification
-- GitHub issue and PR templates
+- First open source release
