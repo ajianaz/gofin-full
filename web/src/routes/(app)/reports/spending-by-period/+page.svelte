@@ -43,7 +43,7 @@
 				}))
 				.sort((a, b) => b.period.localeCompare(a.period));
 		} catch (e: any) {
-			error = e?.detail || e?.message || 'Failed to load period spending';
+			error = e?.detail || e?.message || t('common.error');
 		} finally {
 			loading = false;
 		}

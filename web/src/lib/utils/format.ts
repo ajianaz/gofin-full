@@ -17,7 +17,7 @@ export function getDefaultSymbol(): string {
 export function formatCurrency(
 	amount: string,
 	symbol?: string,
-	decimalPlaces: number = 0
+	decimalPlaces: number = 2
 ): string {
 	const sym = symbol || getDefaultSymbol();
 	const num = parseFloat(amount);

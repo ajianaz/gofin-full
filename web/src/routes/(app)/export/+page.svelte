@@ -4,7 +4,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import { Select } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import { exportService, walletService } from '$lib/services/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
@@ -25,7 +25,7 @@
 			const data = await walletService.list();
 			wallets = data.map((w) => ({ id: w.id, name: w.name }));
 		} catch (e: any) {
-			error = e.message || 'Failed to load wallets';
+			error = e.message || t('common.error');
 		} finally {
 			isLoading = false;
 		}
@@ -42,7 +42,7 @@
 				await exportService.downloadOFX(startDate || undefined, endDate || undefined, walletId || undefined);
 			}
 		} catch (e: any) {
-			error = e.message || 'Export failed';
+			error = e.message || t('common.error');
 		} finally {
 			isExporting = false;
 		}
@@ -63,10 +63,13 @@
 	<form class="grid gap-4" onsubmit={handleSubmit}>
 		<div class="grid gap-2">
 			<Label for="format">{t('export.format')}</Label>
-			<Select bind:value={format} id="format">
-				<option value="csv">CSV</option>
-				<option value="ofx">OFX</option>
-			</Select>
+		<Select bind:value={format} id="format">
+			<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
+			<SelectContent>
+				<SelectItem value="csv">CSV</SelectItem>
+				<SelectItem value="ofx">OFX</SelectItem>
+			</SelectContent>
+		</Select>
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">

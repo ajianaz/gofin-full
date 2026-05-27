@@ -63,7 +63,7 @@
 			}));
 			maxMonthVal = Math.max(...monthData.flatMap((m) => [m.income, m.expense]), 1);
 		} catch (e: any) {
-			error = e?.detail || e?.message || 'Failed to load reports';
+			error = e?.detail || e?.message || t('common.error');
 		} finally {
 			loading = false;
 		}

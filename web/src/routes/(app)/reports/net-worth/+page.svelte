@@ -27,7 +27,7 @@
 		try {
 			wallets = await walletService.list();
 		} catch (e: any) {
-			error = e?.detail || e?.message || 'Failed to load wallets';
+			error = e?.detail || e?.message || t('common.error');
 		} finally {
 			loading = false;
 		}

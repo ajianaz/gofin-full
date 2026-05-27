@@ -7,9 +7,9 @@ export const recurringService = {
 		const res = await api.get<{ data: { id: string; attributes: Record<string, unknown> }[] }>('/recurrences');
 		return unwrapMany<RecurringTransaction>(res).map((r) => ({
 			...r,
-			type: 'withdrawal',
-			amount: '0',
-			currency_code: 'USD'
+			type: (r as any).type ?? 'withdrawal',
+			amount: (r as any).amount ?? '0',
+			currency_code: (r as any).currency_code ?? 'USD'
 		}));
 	},
 
@@ -37,7 +37,7 @@ export const recurringService = {
 		}
 		const res = await api.post<{ data: { id: string; attributes: Record<string, unknown> } }>('/recurrences', payload);
 		const r = unwrapOne<RecurringTransaction>(res);
-		return { ...r, type: 'withdrawal', amount: '0', currency_code: 'USD' };
+		return { ...r, type: (r as any).type ?? 'withdrawal', amount: (r as any).amount ?? '0', currency_code: (r as any).currency_code ?? 'USD' };
 	},
 
 	async update(id: string, data: { title?: string; repeat_freq?: string; active?: boolean }): Promise<void> {

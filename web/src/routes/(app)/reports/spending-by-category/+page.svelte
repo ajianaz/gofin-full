@@ -33,7 +33,7 @@
 				.sort((a, b) => b.amount - a.amount);
 			totalSpent = categoryData.reduce((s, c) => s + c.amount, 0);
 		} catch (e: any) {
-			error = e?.detail || e?.message || 'Failed to load category spending';
+			error = e?.detail || e?.message || t('common.error');
 		} finally {
 			loading = false;
 		}
