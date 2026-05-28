@@ -100,23 +100,6 @@
 			.slice(0, 2) ?? 'U'
 	);
 
-	// Reactive DOM update — Svelte reactivity lost inside SidebarFooter slot
-	$effect(() => {
-		const user = authStore.user;
-		if (!user) return;
-		const nameEl = document.getElementById('user-name');
-		const emailEl = document.getElementById('user-email');
-		const avatarEl = document.getElementById('user-avatar');
-		const displayName = user.name || user.email?.split('@')[0] || '';
-		if (nameEl) nameEl.textContent = displayName;
-		if (emailEl) emailEl.textContent = user.email || '';
-		if (avatarEl) {
-			const initials = displayName
-				.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-			avatarEl.textContent = initials || 'U';
-		}
-	});
-
 	onMount(async () => {
 		mounted = true;
 		// Always attempt restore if there's a token — validates server-side
@@ -128,7 +111,7 @@
 			goto('/login');
 			return;
 		}
-		// Attach logout handler via DOM (Svelte event binding lost inside SidebarFooter)
+		// Attach logout handler + user info via DOM (Svelte reactivity lost inside SidebarFooter)
 		const logoutEl = document.getElementById('logout-btn');
 		if (logoutEl) {
 			const handler = () => handleLogout();
@@ -136,6 +119,15 @@
 			onDestroy(() => {
 				logoutEl.removeEventListener('click', handler);
 			});
+		}
+		// Update user info in SidebarFooter via DOM
+		const user = authStore.user;
+		if (user) {
+			const nameEl = document.getElementById('user-name');
+			const emailEl = document.getElementById('user-email');
+			const displayName = user.name || user.email?.split('@')[0] || '';
+			if (nameEl) nameEl.textContent = displayName;
+			if (emailEl) emailEl.textContent = user.email || '';
 		}
 	});
 	function isActive(href: string): boolean {
