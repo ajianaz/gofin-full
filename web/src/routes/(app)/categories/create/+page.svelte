@@ -4,7 +4,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import { Select } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { categoryService } from '$lib/services/index.js';
 	const t = localeStore.t;
@@ -27,11 +27,20 @@
 
 		<div class="grid gap-2">
 			<Label for="type">{t('categories.create.type')}</Label>
-			<Select bind:value={type} id="type">
-				<option value="expense">{t('categories.create.expense')}</option>
-				<option value="income">{t('categories.create.income')}</option>
-				<option value="transfer">{t('categories.create.transfer')}</option>
-			</Select>
+		<Select bind:value={type} items={[
+			{ value: 'expense', label: t('categories.create.expense') },
+			{ value: 'income', label: t('categories.create.income') },
+			{ value: 'transfer', label: t('categories.create.transfer') },
+		]}>
+			<SelectTrigger class="w-full">
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="expense" label={t('categories.create.expense')}>{t('categories.create.expense')}</SelectItem>
+				<SelectItem value="income" label={t('categories.create.income')}>{t('categories.create.income')}</SelectItem>
+				<SelectItem value="transfer" label={t('categories.create.transfer')}>{t('categories.create.transfer')}</SelectItem>
+			</SelectContent>
+		</Select>
 		</div>
 
 		{#if errorMsg}
