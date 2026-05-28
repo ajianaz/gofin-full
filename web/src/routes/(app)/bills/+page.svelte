@@ -58,8 +58,8 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="all">{t('bills.list.allWallets')}</SelectItem>
-		<SelectItem value="active">{t('bills.list.activeOnly')}</SelectItem>
+		<SelectItem value="all" label={t('bills.list.allWallets')}>{t('bills.list.allWallets')}</SelectItem>
+		<SelectItem value="active" label={t('bills.list.activeOnly')}>{t('bills.list.activeOnly')}</SelectItem>
 		</SelectContent>
 </Select>
 		</div>

@@ -180,10 +180,10 @@
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent>
-			<SelectItem value="all">{t('transactions.list.allTypes')}</SelectItem>
-			<SelectItem value="withdrawal">{t('transactions.list.expense')}</SelectItem>
-			<SelectItem value="deposit">{t('transactions.list.income')}</SelectItem>
-			<SelectItem value="transfer">{t('transactions.list.transfer')}</SelectItem>
+			<SelectItem value="all" label={t('transactions.list.allTypes')}>{t('transactions.list.allTypes')}</SelectItem>
+			<SelectItem value="withdrawal" label={t('transactions.list.expense')}>{t('transactions.list.expense')}</SelectItem>
+			<SelectItem value="deposit" label={t('transactions.list.income')}>{t('transactions.list.income')}</SelectItem>
+			<SelectItem value="transfer" label={t('transactions.list.transfer')}>{t('transactions.list.transfer')}</SelectItem>
 			</SelectContent>
 		</Select>
 		</div>
@@ -193,9 +193,9 @@
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent>
-			<SelectItem value="all">{t('transactions.list.allWallets')}</SelectItem>
+			<SelectItem value="all" label={t('transactions.list.allWallets')}>{t('transactions.list.allWallets')}</SelectItem>
 			{#each wallets as w}
-<SelectItem value={w.id}>{w.name}</SelectItem>
+<SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
 			</SelectContent>
 		</Select>
@@ -206,9 +206,9 @@
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent>
-			<SelectItem value="all">{t('transactions.list.allCategories')}</SelectItem>
+			<SelectItem value="all" label={t('transactions.list.allCategories')}>{t('transactions.list.allCategories')}</SelectItem>
 			{#each categories as cat}
-<SelectItem value={cat.id}>{cat.name}</SelectItem>
+<SelectItem value={cat.id} label={cat.name}>{cat.name}</SelectItem>
 {/each}
 			</SelectContent>
 		</Select>
@@ -219,11 +219,11 @@
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent>
-			<SelectItem value="this_month">{t('transactions.list.thisMonth')}</SelectItem>
-			<SelectItem value="last_month">{t('transactions.list.lastMonth')}</SelectItem>
-			<SelectItem value="this_week">{t('transactions.list.thisWeek')}</SelectItem>
-			<SelectItem value="this_year">{t('transactions.list.thisYear')}</SelectItem>
-			<SelectItem value="all">{t('transactions.list.allPeriods')}</SelectItem>
+			<SelectItem value="this_month" label={t('transactions.list.thisMonth')}>{t('transactions.list.thisMonth')}</SelectItem>
+			<SelectItem value="last_month" label={t('transactions.list.lastMonth')}>{t('transactions.list.lastMonth')}</SelectItem>
+			<SelectItem value="this_week" label={t('transactions.list.thisWeek')}>{t('transactions.list.thisWeek')}</SelectItem>
+			<SelectItem value="this_year" label={t('transactions.list.thisYear')}>{t('transactions.list.thisYear')}</SelectItem>
+			<SelectItem value="all" label={t('transactions.list.allPeriods')}>{t('transactions.list.allPeriods')}</SelectItem>
 		</SelectContent>
 		</Select>
 		</div>

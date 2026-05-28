@@ -74,9 +74,9 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="withdrawal">{t('transactions.create.expense')}</SelectItem>
-		<SelectItem value="deposit">{t('transactions.create.income')}</SelectItem>
-		<SelectItem value="transfer">{t('transactions.create.transfer')}</SelectItem>
+		<SelectItem value="withdrawal" label={t('transactions.create.expense')}>{t('transactions.create.expense')}</SelectItem>
+		<SelectItem value="deposit" label={t('transactions.create.income')}>{t('transactions.create.income')}</SelectItem>
+		<SelectItem value="transfer" label={t('transactions.create.transfer')}>{t('transactions.create.transfer')}</SelectItem>
 		</SelectContent>
 </Select>
 							</div>
@@ -95,9 +95,9 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
 		{#each wallets as w}
-<SelectItem value={w.id}>{w.name} ({w.currency_code})</SelectItem>
+<SelectItem value={w.id} label={'{w.name} ({w.currency_code})'}>{w.name} ({w.currency_code})</SelectItem>
 {/each}
 		</SelectContent>
 </Select>
@@ -113,9 +113,9 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
 		{#each wallets as w}
-<SelectItem value={w.id}>{w.name} ({w.currency_code})</SelectItem>
+<SelectItem value={w.id} label={'{w.name} ({w.currency_code})'}>{w.name} ({w.currency_code})</SelectItem>
 {/each}
 		</SelectContent>
 </Select>
@@ -131,9 +131,9 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="">{t('common.selectCategory')}</SelectItem>
+		<SelectItem value="" label={t('common.selectCategory')}>{t('common.selectCategory')}</SelectItem>
 		{#each categories as cat}
-<SelectItem value={cat.id}>{cat.name}</SelectItem>
+<SelectItem value={cat.id} label={cat.name}>{cat.name}</SelectItem>
 {/each}
 		</SelectContent>
 </Select>
@@ -165,7 +165,7 @@
 											</SelectTrigger>
 								<SelectContent>
 									{#each tags as tag}
-										<SelectItem value={tag.tag}>{tag.tag}</SelectItem>
+										<SelectItem value={tag.tag} label={tag.tag}>{tag.tag}</SelectItem>
 									{/each}
 								</SelectContent>
 								</Select>

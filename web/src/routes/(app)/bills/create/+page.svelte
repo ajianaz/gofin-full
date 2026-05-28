@@ -72,9 +72,9 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
 		{#each wallets as w}
-<SelectItem value={w.id}>{w.name}</SelectItem>
+<SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
 	</SelectContent>
 </Select>
@@ -92,10 +92,10 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="weekly">{t('bills.create.freqWeekly')}</SelectItem>
-		<SelectItem value="monthly">{t('bills.create.freqMonthly')}</SelectItem>
-		<SelectItem value="quarterly">{t('bills.create.freqQuarterly')}</SelectItem>
-		<SelectItem value="yearly">{t('bills.create.freqYearly')}</SelectItem>
+		<SelectItem value="weekly" label={t('bills.create.freqWeekly')}>{t('bills.create.freqWeekly')}</SelectItem>
+		<SelectItem value="monthly" label={t('bills.create.freqMonthly')}>{t('bills.create.freqMonthly')}</SelectItem>
+		<SelectItem value="quarterly" label={t('bills.create.freqQuarterly')}>{t('bills.create.freqQuarterly')}</SelectItem>
+		<SelectItem value="yearly" label={t('bills.create.freqYearly')}>{t('bills.create.freqYearly')}</SelectItem>
 		</SelectContent>
 </Select>
 					</div>

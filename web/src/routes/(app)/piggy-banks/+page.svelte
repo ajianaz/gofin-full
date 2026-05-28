@@ -93,10 +93,10 @@
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
-				<SelectItem value="all">{t('piggyBanks.list.allWallets')}</SelectItem>
+				<SelectItem value="all" label={t('piggyBanks.list.allWallets')}>{t('piggyBanks.list.allWallets')}</SelectItem>
 				{#each accounts as id}
 {@const w = items.find((pb) => pb.account_id === id)}
-<SelectItem value={id}>{w?.account_name ?? id}</SelectItem>
+<SelectItem value={id} label={w?.account_name ?? id}>{w?.account_name ?? id}</SelectItem>
 {/each}
 				</SelectContent>
 			</Select>

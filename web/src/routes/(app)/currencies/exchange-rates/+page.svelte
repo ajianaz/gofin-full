@@ -112,7 +112,7 @@
 							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 							<SelectContent>
 								{#each currencies as c}
-									<SelectItem value={c.id}>{c.code}</SelectItem>
+									<SelectItem value={c.id} label={c.code}>{c.code}</SelectItem>
 								{/each}
 							</SelectContent>
 						</Select>
@@ -125,7 +125,7 @@
 							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 							<SelectContent>
 								{#each currencies as c}
-									<SelectItem value={c.id}>{c.code}</SelectItem>
+									<SelectItem value={c.id} label={c.code}>{c.code}</SelectItem>
 								{/each}
 							</SelectContent>
 						</Select>

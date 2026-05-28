@@ -67,9 +67,9 @@
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-						<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+						<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
 						{#each wallets as w}
-<SelectItem value={w.id}>{w.name}</SelectItem>
+<SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
 						</SelectContent>
 					</Select>
