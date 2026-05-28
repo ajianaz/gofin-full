@@ -6,7 +6,7 @@
 	import { ArrowLeft } from '@lucide/svelte';
 	import { walletService } from '$lib/services/index.js';
 	import type { Account } from '$lib/types/domain.js';
-	import { formatCurrency } from '$lib/utils/format.js';
+	import { formatCurrency, getDefaultSymbol } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
 
@@ -20,7 +20,7 @@
 	let totalAssets = $derived(assets.reduce((s, w) => s + parseFloat(w.balance), 0));
 	let totalLiabilities = $derived(liabilities.reduce((s, w) => s + Math.abs(parseFloat(w.balance)), 0));
 	let netWorth = $derived(totalAssets - totalLiabilities);
-	let primarySymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || '$') : '$');
+	let primarySymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || getDefaultSymbol()) : getDefaultSymbol());
 	let primaryDecimal = $derived(wallets.length > 0 ? (wallets[0].currency_decimal_places ?? 2) : 2);
 
 	onMount(async () => {

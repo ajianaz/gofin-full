@@ -7,7 +7,7 @@
 	import { Plus, Trash2 } from '@lucide/svelte';
 	import { budgetService, walletService } from '$lib/services/index.js';
 	import type { Budget, Account } from '$lib/types/domain.js';
-	import { formatCurrency } from '$lib/utils/format.js';
+	import { formatCurrency, getDefaultSymbol } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { ConfirmDialog } from '$lib/components/shared/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
@@ -42,7 +42,7 @@
 		}
 	});
 
-	let currencySymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || '$') : '$');
+	let currencySymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || getDefaultSymbol()) : getDefaultSymbol());
 	let currencyDecimal = $derived(wallets.length > 0 ? (wallets[0].currency_decimal_places ?? 2) : 2);
 </script>
 

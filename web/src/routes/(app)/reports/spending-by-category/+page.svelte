@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ArrowLeft } from '@lucide/svelte';
 	import { reportService, walletService } from '$lib/services/index.js';
-	import { formatCurrency } from '$lib/utils/format.js';
+	import { formatCurrency, getDefaultSymbol } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	const t = localeStore.t;
 
@@ -14,7 +14,7 @@
 
 	let categoryData: { name: string; amount: number }[] = $state([]);
 	let totalSpent = $state(0);
-	let currencySymbol = $state('$');
+	let currencySymbol = $state(getDefaultSymbol());
 	let decimalPlaces = $state(0);
 
 	onMount(async () => {
@@ -24,7 +24,7 @@
 				walletService.list()
 			]);
 			if (walletList.length > 0) {
-				currencySymbol = walletList[0].currency_symbol || '$';
+				currencySymbol = walletList[0].currency_symbol || getDefaultSymbol();
 				decimalPlaces = walletList[0].currency_decimal_places ?? 2;
 			}
 			categoryData = data

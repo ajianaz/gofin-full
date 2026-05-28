@@ -6,7 +6,7 @@
 	import { Progress } from '$lib/components/ui/progress/index.js';
 	import { Plus, Trash2, PiggyBank as PiggyBankIcon } from '@lucide/svelte';
 	import { piggyBankService, walletService } from '$lib/services/index.js';
-	import { formatCurrency, formatPercentage } from '$lib/utils/format.js';
+	import { formatCurrency, formatPercentage, getDefaultSymbol } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { PiggyBank, Account } from '$lib/types/domain.js';
 	import { ConfirmDialog } from '$lib/components/shared/index.js';
@@ -52,7 +52,7 @@
 
 	function getWalletCurrency(accountId: string): { symbol: string; decimal: number } {
 		const w = wallets.find((w) => w.id === accountId);
-		return { symbol: w?.currency_symbol || '$', decimal: w?.currency_decimal_places ?? 2 };
+		return { symbol: w?.currency_symbol || getDefaultSymbol(), decimal: w?.currency_decimal_places ?? 2 };
 	}
 
 	const accounts = $derived([...new Set(items.map((pb) => pb.account_id))]);

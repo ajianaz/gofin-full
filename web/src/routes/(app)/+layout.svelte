@@ -35,7 +35,6 @@
 	import {
 		Sidebar,
 		SidebarContent,
-		SidebarFooter,
 		SidebarGroup,
 		SidebarGroupContent,
 		SidebarGroupLabel,
@@ -153,6 +152,48 @@
 				</div>
 				<ChevronsUpDown class="size-4 text-muted-foreground" />
 			</div>
+			<Separator />
+			<div class="flex flex-col gap-2">
+				<div class="flex items-center gap-2 rounded-md p-2">
+					<Avatar class="size-8">
+						<AvatarFallback class="bg-sidebar-accent text-sidebar-accent-foreground text-xs">
+							{userInitials}
+						</AvatarFallback>
+					</Avatar>
+					<div class="flex flex-col justify-center">
+						<span class="text-sm font-medium text-sidebar-foreground">{mounted && authStore.user?.name ? authStore.user.name : ''}</span>
+						<span class="text-xs text-sidebar-foreground">{mounted && authStore.user?.email ? authStore.user.email : ''}</span>
+					</div>
+				</div>
+				<div class="flex items-center justify-between px-2">
+					<div class="flex items-center gap-1">
+						<LanguageSwitcher />
+						<Button
+							variant="ghost"
+							size="sm"
+							onclick={() => themeStore.toggle()}
+							class="p-1.5 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+							title={themeStore.isDark ? t('layout.sidebar.lightMode') : t('layout.sidebar.darkMode')}
+						>
+							{#if themeStore.isDark}
+								<Sun class="size-3.5" />
+							{:else}
+								<Moon class="size-3.5" />
+							{/if}
+						</Button>
+					</div>
+					<Button
+						variant="ghost"
+						size="sm"
+						id="logout-btn"
+						class="gap-1.5 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						title={t('layout.sidebar.logout')}
+					>
+						<LogOut class="size-3.5" />
+						<span>{t('layout.sidebar.logout')}</span>
+					</Button>
+				</div>
+			</div>
 		</SidebarHeader>
 
 		<SidebarContent>
@@ -228,51 +269,6 @@
 				</SidebarGroupContent>
 			</SidebarGroup>
 		</SidebarContent>
-
-		<SidebarFooter>
-			<div class="flex flex-col gap-2">
-				<div class="flex items-center justify-between rounded-md bg-sidebar p-2">
-					<div class="flex items-center gap-2">
-						<Avatar class="size-8">
-							<AvatarFallback class="bg-sidebar-accent text-sidebar-accent-foreground text-xs">
-								{userInitials}
-							</AvatarFallback>
-					</Avatar>
-					<div class="flex flex-col justify-center">
-						<span class="text-sm font-medium text-sidebar-foreground">{mounted && authStore.user?.name ? authStore.user.name : ''}</span>
-						<span class="text-xs text-sidebar-foreground">{mounted && authStore.user?.email ? authStore.user.email : ''}</span>
-					</div>
-				</div>
-				<div class="flex items-center justify-between px-2">
-					<div class="flex items-center gap-1">
-					<LanguageSwitcher />
-					<Button
-						variant="ghost"
-						size="sm"
-						onclick={() => themeStore.toggle()}
-						class="p-1.5 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-						title={themeStore.isDark ? t('layout.sidebar.lightMode') : t('layout.sidebar.darkMode')}
-					>
-						{#if themeStore.isDark}
-							<Sun class="size-3.5" />
-						{:else}
-							<Moon class="size-3.5" />
-						{/if}
-					</Button>
-				</div>
-				<Button
-					variant="ghost"
-					size="sm"
-					id="logout-btn"
-					class="gap-1.5 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-					title={t('layout.sidebar.logout')}
-				>
-					<LogOut class="size-3.5" />
-					<span>{t('layout.sidebar.logout')}</span>
-				</Button>
-				</div>
-			</div>
-		</SidebarFooter>
 
 		<SidebarRail />
 	</Sidebar>

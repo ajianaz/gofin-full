@@ -5,7 +5,7 @@
 	import { Progress } from '$lib/components/ui/progress/index.js';
 	import { Wallet, TrendingUp, TrendingDown, PiggyBank, Plus, ArrowRight, AlertTriangle } from '@lucide/svelte';
 	import { walletService, transactionService, budgetService } from '$lib/services/index.js';
-	import { formatCurrency, formatDate } from '$lib/utils/format.js';
+	import { formatCurrency, formatDate, getDefaultSymbol } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import type { Account, Transaction, Budget } from '$lib/types/domain.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
@@ -37,7 +37,7 @@
 		for (const w of wallets) {
 			const code = w.currency_code || 'USD';
 			if (!groups.has(code)) {
-				groups.set(code, { wallets: [], symbol: w.currency_symbol || '$', decimal: w.currency_decimal_places ?? 2 });
+				groups.set(code, { wallets: [], symbol: w.currency_symbol || getDefaultSymbol(), decimal: w.currency_decimal_places ?? 2 });
 			}
 			groups.get(code)!.wallets.push(w);
 		}
@@ -50,7 +50,7 @@
 		for (const w of wallets) {
 			const code = w.currency_code || 'USD';
 			if (!result.has(code)) {
-				result.set(code, { total: 0, symbol: w.currency_symbol || '$', decimal: w.currency_decimal_places ?? 2, code });
+				result.set(code, { total: 0, symbol: w.currency_symbol || getDefaultSymbol(), decimal: w.currency_decimal_places ?? 2, code });
 			}
 			result.get(code)!.total += parseFloat(w.balance || '0');
 		}
@@ -63,7 +63,7 @@
 		for (const tx of transactions) {
 			const code = tx.currency_code || 'USD';
 			if (!result.has(code)) {
-				result.set(code, { income: 0, expense: 0, symbol: tx.currency_symbol || '$', decimal: tx.currency_decimal_places ?? 2, code });
+				result.set(code, { income: 0, expense: 0, symbol: tx.currency_symbol || getDefaultSymbol(), decimal: tx.currency_decimal_places ?? 2, code });
 			}
 			if (tx.type === 'deposit') {
 				result.get(code)!.income += parseFloat(tx.amount || '0');
@@ -76,7 +76,7 @@
 
 	// Legacy single-currency totals (for single currency display)
 	const singleCurrencyCode = $derived(uniqueCurrencies()[0] || 'USD');
-	const singleSymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || '$') : '$');
+	const singleSymbol = $derived(wallets.length > 0 ? (wallets[0].currency_symbol || getDefaultSymbol()) : getDefaultSymbol());
 	const singleDecimal = $derived(wallets.length > 0 ? (wallets[0].currency_decimal_places ?? 2) : 2);
 
 	const totalBalance = $derived(currencyBalances().get(singleCurrencyCode)?.total ?? 0);
@@ -194,7 +194,7 @@
 							<p class="text-sm font-medium text-foreground truncate">{w.name}</p>
 							<p class="text-xs text-muted-foreground">{w.currency_code || 'USD'}</p>
 						</div>
-						<AmountDisplay amount={w.balance || '0'} symbol={w.currency_symbol || '$'} class="text-lg font-semibold" />
+						<AmountDisplay amount={w.balance || '0'} symbol={w.currency_symbol || getDefaultSymbol()} class="text-lg font-semibold" />
 					</div>
 				</CardContent>
 			</Card>
