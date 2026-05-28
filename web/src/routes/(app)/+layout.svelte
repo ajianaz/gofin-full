@@ -102,12 +102,14 @@
 
 	onMount(async () => {
 		mounted = true;
-		if (!authStore.isAuthenticated) {
+		// Always attempt restore if there's a token — validates server-side
+		if (authStore.accessToken) {
 			await authStore.restore();
-			if (!authStore.isAuthenticated) {
-				goto('/login');
-				return;
-			}
+		}
+		// If still not authenticated or user not loaded, redirect to login
+		if (!authStore.isAuthenticated || !authStore.user) {
+			goto('/login');
+			return;
 		}
 		// Attach logout handler via DOM (Svelte event binding lost inside SidebarFooter)
 		const logoutEl = document.getElementById('logout-btn');
