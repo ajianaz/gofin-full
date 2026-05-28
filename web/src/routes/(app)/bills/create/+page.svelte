@@ -67,13 +67,16 @@
 						<div class="flex flex-col gap-2">
 							<Label for="account">{t('bills.create.relatedWallet')}</Label>
 							<div class="relative">
-<Select bind:value={accountId} id="account">
-	<SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
-		{#each wallets as w}
+<Select bind:value={accountId} id="account" items={[
+	{ value: '', label: t('common.selectWallet') },
+	...wallets.map(w => ({ value: w.id, label: w.name }))
+]}>
+<SelectTrigger class="w-full">
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
+	{#each wallets as w}
 <SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
 	</SelectContent>
@@ -87,16 +90,21 @@
 						<div class="flex flex-col gap-2">
 							<Label for="freq">{t('bills.create.frequency')}</Label>
 							<div class="relative">
-<Select bind:value={repeatFreq} id="freq">
-	<SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="weekly" label={t('bills.create.freqWeekly')}>{t('bills.create.freqWeekly')}</SelectItem>
-		<SelectItem value="monthly" label={t('bills.create.freqMonthly')}>{t('bills.create.freqMonthly')}</SelectItem>
-		<SelectItem value="quarterly" label={t('bills.create.freqQuarterly')}>{t('bills.create.freqQuarterly')}</SelectItem>
-		<SelectItem value="yearly" label={t('bills.create.freqYearly')}>{t('bills.create.freqYearly')}</SelectItem>
-		</SelectContent>
+<Select bind:value={repeatFreq} id="freq" items={[
+	{ value: 'weekly', label: t('bills.create.freqWeekly') },
+	{ value: 'monthly', label: t('bills.create.freqMonthly') },
+	{ value: 'quarterly', label: t('bills.create.freqQuarterly') },
+	{ value: 'yearly', label: t('bills.create.freqYearly') },
+]}>
+<SelectTrigger class="w-full">
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="weekly" label={t('bills.create.freqWeekly')}>{t('bills.create.freqWeekly')}</SelectItem>
+	<SelectItem value="monthly" label={t('bills.create.freqMonthly')}>{t('bills.create.freqMonthly')}</SelectItem>
+	<SelectItem value="quarterly" label={t('bills.create.freqQuarterly')}>{t('bills.create.freqQuarterly')}</SelectItem>
+	<SelectItem value="yearly" label={t('bills.create.freqYearly')}>{t('bills.create.freqYearly')}</SelectItem>
+	</SelectContent>
 </Select>
 					</div>
 				</div>

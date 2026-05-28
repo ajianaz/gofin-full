@@ -69,15 +69,19 @@
 						<div class="flex flex-col gap-2">
 							<Label for="type">{t('transactions.create.type')}</Label>
 							<div class="relative">
-								<Select bind:value={type} id="type">
+						<Select bind:value={type} id="type" items={[
+							{ value: 'withdrawal', label: t('transactions.create.expense') },
+							{ value: 'deposit', label: t('transactions.create.income') },
+							{ value: 'transfer', label: t('transactions.create.transfer') },
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="withdrawal" label={t('transactions.create.expense')}>{t('transactions.create.expense')}</SelectItem>
-		<SelectItem value="deposit" label={t('transactions.create.income')}>{t('transactions.create.income')}</SelectItem>
-		<SelectItem value="transfer" label={t('transactions.create.transfer')}>{t('transactions.create.transfer')}</SelectItem>
-		</SelectContent>
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="withdrawal" label={t('transactions.create.expense')}>{t('transactions.create.expense')}</SelectItem>
+	<SelectItem value="deposit" label={t('transactions.create.income')}>{t('transactions.create.income')}</SelectItem>
+	<SelectItem value="transfer" label={t('transactions.create.transfer')}>{t('transactions.create.transfer')}</SelectItem>
+	</SelectContent>
 </Select>
 							</div>
 						</div>
@@ -90,16 +94,19 @@
 						<div class="flex flex-col gap-2">
 							<Label for="source">{t('transactions.create.sourceWallet')}</Label>
 							<div class="relative">
-								<Select bind:value={sourceAccount} id="source">
+						<Select bind:value={sourceAccount} id="source" items={[
+							{ value: '', label: t('common.selectWallet') },
+							...wallets.map(w => ({ value: w.id, label: `${w.name} (${w.currency_code})` }))
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
-		{#each wallets as w}
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
+	{#each wallets as w}
 <SelectItem value={w.id} label={'{w.name} ({w.currency_code})'}>{w.name} ({w.currency_code})</SelectItem>
 {/each}
-		</SelectContent>
+	</SelectContent>
 </Select>
 							</div>
 						</div>
@@ -108,16 +115,19 @@
 							<div class="flex flex-col gap-2">
 								<Label for="dest">{t('transactions.create.destWallet')}</Label>
 								<div class="relative">
-									<Select bind:value={destAccount} id="dest">
+							<Select bind:value={destAccount} id="dest" items={[
+								{ value: '', label: t('common.selectWallet') },
+								...wallets.map(w => ({ value: w.id, label: `${w.name} (${w.currency_code})` }))
+							]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
-		{#each wallets as w}
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
+	{#each wallets as w}
 <SelectItem value={w.id} label={'{w.name} ({w.currency_code})'}>{w.name} ({w.currency_code})</SelectItem>
 {/each}
-		</SelectContent>
+	</SelectContent>
 </Select>
 								</div>
 							</div>
@@ -126,16 +136,19 @@
 						<div class="flex flex-col gap-2">
 							<Label for="category">{t('transactions.create.category')}</Label>
 							<div class="relative">
-								<Select bind:value={category} id="category">
+						<Select bind:value={category} id="category" items={[
+							{ value: '', label: t('common.selectCategory') },
+							...categories.map(cat => ({ value: cat.id, label: cat.name }))
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="" label={t('common.selectCategory')}>{t('common.selectCategory')}</SelectItem>
-		{#each categories as cat}
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="" label={t('common.selectCategory')}>{t('common.selectCategory')}</SelectItem>
+	{#each categories as cat}
 <SelectItem value={cat.id} label={cat.name}>{cat.name}</SelectItem>
 {/each}
-		</SelectContent>
+	</SelectContent>
 </Select>
 							</div>
 						</div>
@@ -159,16 +172,18 @@
 
 						<div class="flex flex-col gap-2">
 							<Label for="tags">{t('transactions.create.tag')}</Label>
-							<Select value="">
+						<Select value="" items={[
+							...tags.map(tag => ({ value: tag.tag, label: tag.tag }))
+						]}>
 <SelectTrigger class="w-full">
-												<SelectValue />
-											</SelectTrigger>
-								<SelectContent>
-									{#each tags as tag}
-										<SelectItem value={tag.tag} label={tag.tag}>{tag.tag}</SelectItem>
-									{/each}
-								</SelectContent>
-								</Select>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{#each tags as tag}
+								<SelectItem value={tag.tag} label={tag.tag}>{tag.tag}</SelectItem>
+								{/each}
+							</SelectContent>
+						</Select>
 						</div>
 					</div>
 				</div>

@@ -172,60 +172,77 @@
 			</Button>
 		</div>
 
-	<div class="flex flex-wrap items-center gap-3">
+	<div class="flex flex-wrap items-center gap-3 py-2">
 		{#if mounted}
 		<div class="relative">
-			<Select bind:value={typeFilter}>
-			<SelectTrigger class="w-40">
-				<SelectValue />
-			</SelectTrigger>
-			<SelectContent>
-			<SelectItem value="all" label={t('transactions.list.allTypes')}>{t('transactions.list.allTypes')}</SelectItem>
-			<SelectItem value="withdrawal" label={t('transactions.list.expense')}>{t('transactions.list.expense')}</SelectItem>
-			<SelectItem value="deposit" label={t('transactions.list.income')}>{t('transactions.list.income')}</SelectItem>
-			<SelectItem value="transfer" label={t('transactions.list.transfer')}>{t('transactions.list.transfer')}</SelectItem>
-			</SelectContent>
-		</Select>
+		<Select bind:value={typeFilter} items={[
+			{ value: 'all', label: t('transactions.list.allTypes') },
+			{ value: 'withdrawal', label: t('transactions.list.expense') },
+			{ value: 'deposit', label: t('transactions.list.income') },
+			{ value: 'transfer', label: t('transactions.list.transfer') },
+		]}>
+		<SelectTrigger class="w-40">
+			<SelectValue />
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="all" label={t('transactions.list.allTypes')}>{t('transactions.list.allTypes')}</SelectItem>
+		<SelectItem value="withdrawal" label={t('transactions.list.expense')}>{t('transactions.list.expense')}</SelectItem>
+		<SelectItem value="deposit" label={t('transactions.list.income')}>{t('transactions.list.income')}</SelectItem>
+		<SelectItem value="transfer" label={t('transactions.list.transfer')}>{t('transactions.list.transfer')}</SelectItem>
+		</SelectContent>
+	</Select>
 		</div>
 		<div class="relative">
-			<Select bind:value={accountFilter}>
-			<SelectTrigger class="w-44">
-				<SelectValue />
-			</SelectTrigger>
-			<SelectContent>
-			<SelectItem value="all" label={t('transactions.list.allWallets')}>{t('transactions.list.allWallets')}</SelectItem>
-			{#each wallets as w}
+		<Select bind:value={accountFilter} items={[
+			{ value: 'all', label: t('transactions.list.allWallets') },
+			...wallets.map(w => ({ value: w.id, label: w.name }))
+		]}>
+		<SelectTrigger class="w-44">
+			<SelectValue />
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="all" label={t('transactions.list.allWallets')}>{t('transactions.list.allWallets')}</SelectItem>
+		{#each wallets as w}
 <SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
-			</SelectContent>
-		</Select>
+		</SelectContent>
+	</Select>
 		</div>
 		<div class="relative">
-			<Select bind:value={categoryFilter}>
-			<SelectTrigger class="w-44">
-				<SelectValue />
-			</SelectTrigger>
-			<SelectContent>
-			<SelectItem value="all" label={t('transactions.list.allCategories')}>{t('transactions.list.allCategories')}</SelectItem>
-			{#each categories as cat}
+		<Select bind:value={categoryFilter} items={[
+			{ value: 'all', label: t('transactions.list.allCategories') },
+			...categories.map(cat => ({ value: cat.id, label: cat.name }))
+		]}>
+		<SelectTrigger class="w-44">
+			<SelectValue />
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="all" label={t('transactions.list.allCategories')}>{t('transactions.list.allCategories')}</SelectItem>
+		{#each categories as cat}
 <SelectItem value={cat.id} label={cat.name}>{cat.name}</SelectItem>
 {/each}
-			</SelectContent>
-		</Select>
+		</SelectContent>
+	</Select>
 		</div>
 		<div class="relative">
-			<Select bind:value={periodFilter}>
-			<SelectTrigger class="w-44">
-				<SelectValue />
-			</SelectTrigger>
-			<SelectContent>
-			<SelectItem value="this_month" label={t('transactions.list.thisMonth')}>{t('transactions.list.thisMonth')}</SelectItem>
-			<SelectItem value="last_month" label={t('transactions.list.lastMonth')}>{t('transactions.list.lastMonth')}</SelectItem>
-			<SelectItem value="this_week" label={t('transactions.list.thisWeek')}>{t('transactions.list.thisWeek')}</SelectItem>
-			<SelectItem value="this_year" label={t('transactions.list.thisYear')}>{t('transactions.list.thisYear')}</SelectItem>
-			<SelectItem value="all" label={t('transactions.list.allPeriods')}>{t('transactions.list.allPeriods')}</SelectItem>
+		<Select bind:value={periodFilter} items={[
+			{ value: 'this_month', label: t('transactions.list.thisMonth') },
+			{ value: 'last_month', label: t('transactions.list.lastMonth') },
+			{ value: 'this_week', label: t('transactions.list.thisWeek') },
+			{ value: 'this_year', label: t('transactions.list.thisYear') },
+			{ value: 'all', label: t('transactions.list.allPeriods') },
+		]}>
+		<SelectTrigger class="w-44">
+			<SelectValue />
+		</SelectTrigger>
+		<SelectContent>
+		<SelectItem value="this_month" label={t('transactions.list.thisMonth')}>{t('transactions.list.thisMonth')}</SelectItem>
+		<SelectItem value="last_month" label={t('transactions.list.lastMonth')}>{t('transactions.list.lastMonth')}</SelectItem>
+		<SelectItem value="this_week" label={t('transactions.list.thisWeek')}>{t('transactions.list.thisWeek')}</SelectItem>
+		<SelectItem value="this_year" label={t('transactions.list.thisYear')}>{t('transactions.list.thisYear')}</SelectItem>
+		<SelectItem value="all" label={t('transactions.list.allPeriods')}>{t('transactions.list.allPeriods')}</SelectItem>
 		</SelectContent>
-		</Select>
+	</Select>
 		</div>
 		{/if}
 	</div>
@@ -240,22 +257,22 @@
 						<TableRow>
 							<TableHead class="w-[120px]">{t('transactions.list.colDate')}</TableHead>
 							<TableHead>{t('transactions.list.colDescription')}</TableHead>
-							<TableHead class="w-[140px]">{t('transactions.list.colAmount')}</TableHead>
+							<TableHead class="w-[140px] text-right">{t('transactions.list.colAmount')}</TableHead>
 							<TableHead class="hidden md:table-cell w-[140px]">{t('transactions.list.colCategory')}</TableHead>
 							<TableHead class="hidden md:table-cell w-[140px]">{t('transactions.list.colWallet')}</TableHead>
 							<TableHead class="w-[50px]"></TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{#each paginated() as tx}
-							<TableRow>
-								<TableCell class="whitespace-nowrap text-foreground">{formatDate(tx.date)}</TableCell>
-								<TableCell class="text-foreground">{tx.description}</TableCell>
-								<TableCell class="whitespace-nowrap">
-									<span class="font-semibold {formatAmount(tx.amount, tx.currency_symbol).color}">{formatAmount(tx.amount, tx.currency_symbol).text}</span>
-								</TableCell>
-								<TableCell class="hidden md:table-cell text-muted-foreground">{tx.category_name || '-'}</TableCell>
-								<TableCell class="hidden md:table-cell text-muted-foreground">{acctName(tx)}</TableCell>
+					{#each paginated() as tx}
+						<TableRow class="border-b">
+							<TableCell class="py-3 whitespace-nowrap text-foreground">{formatDate(tx.date)}</TableCell>
+							<TableCell class="py-3 max-w-[200px] truncate text-foreground">{tx.description}</TableCell>
+							<TableCell class="py-3 whitespace-nowrap text-right">
+								<span class="font-semibold tabular-nums {formatAmount(tx.amount, tx.currency_symbol).color}">{formatAmount(tx.amount, tx.currency_symbol).text}</span>
+							</TableCell>
+							<TableCell class="py-3 hidden md:table-cell text-muted-foreground">{tx.category_name || '-'}</TableCell>
+							<TableCell class="py-3 hidden md:table-cell text-muted-foreground">{acctName(tx)}</TableCell>
 								<TableCell>
 						<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = tx.id)}>
 							<Trash2 class="size-4" />
@@ -263,7 +280,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							<TableRow><TableCell colspan={6}><EmptyState /></TableCell></TableRow>
+						<TableRow class="border-b"><TableCell colspan={6}><EmptyState /></TableCell></TableRow>
 						{/each}
 					</TableBody>
 				</Table>

@@ -63,7 +63,10 @@
 	<form class="grid gap-4" onsubmit={handleSubmit}>
 		<div class="grid gap-2">
 			<Label for="format">{t('export.format')}</Label>
-		<Select bind:value={format} id="format">
+		<Select bind:value={format} id="format" items={[
+			{ value: 'csv', label: 'CSV' },
+			{ value: 'ofx', label: 'OFX' },
+		]}>
 			<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 			<SelectContent>
 				<SelectItem value="csv" label={'CSV'}>CSV</SelectItem>
@@ -85,7 +88,10 @@
 
 		<div class="grid gap-2">
 			<Label for="wallet">{t('export.wallet')}</Label>
-			<Select bind:value={walletId} id="wallet" disabled={isLoading}>
+			<Select bind:value={walletId} id="wallet" disabled={isLoading} items={[
+				{ value: '', label: t('export.allWallets') },
+				...wallets.map(w => ({ value: w.id, label: w.name }))
+			]}>
 				<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 				<SelectContent>
 					<SelectItem value="" label={t('export.allWallets')}>{t('export.allWallets')}</SelectItem>

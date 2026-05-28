@@ -53,14 +53,17 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<div class="relative">
-<Select bind:value={accountFilter}>
-	<SelectTrigger class="w-44">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="all" label={t('bills.list.allWallets')}>{t('bills.list.allWallets')}</SelectItem>
-		<SelectItem value="active" label={t('bills.list.activeOnly')}>{t('bills.list.activeOnly')}</SelectItem>
-		</SelectContent>
+<Select bind:value={accountFilter} items={[
+	{ value: 'all', label: t('bills.list.allWallets') },
+	{ value: 'active', label: t('bills.list.activeOnly') },
+]}>
+<SelectTrigger class="w-44">
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="all" label={t('bills.list.allWallets')}>{t('bills.list.allWallets')}</SelectItem>
+	<SelectItem value="active" label={t('bills.list.activeOnly')}>{t('bills.list.activeOnly')}</SelectItem>
+	</SelectContent>
 </Select>
 		</div>
 		<Button size="sm" onclick={() => goto('/bills/create')}>

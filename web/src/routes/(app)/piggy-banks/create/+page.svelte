@@ -62,13 +62,16 @@
 				<div class="flex flex-col gap-2">
 					<Label for="account">{t('piggyBanks.create.relatedWallet')}</Label>
 					<div class="relative">
-					<Select bind:value={accountId} id="account">
+					<Select bind:value={accountId} id="account" items={[
+						{ value: '', label: t('common.selectWallet') },
+						...wallets.map(w => ({ value: w.id, label: w.name }))
+					]}>
 						<SelectTrigger class="w-full">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-						<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
-						{#each wallets as w}
+							<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
+							{#each wallets as w}
 <SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
 						</SelectContent>

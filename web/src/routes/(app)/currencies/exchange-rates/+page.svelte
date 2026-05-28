@@ -108,7 +108,9 @@
 				<div class="flex flex-col gap-2">
 					<Label>{t('currencies.exchangeRates.from')}</Label>
 					<div class="relative">
-						<Select bind:value={addFrom}>
+						<Select bind:value={addFrom} items={[
+							...currencies.map(c => ({ value: c.id, label: c.code }))
+						]}>
 							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 							<SelectContent>
 								{#each currencies as c}
@@ -121,7 +123,9 @@
 				<div class="flex flex-col gap-2">
 					<Label>{t('currencies.exchangeRates.to')}</Label>
 					<div class="relative">
-						<Select bind:value={addTo}>
+						<Select bind:value={addTo} items={[
+							...currencies.map(c => ({ value: c.id, label: c.code }))
+						]}>
 							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 							<SelectContent>
 								{#each currencies as c}

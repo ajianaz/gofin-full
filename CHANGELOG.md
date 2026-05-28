@@ -15,8 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - SMTP + email verification config to .env.example and configuration docs
 - Rate limiting vars (RATE_LIMIT_ENABLED, LOGIN_RATE_LIMIT_ENABLED, etc.) to configuration docs
 
+### Fixed
+- Dropdown SelectValue shows translated label instead of raw value — added `items` prop to all 32 Select components for bits-ui label resolution without DOM mount
+- Select dropdown trigger text has proper gap from chevron icon and text truncation
+
 ### Changed
-- FE polish: motion engineering foundations — custom easing curves, button press feedback, prefers-reduced-motion, hover gate
+- Transactions table: better padding, right-aligned amounts, tabular numbers, text truncation, row borders
+- Select dropdown: gap between text and icon, overflow truncation in trigger
 - FE polish: migrate 12 files from raw `<button>` to shadcn Button component
 - FE polish: Reports chart colors now use CSS variables (dark mode compatible)
 - FE polish: responsive breakpoints for 9 grid/layout pages + auth pages mobile padding
