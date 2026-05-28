@@ -20,8 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - FE polish: migrate 12 files from raw `<button>` to shadcn Button component
 - FE polish: Reports chart colors now use CSS variables (dark mode compatible)
 - FE polish: responsive breakpoints for 9 grid/layout pages + auth pages mobile padding
+- FE fix: Currency symbol fallback now uses locale-aware `getDefaultSymbol()` (ID→Rp, EN→$) instead of hardcoded `$`
+- FE fix: Sidebar user info (avatar, name, email) + language/theme/logout controls moved from footer to header
 
-## [0.1.5] - 2026-05-27
+## [0.1.5]
 
 ### Added
 - Email verification on registration — optional, auto-verify without SMTP (closes #109 P3)
