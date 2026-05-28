@@ -16,18 +16,17 @@
 	let isLoading = $state(true);
 	let errorMsg = $state('');
 
-	const prefConfig: Record<string, { type: 'boolean' | 'select' | 'text' | 'number'; options?: string[] }> = {
-		language: { type: 'select', options: ['id', 'en'] },
-		currency: { type: 'select', options: ['IDR', 'USD', 'EUR'] },
-		date_format: { type: 'select', options: ['DD MMM YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY'] },
-		group_style: { type: 'select', options: ['default', 'compact'] },
-		budget_indicator: { type: 'boolean' },
-		show_news: { type: 'boolean' },
-		fiscal_year_start: { type: 'select', options: ['01', '04', '07', '10'] },
-		transaction_count_per_page: { type: 'select', options: ['10', '15', '25', '50'] },
-		two_factor_enabled: { type: 'boolean' },
-		email_digest: { type: 'select', options: ['daily', 'weekly', 'monthly'] }
-	};
+const prefConfig: Record<string, { type: 'boolean' | 'select' | 'text' | 'number'; options?: string[] }> = {
+	currency: { type: 'select', options: ['IDR', 'USD', 'EUR'] },
+	date_format: { type: 'select', options: ['DD MMM YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY'] },
+	group_style: { type: 'select', options: ['default', 'compact'] },
+	budget_indicator: { type: 'boolean' },
+	show_news: { type: 'boolean' },
+	fiscal_year_start: { type: 'select', options: ['01', '04', '07', '10'] },
+	transaction_count_per_page: { type: 'select', options: ['10', '15', '25', '50'] },
+	two_factor_enabled: { type: 'boolean' },
+	email_digest: { type: 'select', options: ['daily', 'weekly', 'monthly'] }
+};
 
 	function getConfig(name: string) {
 		return prefConfig[name] ?? { type: 'text' as const };
@@ -78,7 +77,6 @@
 	}
 
 const DEFAULT_PREFERENCES: Record<string, string> = {
-	language: 'id',
 	currency: 'IDR',
 	date_format: 'DD MMM YYYY',
 	group_style: 'default',
