@@ -73,7 +73,7 @@
 			{#each items as group}
 				<div class="flex items-center justify-between px-5 py-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors">
 					<Button variant="ghost" class="flex flex-1 items-center justify-between text-left"
-						onclick={() => goto('/rules/{group.id}')}
+						onclick={() => goto(`/rules/${group.id}`)}
 					>
 						<div class="flex flex-col gap-1">
 							<p class="text-sm font-semibold text-foreground">{group.title}</p>

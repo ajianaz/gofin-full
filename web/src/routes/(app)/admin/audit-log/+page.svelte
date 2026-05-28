@@ -3,7 +3,7 @@
 	import { PageHeader, FilterBar } from '$lib/components/shared/index.js';
 	import { Card, CardContent } from '$lib/components/ui/card/index.js';
 	import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '$lib/components/ui/table/index.js';
-	import { Select } from '$lib/components/ui/select/index.js';
+	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import { adminService } from '$lib/services/index.js';
 	import { formatDate } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -60,30 +60,63 @@
 <PageHeader title={t('admin.auditLog.title')} description={t('admin.auditLog.description')} />
 
 <FilterBar>
-	<Select bind:value={actionFilter} class="w-40">
-		<option value="all">{t('admin.auditLog.allActions')}</option>
-		<option value="user.login">{t('admin.auditLog.login')}</option>
-		<option value="transaction">{t('admin.auditLog.transaction')}</option>
-		<option value="budget">{t('admin.auditLog.budget')}</option>
-		<option value="api_key">{t('admin.auditLog.apiKey')}</option>
-		<option value="user.update">{t('admin.auditLog.userUpdate')}</option>
-		<option value="group.create">{t('admin.auditLog.group')}</option>
-		<option value="piggy_bank">{t('admin.auditLog.piggyBank')}</option>
-		<option value="recurring">{t('admin.auditLog.recurring')}</option>
-		<option value="rule">{t('admin.auditLog.rule')}</option>
-		<option value="currency">{t('admin.auditLog.currency')}</option>
+	<Select bind:value={actionFilter} items={[
+		{ value: 'all', label: t('admin.auditLog.allActions') },
+		{ value: 'user.login', label: t('admin.auditLog.login') },
+		{ value: 'transaction', label: t('admin.auditLog.transaction') },
+		{ value: 'budget', label: t('admin.auditLog.budget') },
+		{ value: 'api_key', label: t('admin.auditLog.apiKey') },
+		{ value: 'user.update', label: t('admin.auditLog.userUpdate') },
+		{ value: 'group.create', label: t('admin.auditLog.group') },
+		{ value: 'piggy_bank', label: t('admin.auditLog.piggyBank') },
+		{ value: 'recurring', label: t('admin.auditLog.recurring') },
+		{ value: 'rule', label: t('admin.auditLog.rule') },
+		{ value: 'currency', label: t('admin.auditLog.currency') },
+	]}>
+		<SelectTrigger class="w-40">
+			<SelectValue />
+		</SelectTrigger>
+		<SelectContent>
+			<SelectItem value="all" label={t('admin.auditLog.allActions')}>{t('admin.auditLog.allActions')}</SelectItem>
+			<SelectItem value="user.login" label={t('admin.auditLog.login')}>{t('admin.auditLog.login')}</SelectItem>
+			<SelectItem value="transaction" label={t('admin.auditLog.transaction')}>{t('admin.auditLog.transaction')}</SelectItem>
+			<SelectItem value="budget" label={t('admin.auditLog.budget')}>{t('admin.auditLog.budget')}</SelectItem>
+			<SelectItem value="api_key" label={t('admin.auditLog.apiKey')}>{t('admin.auditLog.apiKey')}</SelectItem>
+			<SelectItem value="user.update" label={t('admin.auditLog.userUpdate')}>{t('admin.auditLog.userUpdate')}</SelectItem>
+			<SelectItem value="group.create" label={t('admin.auditLog.group')}>{t('admin.auditLog.group')}</SelectItem>
+			<SelectItem value="piggy_bank" label={t('admin.auditLog.piggyBank')}>{t('admin.auditLog.piggyBank')}</SelectItem>
+			<SelectItem value="recurring" label={t('admin.auditLog.recurring')}>{t('admin.auditLog.recurring')}</SelectItem>
+			<SelectItem value="rule" label={t('admin.auditLog.rule')}>{t('admin.auditLog.rule')}</SelectItem>
+			<SelectItem value="currency" label={t('admin.auditLog.currency')}>{t('admin.auditLog.currency')}</SelectItem>
+		</SelectContent>
 	</Select>
-	<Select bind:value={entityFilter} class="w-40">
-		<option value="all">{t('admin.auditLog.allEntities')}</option>
-		<option value="user">{t('admin.auditLog.user')}</option>
-		<option value="transaction">{t('admin.auditLog.transaction')}</option>
-		<option value="budget">{t('admin.auditLog.budget')}</option>
-		<option value="api_key">{t('admin.auditLog.apiKey')}</option>
-		<option value="group">{t('admin.auditLog.group')}</option>
-		<option value="piggy_bank">{t('admin.auditLog.piggyBank')}</option>
-		<option value="recurring">{t('admin.auditLog.recurring')}</option>
-		<option value="rule">{t('admin.auditLog.rule')}</option>
-		<option value="currency">{t('admin.auditLog.currency')}</option>
+	<Select bind:value={entityFilter} items={[
+		{ value: 'all', label: t('admin.auditLog.allEntities') },
+		{ value: 'user', label: t('admin.auditLog.user') },
+		{ value: 'transaction', label: t('admin.auditLog.transaction') },
+		{ value: 'budget', label: t('admin.auditLog.budget') },
+		{ value: 'api_key', label: t('admin.auditLog.apiKey') },
+		{ value: 'group', label: t('admin.auditLog.group') },
+		{ value: 'piggy_bank', label: t('admin.auditLog.piggyBank') },
+		{ value: 'recurring', label: t('admin.auditLog.recurring') },
+		{ value: 'rule', label: t('admin.auditLog.rule') },
+		{ value: 'currency', label: t('admin.auditLog.currency') },
+	]}>
+		<SelectTrigger class="w-40">
+			<SelectValue />
+		</SelectTrigger>
+		<SelectContent>
+			<SelectItem value="all" label={t('admin.auditLog.allEntities')}>{t('admin.auditLog.allEntities')}</SelectItem>
+			<SelectItem value="user" label={t('admin.auditLog.user')}>{t('admin.auditLog.user')}</SelectItem>
+			<SelectItem value="transaction" label={t('admin.auditLog.transaction')}>{t('admin.auditLog.transaction')}</SelectItem>
+			<SelectItem value="budget" label={t('admin.auditLog.budget')}>{t('admin.auditLog.budget')}</SelectItem>
+			<SelectItem value="api_key" label={t('admin.auditLog.apiKey')}>{t('admin.auditLog.apiKey')}</SelectItem>
+			<SelectItem value="group" label={t('admin.auditLog.group')}>{t('admin.auditLog.group')}</SelectItem>
+			<SelectItem value="piggy_bank" label={t('admin.auditLog.piggyBank')}>{t('admin.auditLog.piggyBank')}</SelectItem>
+			<SelectItem value="recurring" label={t('admin.auditLog.recurring')}>{t('admin.auditLog.recurring')}</SelectItem>
+			<SelectItem value="rule" label={t('admin.auditLog.rule')}>{t('admin.auditLog.rule')}</SelectItem>
+			<SelectItem value="currency" label={t('admin.auditLog.currency')}>{t('admin.auditLog.currency')}</SelectItem>
+		</SelectContent>
 	</Select>
 </FilterBar>
 
