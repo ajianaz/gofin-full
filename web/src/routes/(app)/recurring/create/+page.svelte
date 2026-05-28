@@ -76,16 +76,19 @@
 				<div class="flex flex-col gap-2">
 					<Label for="source">{t('recurring.create.sourceWallet')}</Label>
 					<div class="relative">
-						<Select bind:value={sourceAccount} id="source">
+						<Select bind:value={sourceAccount} id="source" items={[
+							{ value: '', label: t('common.selectWallet') },
+							...wallets.map(w => ({ value: w.id, label: w.name }))
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
-		{#each wallets as w}
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
+	{#each wallets as w}
 <SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
-		</SelectContent>
+	</SelectContent>
 </Select>
 					</div>
 				</div>
@@ -102,49 +105,61 @@
 				<div class="flex flex-col gap-2">
 					<Label for="repeat">{t('recurring.create.repeatType')}</Label>
 					<div class="relative">
-						<Select bind:value={repeatFreq} id="repeat">
+						<Select bind:value={repeatFreq} id="repeat" items={[
+							{ value: 'daily', label: t('recurring.list.freqDaily') },
+							{ value: 'weekly', label: t('recurring.list.freqWeekly') },
+							{ value: 'monthly', label: t('recurring.list.freqMonthly') },
+							{ value: 'quarterly', label: t('recurring.list.freqQuarterly') },
+							{ value: 'yearly', label: t('recurring.list.freqYearly') },
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="daily" label={t('recurring.list.freqDaily')}>{t('recurring.list.freqDaily')}</SelectItem>
-		<SelectItem value="weekly" label={t('recurring.list.freqWeekly')}>{t('recurring.list.freqWeekly')}</SelectItem>
-		<SelectItem value="monthly" label={t('recurring.list.freqMonthly')}>{t('recurring.list.freqMonthly')}</SelectItem>
-		<SelectItem value="quarterly" label={t('recurring.list.freqQuarterly')}>{t('recurring.list.freqQuarterly')}</SelectItem>
-		<SelectItem value="yearly" label={t('recurring.list.freqYearly')}>{t('recurring.list.freqYearly')}</SelectItem>
-		</SelectContent>
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="daily" label={t('recurring.list.freqDaily')}>{t('recurring.list.freqDaily')}</SelectItem>
+	<SelectItem value="weekly" label={t('recurring.list.freqWeekly')}>{t('recurring.list.freqWeekly')}</SelectItem>
+	<SelectItem value="monthly" label={t('recurring.list.freqMonthly')}>{t('recurring.list.freqMonthly')}</SelectItem>
+	<SelectItem value="quarterly" label={t('recurring.list.freqQuarterly')}>{t('recurring.list.freqQuarterly')}</SelectItem>
+	<SelectItem value="yearly" label={t('recurring.list.freqYearly')}>{t('recurring.list.freqYearly')}</SelectItem>
+	</SelectContent>
 </Select>
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
 					<Label for="dest">{t('recurring.create.destWallet')}</Label>
 					<div class="relative">
-						<Select bind:value={destAccount} id="dest">
+						<Select bind:value={destAccount} id="dest" items={[
+							{ value: '', label: t('recurring.create.selectDestWallet') },
+							...wallets.map(w => ({ value: w.id, label: w.name }))
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="" label={t('recurring.create.selectDestWallet')}>{t('recurring.create.selectDestWallet')}</SelectItem>
-		{#each wallets as w}
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="" label={t('recurring.create.selectDestWallet')}>{t('recurring.create.selectDestWallet')}</SelectItem>
+	{#each wallets as w}
 <SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
-		</SelectContent>
+	</SelectContent>
 </Select>
 					</div>
 				</div>
 				<div class="flex flex-col gap-2">
 					<Label for="category">{t('recurring.create.category')}</Label>
 					<div class="relative">
-						<Select bind:value={categoryId} id="category">
+						<Select bind:value={categoryId} id="category" items={[
+							{ value: '', label: t('common.selectCategory') },
+							...categories.map(cat => ({ value: cat.id, label: cat.name }))
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="" label={t('common.selectCategory')}>{t('common.selectCategory')}</SelectItem>
-		{#each categories as cat}
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="" label={t('common.selectCategory')}>{t('common.selectCategory')}</SelectItem>
+	{#each categories as cat}
 <SelectItem value={cat.id} label={cat.name}>{cat.name}</SelectItem>
 {/each}
-		</SelectContent>
+	</SelectContent>
 </Select>
 					</div>
 				</div>

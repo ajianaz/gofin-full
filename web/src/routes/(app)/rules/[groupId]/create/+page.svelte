@@ -51,16 +51,21 @@
 						<div class="flex flex-col gap-2">
 							<Label for="trigger-type">{t('rules.createRule.triggerType')}</Label>
 							<div class="relative">
-								<Select bind:value={triggerType} id="trigger-type">
+						<Select bind:value={triggerType} id="trigger-type" items={[
+							{ value: 'description_contains', label: t('rules.createRule.triggerDescContains') },
+							{ value: 'amount_less_than', label: t('rules.createRule.triggerAmountLess') },
+							{ value: 'amount_greater_than', label: t('rules.createRule.triggerAmountGreater') },
+							{ value: 'deposit', label: t('rules.createRule.triggerDeposit') },
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="description_contains" label={t('rules.createRule.triggerDescContains')}>{t('rules.createRule.triggerDescContains')}</SelectItem>
-		<SelectItem value="amount_less_than" label={t('rules.createRule.triggerAmountLess')}>{t('rules.createRule.triggerAmountLess')}</SelectItem>
-		<SelectItem value="amount_greater_than" label={t('rules.createRule.triggerAmountGreater')}>{t('rules.createRule.triggerAmountGreater')}</SelectItem>
-		<SelectItem value="deposit" label={t('rules.createRule.triggerDeposit')}>{t('rules.createRule.triggerDeposit')}</SelectItem>
-		</SelectContent>
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="description_contains" label={t('rules.createRule.triggerDescContains')}>{t('rules.createRule.triggerDescContains')}</SelectItem>
+	<SelectItem value="amount_less_than" label={t('rules.createRule.triggerAmountLess')}>{t('rules.createRule.triggerAmountLess')}</SelectItem>
+	<SelectItem value="amount_greater_than" label={t('rules.createRule.triggerAmountGreater')}>{t('rules.createRule.triggerAmountGreater')}</SelectItem>
+	<SelectItem value="deposit" label={t('rules.createRule.triggerDeposit')}>{t('rules.createRule.triggerDeposit')}</SelectItem>
+	</SelectContent>
 </Select>
 								
 							</div>
@@ -68,16 +73,21 @@
 						<div class="flex flex-col gap-2">
 							<Label for="trigger-op">{t('rules.createRule.operator')}</Label>
 							<div class="relative">
-								<Select bind:value={triggerOperator} id="trigger-op">
+						<Select bind:value={triggerOperator} id="trigger-op" items={[
+							{ value: 'contains', label: t('rules.createRule.opContains') },
+							{ value: 'equals', label: t('rules.createRule.opEquals') },
+							{ value: 'starts_with', label: t('rules.createRule.opStartsWith') },
+							{ value: 'ends_with', label: t('rules.createRule.opEndsWith') },
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="contains" label={t('rules.createRule.opContains')}>{t('rules.createRule.opContains')}</SelectItem>
-		<SelectItem value="equals" label={t('rules.createRule.opEquals')}>{t('rules.createRule.opEquals')}</SelectItem>
-		<SelectItem value="starts_with" label={t('rules.createRule.opStartsWith')}>{t('rules.createRule.opStartsWith')}</SelectItem>
-		<SelectItem value="ends_with" label={t('rules.createRule.opEndsWith')}>{t('rules.createRule.opEndsWith')}</SelectItem>
-		</SelectContent>
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="contains" label={t('rules.createRule.opContains')}>{t('rules.createRule.opContains')}</SelectItem>
+	<SelectItem value="equals" label={t('rules.createRule.opEquals')}>{t('rules.createRule.opEquals')}</SelectItem>
+	<SelectItem value="starts_with" label={t('rules.createRule.opStartsWith')}>{t('rules.createRule.opStartsWith')}</SelectItem>
+	<SelectItem value="ends_with" label={t('rules.createRule.opEndsWith')}>{t('rules.createRule.opEndsWith')}</SelectItem>
+	</SelectContent>
 </Select>
 								
 							</div>
@@ -96,16 +106,21 @@
 						<div class="flex flex-col gap-2">
 							<Label for="action-type">{t('rules.createRule.actionType')}</Label>
 							<div class="relative">
-								<Select bind:value={actionType} id="action-type">
+						<Select bind:value={actionType} id="action-type" items={[
+							{ value: 'set_category', label: t('rules.createRule.actionSetCategory') },
+							{ value: 'add_tag', label: t('rules.createRule.actionAddTag') },
+							{ value: 'move_to_account', label: t('rules.createRule.actionMoveToAccount') },
+							{ value: 'set_budget', label: t('rules.createRule.actionSetBudget') },
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="set_category" label={t('rules.createRule.actionSetCategory')}>{t('rules.createRule.actionSetCategory')}</SelectItem>
-		<SelectItem value="add_tag" label={t('rules.createRule.actionAddTag')}>{t('rules.createRule.actionAddTag')}</SelectItem>
-		<SelectItem value="move_to_account" label={t('rules.createRule.actionMoveToAccount')}>{t('rules.createRule.actionMoveToAccount')}</SelectItem>
-		<SelectItem value="set_budget" label={t('rules.createRule.actionSetBudget')}>{t('rules.createRule.actionSetBudget')}</SelectItem>
-		</SelectContent>
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="set_category" label={t('rules.createRule.actionSetCategory')}>{t('rules.createRule.actionSetCategory')}</SelectItem>
+	<SelectItem value="add_tag" label={t('rules.createRule.actionAddTag')}>{t('rules.createRule.actionAddTag')}</SelectItem>
+	<SelectItem value="move_to_account" label={t('rules.createRule.actionMoveToAccount')}>{t('rules.createRule.actionMoveToAccount')}</SelectItem>
+	<SelectItem value="set_budget" label={t('rules.createRule.actionSetBudget')}>{t('rules.createRule.actionSetBudget')}</SelectItem>
+	</SelectContent>
 </Select>
 								
 							</div>

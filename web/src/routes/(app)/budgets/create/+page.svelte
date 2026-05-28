@@ -48,17 +48,23 @@
 				<div class="grid gap-2">
 					<Label for="auto-type">{t('budgets.create.autoBudgetType')}</Label>
 					<div class="relative">
-						<Select bind:value={autoBudgetType} id="auto-type">
+						<Select bind:value={autoBudgetType} id="auto-type" items={[
+							{ value: 'none', label: t('budgets.create.autoBudgetNone') },
+							{ value: 'reset', label: t('budgets.create.autoBudgetReset') },
+							{ value: 'rollover', label: t('budgets.create.autoBudgetRollover') },
+							{ value: 'fixed', label: t('budgets.create.autoBudgetFixed') },
+							{ value: 'adjust', label: t('budgets.create.autoBudgetAdjust') },
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="none" label={t('budgets.create.autoBudgetNone')}>{t('budgets.create.autoBudgetNone')}</SelectItem>
-		<SelectItem value="reset" label={t('budgets.create.autoBudgetReset')}>{t('budgets.create.autoBudgetReset')}</SelectItem>
-		<SelectItem value="rollover" label={t('budgets.create.autoBudgetRollover')}>{t('budgets.create.autoBudgetRollover')}</SelectItem>
-		<SelectItem value="fixed" label={t('budgets.create.autoBudgetFixed')}>{t('budgets.create.autoBudgetFixed')}</SelectItem>
-		<SelectItem value="adjust" label={t('budgets.create.autoBudgetAdjust')}>{t('budgets.create.autoBudgetAdjust')}</SelectItem>
-		</SelectContent>
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="none" label={t('budgets.create.autoBudgetNone')}>{t('budgets.create.autoBudgetNone')}</SelectItem>
+	<SelectItem value="reset" label={t('budgets.create.autoBudgetReset')}>{t('budgets.create.autoBudgetReset')}</SelectItem>
+	<SelectItem value="rollover" label={t('budgets.create.autoBudgetRollover')}>{t('budgets.create.autoBudgetRollover')}</SelectItem>
+	<SelectItem value="fixed" label={t('budgets.create.autoBudgetFixed')}>{t('budgets.create.autoBudgetFixed')}</SelectItem>
+	<SelectItem value="adjust" label={t('budgets.create.autoBudgetAdjust')}>{t('budgets.create.autoBudgetAdjust')}</SelectItem>
+	</SelectContent>
 </Select>
 					</div>
 				</div>
@@ -71,17 +77,23 @@
 				<div class="grid gap-2">
 					<Label for="period">{t('budgets.create.period')}</Label>
 					<div class="relative">
-						<Select bind:value={period} id="period">
+						<Select bind:value={period} id="period" items={[
+							{ value: 'daily', label: t('budgets.create.periodDaily') },
+							{ value: 'weekly', label: t('budgets.create.periodWeekly') },
+							{ value: 'monthly', label: t('budgets.create.periodMonthly') },
+							{ value: 'quarterly', label: t('budgets.create.periodQuarterly') },
+							{ value: 'yearly', label: t('budgets.create.periodYearly') },
+						]}>
 <SelectTrigger class="w-full">
-		<SelectValue />
-	</SelectTrigger>
-		<SelectContent>
-		<SelectItem value="daily" label={t('budgets.create.periodDaily')}>{t('budgets.create.periodDaily')}</SelectItem>
-		<SelectItem value="weekly" label={t('budgets.create.periodWeekly')}>{t('budgets.create.periodWeekly')}</SelectItem>
-		<SelectItem value="monthly" label={t('budgets.create.periodMonthly')}>{t('budgets.create.periodMonthly')}</SelectItem>
-		<SelectItem value="quarterly" label={t('budgets.create.periodQuarterly')}>{t('budgets.create.periodQuarterly')}</SelectItem>
-		<SelectItem value="yearly" label={t('budgets.create.periodYearly')}>{t('budgets.create.periodYearly')}</SelectItem>
-		</SelectContent>
+	<SelectValue />
+</SelectTrigger>
+	<SelectContent>
+	<SelectItem value="daily" label={t('budgets.create.periodDaily')}>{t('budgets.create.periodDaily')}</SelectItem>
+	<SelectItem value="weekly" label={t('budgets.create.periodWeekly')}>{t('budgets.create.periodWeekly')}</SelectItem>
+	<SelectItem value="monthly" label={t('budgets.create.periodMonthly')}>{t('budgets.create.periodMonthly')}</SelectItem>
+	<SelectItem value="quarterly" label={t('budgets.create.periodQuarterly')}>{t('budgets.create.periodQuarterly')}</SelectItem>
+	<SelectItem value="yearly" label={t('budgets.create.periodYearly')}>{t('budgets.create.periodYearly')}</SelectItem>
+	</SelectContent>
 </Select>
 					</div>
 				</div>

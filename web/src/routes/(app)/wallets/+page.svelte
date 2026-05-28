@@ -130,18 +130,24 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<div class="relative">
-				<Select bind:value={typeFilter}>
-					<SelectTrigger class="w-40">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all" label={t('wallets.list.allTypes')}>{t('wallets.list.allTypes')}</SelectItem>
-						<SelectItem value="asset" label={t('wallets.list.bankAccount')}>{t('wallets.list.bankAccount')}</SelectItem>
-						<SelectItem value="cash" label={t('wallets.list.cash')}>{t('wallets.list.cash')}</SelectItem>
-						<SelectItem value="liability" label={t('wallets.list.creditCard')}>{t('wallets.list.creditCard')}</SelectItem>
-						<SelectItem value="expense" label={t('wallets.list.ewallet')}>{t('wallets.list.ewallet')}</SelectItem>
-					</SelectContent>
-				</Select>
+			<Select bind:value={typeFilter} items={[
+				{ value: 'all', label: t('wallets.list.allTypes') },
+				{ value: 'asset', label: t('wallets.list.bankAccount') },
+				{ value: 'cash', label: t('wallets.list.cash') },
+				{ value: 'liability', label: t('wallets.list.creditCard') },
+				{ value: 'expense', label: t('wallets.list.ewallet') },
+			]}>
+				<SelectTrigger class="w-40">
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+					<SelectItem value="all" label={t('wallets.list.allTypes')}>{t('wallets.list.allTypes')}</SelectItem>
+					<SelectItem value="asset" label={t('wallets.list.bankAccount')}>{t('wallets.list.bankAccount')}</SelectItem>
+					<SelectItem value="cash" label={t('wallets.list.cash')}>{t('wallets.list.cash')}</SelectItem>
+					<SelectItem value="liability" label={t('wallets.list.creditCard')}>{t('wallets.list.creditCard')}</SelectItem>
+					<SelectItem value="expense" label={t('wallets.list.ewallet')}>{t('wallets.list.ewallet')}</SelectItem>
+				</SelectContent>
+			</Select>
 			</div>
 			<Button size="sm" onclick={() => goto('/wallets/create')}>
 				<Plus class="size-4" />
@@ -213,14 +219,16 @@
 					</div>
 					<div class="flex flex-col gap-2">
 						<Label for="edit-currency">{t('wallets.edit.currency')}</Label>
-						<Select bind:value={editCurrencyId} id="edit-currency">
-							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
-							<SelectContent>
-								{#each currencies as c}
-									<SelectItem value={c.code} label={`${c.code} (${c.symbol}) — ${c.name}`}>{c.code} ({c.symbol}) — {c.name}</SelectItem>
-								{/each}
-							</SelectContent>
-						</Select>
+					<Select bind:value={editCurrencyId} id="edit-currency" items={[
+						...currencies.map(c => ({ value: c.code, label: `${c.code} (${c.symbol}) — ${c.name}` }))
+					]}>
+						<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
+						<SelectContent>
+							{#each currencies as c}
+								<SelectItem value={c.code} label={`${c.code} (${c.symbol}) — ${c.name}`}>{c.code} ({c.symbol}) — {c.name}</SelectItem>
+							{/each}
+						</SelectContent>
+					</Select>
 					</div>
 					{#if editError}
 						<p class="text-destructive text-sm">{editError}</p>

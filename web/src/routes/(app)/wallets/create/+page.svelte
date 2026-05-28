@@ -48,17 +48,23 @@
 				<div class="flex flex-col gap-2">
 					<Label for="type">{t('wallets.create.type')}</Label>
 					<div class="relative">
-						<Select bind:value={type} id="type">
+						<Select bind:value={type} id="type" items={[
+							{ value: 'asset', label: t('wallets.create.bankAccount') },
+							{ value: 'cash', label: t('wallets.create.cash') },
+							{ value: 'liability', label: t('wallets.create.creditCard') },
+							{ value: 'expense', label: t('wallets.create.ewallet') },
+							{ value: 'revenue', label: t('wallets.create.investment') },
+						]}>
 <SelectTrigger class="w-full">
-													<SelectValue />
-												</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="asset" label={t('wallets.create.bankAccount')}>{t('wallets.create.bankAccount')}</SelectItem>
-								<SelectItem value="cash" label={t('wallets.create.cash')}>{t('wallets.create.cash')}</SelectItem>
-								<SelectItem value="liability" label={t('wallets.create.creditCard')}>{t('wallets.create.creditCard')}</SelectItem>
-								<SelectItem value="expense" label={t('wallets.create.ewallet')}>{t('wallets.create.ewallet')}</SelectItem>
-								<SelectItem value="revenue" label={t('wallets.create.investment')}>{t('wallets.create.investment')}</SelectItem>
-							</SelectContent>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="asset" label={t('wallets.create.bankAccount')}>{t('wallets.create.bankAccount')}</SelectItem>
+											<SelectItem value="cash" label={t('wallets.create.cash')}>{t('wallets.create.cash')}</SelectItem>
+											<SelectItem value="liability" label={t('wallets.create.creditCard')}>{t('wallets.create.creditCard')}</SelectItem>
+											<SelectItem value="expense" label={t('wallets.create.ewallet')}>{t('wallets.create.ewallet')}</SelectItem>
+											<SelectItem value="revenue" label={t('wallets.create.investment')}>{t('wallets.create.investment')}</SelectItem>
+										</SelectContent>
 </Select>
 											</div>
 										</div>
@@ -69,7 +75,9 @@
 						{#if loadingCurrencies}
 							<Input disabled value={t('common.loading')} />
 						{:else}
-							<Select bind:value={currencyId} id="currency">
+							<Select bind:value={currencyId} id="currency" items={[
+								...currencies.map(c => ({ value: c.id, label: `${c.code} (${c.symbol}) — ${c.name}` }))
+							]}>
 								<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 								<SelectContent>
 									{#each currencies as c}

@@ -150,10 +150,11 @@ onMount(async () => {
 							<Checkbox checked={value as boolean} onchange={() => handleCheckboxChange(pref)} />
 						{:else if config.type === 'select' && config.options}
 							<div class="relative">
-								<Select
-									value={String(value)}
-								onValueChange={(v) => handleSelectChange(pref, v)}
-								>
+						<Select
+							value={String(value)}
+							onValueChange={(v) => handleSelectChange(pref, v)}
+							items={[...config.options.map(opt => ({ value: opt, label: opt }))]}
+						>
 <SelectTrigger class="h-9 w-40">
 										<SelectValue />
 									</SelectTrigger>
