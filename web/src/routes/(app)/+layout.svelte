@@ -121,10 +121,16 @@
 		// Attach user info via DOM (Svelte reactivity lost inside SidebarFooter)
 		const nameEl = document.getElementById('user-name');
 		const emailEl = document.getElementById('user-email');
-		if (nameEl && emailEl && authStore.user) {
+		const avatarEl = document.getElementById('user-avatar');
+		if (authStore.user) {
 			const displayName = authStore.user.name || authStore.user.email?.split('@')[0] || '';
-			nameEl.textContent = displayName;
-			emailEl.textContent = authStore.user.email || '';
+			if (nameEl) nameEl.textContent = displayName;
+			if (emailEl) emailEl.textContent = authStore.user.email || '';
+			if (avatarEl) {
+				const initials = displayName
+					.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+				avatarEl.textContent = initials || 'U';
+			}
 		}
 	});
 
