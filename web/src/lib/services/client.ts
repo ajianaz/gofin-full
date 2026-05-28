@@ -1,4 +1,5 @@
 import type { ApiError, TokenResponse } from '$lib/types/index.js';
+import { authStore } from '$lib/stores/auth.svelte.js';
 
 const API_BASE = '/api/v1';
 
@@ -26,6 +27,8 @@ async function refreshAccessToken(): Promise<TokenResponse | null> {
 		const tokens: TokenResponse = await response.json();
 		localStorage.setItem('access_token', tokens.access_token);
 		localStorage.setItem('refresh_token', tokens.refresh_token);
+		// Sync with reactive auth store
+		authStore.setTokens(tokens);
 		return tokens;
 	} catch {
 		return null;
@@ -101,6 +104,8 @@ async function request<T>(
 		// Refresh failed — clear tokens and redirect to login
 		localStorage.removeItem('access_token');
 		localStorage.removeItem('refresh_token');
+		// Sync with reactive auth store
+		authStore.clearTokens();
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';
 		}
