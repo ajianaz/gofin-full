@@ -118,6 +118,14 @@
 				logoutEl.removeEventListener('click', handler);
 			});
 		}
+		// Attach user info via DOM (Svelte reactivity lost inside SidebarFooter)
+		const nameEl = document.getElementById('user-name');
+		const emailEl = document.getElementById('user-email');
+		if (nameEl && emailEl && authStore.user) {
+			const displayName = authStore.user.name || authStore.user.email?.split('@')[0] || '';
+			nameEl.textContent = displayName;
+			emailEl.textContent = authStore.user.email || '';
+		}
 	});
 
 	function isActive(href: string): boolean {
@@ -233,13 +241,13 @@
 			<div class="flex flex-col gap-2">
 				<div class="flex items-center gap-2 rounded-md bg-sidebar p-2">
 					<Avatar class="size-8">
-						<AvatarFallback class="bg-sidebar-accent text-sidebar-accent-foreground text-xs">
+						<AvatarFallback class="bg-sidebar-accent text-sidebar-accent-foreground text-xs" id="user-avatar">
 							{userInitials}
 						</AvatarFallback>
 					</Avatar>
 					<div class="min-w-0 flex-1">
-						<span class="block truncate text-sm font-medium text-sidebar-foreground">{mounted && authStore.user?.name ? authStore.user.name : ''}</span>
-						<span class="block truncate text-xs text-muted-foreground">{mounted && authStore.user?.email ? authStore.user.email : ''}</span>
+						<span class="block truncate text-sm font-medium text-sidebar-foreground" id="user-name"></span>
+						<span class="block truncate text-xs text-muted-foreground" id="user-email"></span>
 					</div>
 				</div>
 				<div class="flex items-center justify-between px-2">
