@@ -150,53 +150,54 @@
 		</div>
 	</div>
 
-	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#if isLoading}
-			{#each Array(6) as _}
-				<div class="rounded-lg border bg-card p-5">
-					<div class="flex items-center justify-between mb-4">
-						<div class="flex items-center gap-2">
-							<Skeleton class="size-[18px] rounded" />
-							<Skeleton class="h-5 w-24" />
+	<Card>
+		<CardContent class="p-0">
+			{#if isLoading}
+				{#each Array(6) as _}
+					<div class="flex items-center gap-4 px-5 py-4 border-b">
+						<div class="flex size-10 shrink-0 items-center justify-center rounded-lg"><Skeleton class="size-5 rounded" /></div>
+						<div class="flex flex-col gap-2 min-w-0 flex-1">
+							<Skeleton class="h-4 w-40" />
+							<Skeleton class="h-3 w-24" />
 						</div>
-						<Skeleton class="size-4 rounded" />
+						<div class="ml-auto text-right">
+							<Skeleton class="h-4 w-20" />
+						</div>
 					</div>
-					<Skeleton class="mb-1 h-7 w-32" />
-					<Skeleton class="h-3 w-20" />
-				</div>
-			{/each}
-		{:else if errorMsg}
-			<p class="col-span-full text-sm text-destructive py-8 text-center">{errorMsg}</p>
-		{:else}
-			{#each filtered as wallet}
-				{@const Icon = walletIcon(wallet)}
-				<Card>
-					<CardContent class="p-5">
-						<div class="flex items-center justify-between mb-4">
-							<div class="flex items-center gap-2">
-								<Icon class="size-[18px] text-primary" />
-								<span class="text-base font-semibold text-foreground">{wallet.name}</span>
-							</div>
-							<div class="flex items-center gap-1">
-						<Button variant="ghost" size="icon-sm" aria-label={t('wallets.edit.title')} class="text-muted-foreground hover:text-primary p-1" onclick={() => openEdit(wallet)}>
-							<Pencil class="size-4" />
-						</Button>
-							<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive p-1" onclick={() => (deleteTarget = wallet.id)}>
-							<Trash2 class="size-4" />
-						</Button>
-							</div>
-						</div>
-						<p class="text-xl font-bold {parseFloat(wallet.balance) < 0 ? 'text-red-600' : 'text-foreground'}">
-							{formatBalance(wallet.balance, wallet.currency_symbol)}
-						</p>
-						<p class="mt-1 text-xs text-muted-foreground">{walletLabel(wallet)}</p>
-					</CardContent>
-				</Card>
+				{/each}
+			{:else if errorMsg}
+				<p class="px-5 py-8 text-center text-sm text-destructive">{errorMsg}</p>
 			{:else}
-				<EmptyState />
-			{/each}
-		{/if}
-	</div>
+				{#each filtered as wallet}
+					{@const Icon = walletIcon(wallet)}
+					<div class="flex items-center gap-4 px-5 py-4 border-b last:border-b-0">
+						<div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+							<Icon class="size-5 text-foreground" />
+						</div>
+						<div class="flex flex-col gap-1 min-w-0 flex-1">
+							<p class="text-sm font-semibold text-foreground truncate">{wallet.name}</p>
+							<p class="text-xs text-muted-foreground">{walletLabel(wallet)}</p>
+						</div>
+						<div class="ml-auto shrink-0 flex items-center gap-3">
+							<div class="text-right">
+								<p class="text-sm font-semibold {parseFloat(wallet.balance) < 0 ? 'text-red-600' : 'text-foreground'}">
+									{formatBalance(wallet.balance, wallet.currency_symbol)}
+								</p>
+							</div>
+							<Button variant="ghost" size="icon-sm" aria-label={t('wallets.edit.title')} class="text-muted-foreground hover:text-primary" onclick={() => openEdit(wallet)}>
+								<Pencil class="size-4" />
+							</Button>
+							<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = wallet.id)}>
+								<Trash2 class="size-4" />
+							</Button>
+						</div>
+					</div>
+				{:else}
+					<EmptyState />
+				{/each}
+			{/if}
+		</CardContent>
+	</Card>
 
 	<!-- Edit Dialog -->
 	{#if editOpen && editWallet}

@@ -1,7 +1,7 @@
 import { localeStore } from '$lib/stores/i18n.svelte.js';
 
 const DEFAULT_SYMBOLS: Record<string, string> = {
-	en: '$',
+	en: 'Rp',
 	id: 'Rp'
 };
 

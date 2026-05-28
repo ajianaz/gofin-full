@@ -60,62 +60,60 @@
 		</Button>
 	</div>
 
-	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#if isLoading}
-{#each Array(6) as _}
-				<div class="rounded-lg border bg-card p-5">
-					<div class="flex items-center justify-between mb-4">
-						<div class="flex items-center gap-2">
-							<Skeleton class="size-[18px] rounded" />
-							<Skeleton class="h-5 w-24" />
+	<Card>
+		<CardContent class="p-0">
+			{#if isLoading}
+				{#each Array(6) as _}
+					<div class="flex items-center gap-4 px-5 py-4 border-b">
+						<div class="flex size-10 shrink-0 items-center justify-center rounded-lg"><Skeleton class="size-5 rounded" /></div>
+						<div class="flex flex-col gap-2 min-w-0 flex-1">
+							<Skeleton class="h-4 w-32" />
+							<Skeleton class="h-3 w-48" />
 						</div>
-						<Skeleton class="size-4 rounded" />
-					</div>
-					<Skeleton class="mb-1 h-7 w-32" />
-					<Skeleton class="h-3 w-20" />
-				</div>
-			{/each}
-	{:else if errorMsg}
-			<p class="col-span-full text-sm text-destructive py-8 text-center">{errorMsg}</p>
-		{:else}
-			{#each items as budget}
-			{@const pct = parseFloat(budget.budget_amount) > 0
-				? (parseFloat(budget.spend_amount) / parseFloat(budget.budget_amount)) * 100
-				: 0}
-			{@const remaining = parseFloat(budget.budget_amount) - parseFloat(budget.spend_amount)}
-			<Card>
-				<CardContent class="p-5">
-					<div class="flex items-center justify-between mb-3">
-						<p class="text-base font-semibold text-foreground">{budget.name}</p>
-					<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = budget.id)}>
-						<Trash2 class="size-4" />
-					</Button>
-					</div>
-					<div class="mb-3">
-						<div class="flex justify-between text-sm mb-1">
-							<span class="text-muted-foreground">{t('budgets.list.used')}</span>
-							<span class="font-medium text-foreground">{formatCurrency(budget.spend_amount, currencySymbol, currencyDecimal)}</span>
-						</div>
-						<div class="flex justify-between text-sm mb-1">
-							<span class="text-muted-foreground">{t('budgets.list.budget')}</span>
-							<span class="font-medium text-foreground">{formatCurrency(budget.budget_amount, currencySymbol, currencyDecimal)}</span>
-						</div>
-						<div class="flex justify-between text-sm">
-							<span class="text-muted-foreground">{t('budgets.list.remaining')}</span>
-							<span class="font-medium {remaining >= 0 ? 'text-green-600' : 'text-red-600'}">
-								{formatCurrency(remaining.toString(), currencySymbol, currencyDecimal)}
-							</span>
+						<div class="ml-auto text-right">
+							<Skeleton class="h-4 w-16" />
 						</div>
 					</div>
-					<Progress value={Math.min(pct, 100)} class="h-2" />
-					<p class="text-xs text-muted-foreground mt-1">{t('budgets.list.usedPercent', { pct: Math.round(pct) })}</p>
-				</CardContent>
-			</Card>
+				{/each}
+			{:else if errorMsg}
+				<p class="px-5 py-8 text-center text-sm text-destructive">{errorMsg}</p>
 			{:else}
-				<EmptyState />
-			{/each}
-		{/if}
-	</div>
+				{#each items as budget}
+					{@const pct = parseFloat(budget.budget_amount) > 0
+						? (parseFloat(budget.spend_amount) / parseFloat(budget.budget_amount)) * 100
+						: 0}
+					{@const remaining = parseFloat(budget.budget_amount) - parseFloat(budget.spend_amount)}
+					<div class="flex items-center gap-4 px-5 py-4 border-b last:border-b-0">
+						<div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+							<span class="text-lg font-bold text-foreground">{budget.name.charAt(0).toUpperCase()}</span>
+						</div>
+						<div class="flex flex-col gap-1.5 min-w-0 flex-1">
+							<p class="text-sm font-semibold text-foreground truncate">{budget.name}</p>
+							<div class="flex items-center gap-3 text-xs text-muted-foreground">
+								<span>{t('budgets.list.used')}: {formatCurrency(budget.spend_amount, currencySymbol, currencyDecimal)}</span>
+								<span>/</span>
+								<span>{formatCurrency(budget.budget_amount, currencySymbol, currencyDecimal)}</span>
+							</div>
+							<Progress value={Math.min(pct, 100)} class="h-1.5 w-[120px]" />
+						</div>
+						<div class="ml-auto shrink-0 flex items-center gap-3">
+							<div class="text-right">
+								<p class="text-sm font-semibold {remaining >= 0 ? 'text-green-600' : 'text-red-600'}">
+									{formatCurrency(remaining.toString(), currencySymbol, currencyDecimal)}
+								</p>
+								<p class="text-xs text-muted-foreground">{t('budgets.list.usedPercent', { pct: Math.round(pct) })}</p>
+							</div>
+							<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = budget.id)}>
+								<Trash2 class="size-4" />
+							</Button>
+						</div>
+					</div>
+				{:else}
+					<EmptyState />
+				{/each}
+			{/if}
+		</CardContent>
+	</Card>
 	<ConfirmDialog
 		bind:open={deleteOpen}
 		title={t('common.delete')}
