@@ -49,6 +49,7 @@
 		SidebarTrigger,
 		Separator
 	} from '$lib/components/ui/sidebar/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import { Avatar, AvatarFallback } from '$lib/components/ui/avatar/index.js';
 	import {
 		LayoutDashboard,
@@ -244,27 +245,31 @@
 				</div>
 				<div class="flex items-center justify-between px-2">
 					<div class="flex items-center gap-1">
-						<LanguageSwitcher />
-						<button
-							onclick={() => themeStore.toggle()}
-							class="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-							title={themeStore.isDark ? t('layout.sidebar.lightMode') : t('layout.sidebar.darkMode')}
-						>
-							{#if themeStore.isDark}
-								<Sun class="size-3.5" />
-							{:else}
-								<Moon class="size-3.5" />
-							{/if}
-						</button>
-					</div>
-					<button
-						id="logout-btn"
-						class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-						title={t('layout.sidebar.logout')}
+					<LanguageSwitcher />
+					<Button
+						variant="ghost"
+						size="sm"
+						onclick={() => themeStore.toggle()}
+						class="p-1.5 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						title={themeStore.isDark ? t('layout.sidebar.lightMode') : t('layout.sidebar.darkMode')}
 					>
-						<LogOut class="size-3.5" />
-						<span>{t('layout.sidebar.logout')}</span>
-					</button>
+						{#if themeStore.isDark}
+							<Sun class="size-3.5" />
+						{:else}
+							<Moon class="size-3.5" />
+						{/if}
+					</Button>
+				</div>
+				<Button
+					variant="ghost"
+					size="sm"
+					id="logout-btn"
+					class="gap-1.5 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+					title={t('layout.sidebar.logout')}
+				>
+					<LogOut class="size-3.5" />
+					<span>{t('layout.sidebar.logout')}</span>
+				</Button>
 				</div>
 			</div>
 		</SidebarFooter>

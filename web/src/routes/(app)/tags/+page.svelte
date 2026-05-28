@@ -81,9 +81,9 @@
 							<TableCell class="text-muted-foreground">{tag.description ?? '-'}</TableCell>
 							<TableCell class="hidden md:table-cell text-muted-foreground">{formatDate(tag.date)}</TableCell>
 							<TableCell>
-								<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = tag.id)}>
-									<Trash2 class="size-4" />
-								</button>
+					<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = tag.id)}>
+						<Trash2 class="size-4" />
+					</Button>
 							</TableCell>
 						</TableRow>
 					{:else}

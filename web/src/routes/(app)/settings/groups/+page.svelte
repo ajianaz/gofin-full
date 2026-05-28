@@ -77,7 +77,7 @@
 		</div>
 	{/if}
 
-	<div class="flex items-end gap-3 max-w-md">
+	<div class="flex flex-col sm:flex-row items-end gap-3 max-w-md">
 		<div class="flex-1 grid gap-2">
 			<label for="new-group" class="text-sm font-medium text-foreground">{t('settings.groups.createLabel')}</label>
 			<Input id="new-group" placeholder={t('settings.groups.createPlaceholder')} bind:value={newTitle} />

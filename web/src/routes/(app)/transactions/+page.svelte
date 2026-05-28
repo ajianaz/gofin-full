@@ -257,9 +257,9 @@
 								<TableCell class="hidden md:table-cell text-muted-foreground">{tx.category_name || '-'}</TableCell>
 								<TableCell class="hidden md:table-cell text-muted-foreground">{acctName(tx)}</TableCell>
 								<TableCell>
-									<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = tx.id)}>
-										<Trash2 class="size-4" />
-									</button>
+						<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = tx.id)}>
+							<Trash2 class="size-4" />
+						</Button>
 								</TableCell>
 							</TableRow>
 						{:else}

@@ -98,9 +98,9 @@
 						{:else}
 							<Badge variant="outline" class="text-xs">{t('recurring.list.inactive')}</Badge>
 						{/if}
-						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = rec.id)}>
-							<Trash2 class="size-4" />
-						</button>
+					<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = rec.id)}>
+						<Trash2 class="size-4" />
+					</Button>
 					</div>
 				</div>
 			{:else}

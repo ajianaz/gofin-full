@@ -72,7 +72,7 @@
 		</Select>
 		</div>
 
-		<div class="grid grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 			<div class="grid gap-2">
 				<Label for="start">{t('export.startDate')}</Label>
 				<Input id="start" type="date" bind:value={startDate} />

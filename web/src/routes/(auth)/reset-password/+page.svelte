@@ -58,12 +58,12 @@
 	}
 </script>
 <Card>
-	<CardHeader class="text-center px-8 pt-8">
+	<CardHeader class="text-center px-4 sm:px-8 pt-8">
 		<CardTitle class="text-xl font-bold">{t('auth.resetPassword.title')}</CardTitle>
 		<p class="text-sm text-muted-foreground mt-1">{t('auth.resetPassword.subtitle')}</p>
 	</CardHeader>
 
-	<CardContent class="px-8 pb-8">
+	<CardContent class="px-4 sm:px-8 pb-8">
 		{#if !token}
 			<Alert variant="destructive">
 				<AlertDescription>{t('auth.resetPassword.errorToken')}</AlertDescription>

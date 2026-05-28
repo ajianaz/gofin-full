@@ -87,9 +87,9 @@
 				<CardContent class="p-5">
 					<div class="flex items-center justify-between mb-3">
 						<p class="text-base font-semibold text-foreground">{budget.name}</p>
-						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = budget.id)}>
-							<Trash2 class="size-4" />
-						</button>
+					<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = budget.id)}>
+						<Trash2 class="size-4" />
+					</Button>
 					</div>
 					<div class="mb-3">
 						<div class="flex justify-between text-sm mb-1">

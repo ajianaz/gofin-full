@@ -129,9 +129,9 @@
 							<p class="text-sm font-semibold text-foreground">{formatCurrency(pb.current_amount, getWalletCurrency(pb.account_id).symbol, getWalletCurrency(pb.account_id).decimal)}</p>
 							<p class="text-xs text-muted-foreground">{t('piggyBanks.list.of', { pct: Math.round(pct), target: formatCurrency(pb.target_amount, getWalletCurrency(pb.account_id).symbol, getWalletCurrency(pb.account_id).decimal) })}</p>
 						</div>
-						<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = { walletId: pb.account_id, id: pb.id })}>
-							<Trash2 class="size-4" />
-						</button>
+					<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = { walletId: pb.account_id, id: pb.id })}>
+						<Trash2 class="size-4" />
+					</Button>
 					</div>
 				</div>
 			{:else}
