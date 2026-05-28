@@ -1316,11 +1316,11 @@
 }
 
 /* Button active feedback — global press response */
-@utility cn-button-press {
-	transition: transform 160ms var(--ease-out);
-}
-@utility cn-button-press:active {
-	transform: scale(0.97);
+@layer base {
+	button:not(:disabled):active {
+		transform: scale(0.97);
+		transition: transform 160ms var(--ease-out);
+	}
 }
 
 /* Accessibility: reduce motion for users who prefer it */
