@@ -21,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - FE polish: Reports chart colors now use CSS variables (dark mode compatible)
 - FE polish: responsive breakpoints for 9 grid/layout pages + auth pages mobile padding
 - FE fix: Currency symbol fallback now uses locale-aware `getDefaultSymbol()` (ID→Rp, EN→$) instead of hardcoded `$`
-- FE fix: Sidebar user info (avatar, name, email) + language/theme/logout controls moved from footer to header
+- FE fix: Sidebar user info improved — name/email truncation, muted-foreground email color
 
 ## [0.1.5]
 
