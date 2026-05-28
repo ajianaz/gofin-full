@@ -66,8 +66,8 @@
 		<Select bind:value={format} id="format">
 			<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 			<SelectContent>
-				<SelectItem value="csv">CSV</SelectItem>
-				<SelectItem value="ofx">OFX</SelectItem>
+				<SelectItem value="csv" label={'CSV'}>CSV</SelectItem>
+				<SelectItem value="ofx" label={'OFX'}>OFX</SelectItem>
 			</SelectContent>
 		</Select>
 		</div>
@@ -88,9 +88,9 @@
 			<Select bind:value={walletId} id="wallet" disabled={isLoading}>
 				<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 				<SelectContent>
-					<SelectItem value="">{t('export.allWallets')}</SelectItem>
+					<SelectItem value="" label={t('export.allWallets')}>{t('export.allWallets')}</SelectItem>
 					{#each wallets as w}
-						<SelectItem value={w.id}>{w.name}</SelectItem>
+						<SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 					{/each}
 				</SelectContent>
 			</Select>

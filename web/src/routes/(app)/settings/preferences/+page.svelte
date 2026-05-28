@@ -159,7 +159,7 @@ onMount(async () => {
 									</SelectTrigger>
 								<SelectContent>
 									{#each config.options as opt (opt)}
-										<SelectItem value={opt}>{opt}</SelectItem>
+										<SelectItem value={opt} label={opt}>{opt}</SelectItem>
 									{/each}
 								</SelectContent>
 </Select>

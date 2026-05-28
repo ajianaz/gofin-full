@@ -135,11 +135,11 @@
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="all">{t('wallets.list.allTypes')}</SelectItem>
-						<SelectItem value="asset">{t('wallets.list.bankAccount')}</SelectItem>
-						<SelectItem value="cash">{t('wallets.list.cash')}</SelectItem>
-						<SelectItem value="liability">{t('wallets.list.creditCard')}</SelectItem>
-						<SelectItem value="expense">{t('wallets.list.ewallet')}</SelectItem>
+						<SelectItem value="all" label={t('wallets.list.allTypes')}>{t('wallets.list.allTypes')}</SelectItem>
+						<SelectItem value="asset" label={t('wallets.list.bankAccount')}>{t('wallets.list.bankAccount')}</SelectItem>
+						<SelectItem value="cash" label={t('wallets.list.cash')}>{t('wallets.list.cash')}</SelectItem>
+						<SelectItem value="liability" label={t('wallets.list.creditCard')}>{t('wallets.list.creditCard')}</SelectItem>
+						<SelectItem value="expense" label={t('wallets.list.ewallet')}>{t('wallets.list.ewallet')}</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
@@ -217,7 +217,7 @@
 							<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 							<SelectContent>
 								{#each currencies as c}
-									<SelectItem value={c.code}>{c.code} ({c.symbol}) — {c.name}</SelectItem>
+									<SelectItem value={c.code} label={c.code} ({c.symbol}) — {c.name}>{c.code} ({c.symbol}) — {c.name}</SelectItem>
 								{/each}
 							</SelectContent>
 						</Select>

@@ -81,9 +81,9 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="">{t('common.selectWallet')}</SelectItem>
+		<SelectItem value="" label={t('common.selectWallet')}>{t('common.selectWallet')}</SelectItem>
 		{#each wallets as w}
-<SelectItem value={w.id}>{w.name}</SelectItem>
+<SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
 		</SelectContent>
 </Select>
@@ -107,11 +107,11 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="daily">{t('recurring.list.freqDaily')}</SelectItem>
-		<SelectItem value="weekly">{t('recurring.list.freqWeekly')}</SelectItem>
-		<SelectItem value="monthly">{t('recurring.list.freqMonthly')}</SelectItem>
-		<SelectItem value="quarterly">{t('recurring.list.freqQuarterly')}</SelectItem>
-		<SelectItem value="yearly">{t('recurring.list.freqYearly')}</SelectItem>
+		<SelectItem value="daily" label={t('recurring.list.freqDaily')}>{t('recurring.list.freqDaily')}</SelectItem>
+		<SelectItem value="weekly" label={t('recurring.list.freqWeekly')}>{t('recurring.list.freqWeekly')}</SelectItem>
+		<SelectItem value="monthly" label={t('recurring.list.freqMonthly')}>{t('recurring.list.freqMonthly')}</SelectItem>
+		<SelectItem value="quarterly" label={t('recurring.list.freqQuarterly')}>{t('recurring.list.freqQuarterly')}</SelectItem>
+		<SelectItem value="yearly" label={t('recurring.list.freqYearly')}>{t('recurring.list.freqYearly')}</SelectItem>
 		</SelectContent>
 </Select>
 					</div>
@@ -124,9 +124,9 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="">{t('recurring.create.selectDestWallet')}</SelectItem>
+		<SelectItem value="" label={t('recurring.create.selectDestWallet')}>{t('recurring.create.selectDestWallet')}</SelectItem>
 		{#each wallets as w}
-<SelectItem value={w.id}>{w.name}</SelectItem>
+<SelectItem value={w.id} label={w.name}>{w.name}</SelectItem>
 {/each}
 		</SelectContent>
 </Select>
@@ -140,9 +140,9 @@
 		<SelectValue />
 	</SelectTrigger>
 		<SelectContent>
-		<SelectItem value="">{t('common.selectCategory')}</SelectItem>
+		<SelectItem value="" label={t('common.selectCategory')}>{t('common.selectCategory')}</SelectItem>
 		{#each categories as cat}
-<SelectItem value={cat.id}>{cat.name}</SelectItem>
+<SelectItem value={cat.id} label={cat.name}>{cat.name}</SelectItem>
 {/each}
 		</SelectContent>
 </Select>
