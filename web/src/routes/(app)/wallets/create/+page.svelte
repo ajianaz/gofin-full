@@ -73,7 +73,7 @@
 								<SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
 								<SelectContent>
 									{#each currencies as c}
-										<SelectItem value={c.id} label={c.code} ({c.symbol}) — {c.name}>{c.code} ({c.symbol}) — {c.name}</SelectItem>
+										<SelectItem value={c.id} label={`${c.code} (${c.symbol}) — ${c.name}`}>{c.code} ({c.symbol}) — {c.name}</SelectItem>
 									{/each}
 								</SelectContent>
 </Select>
