@@ -102,20 +102,18 @@
 
 	// Reactive DOM update — Svelte reactivity lost inside SidebarFooter slot
 	$effect(() => {
-		if (!mounted) return;
 		const user = authStore.user;
+		if (!user) return;
 		const nameEl = document.getElementById('user-name');
 		const emailEl = document.getElementById('user-email');
 		const avatarEl = document.getElementById('user-avatar');
-		if (user) {
-			const displayName = user.name || user.email?.split('@')[0] || '';
-			if (nameEl) nameEl.textContent = displayName;
-			if (emailEl) emailEl.textContent = user.email || '';
-			if (avatarEl) {
-				const initials = displayName
-					.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-				avatarEl.textContent = initials || 'U';
-			}
+		const displayName = user.name || user.email?.split('@')[0] || '';
+		if (nameEl) nameEl.textContent = displayName;
+		if (emailEl) emailEl.textContent = user.email || '';
+		if (avatarEl) {
+			const initials = displayName
+				.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+			avatarEl.textContent = initials || 'U';
 		}
 	});
 
