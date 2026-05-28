@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - SMTP + email verification config to .env.example and configuration docs
 - Rate limiting vars (RATE_LIMIT_ENABLED, LOGIN_RATE_LIMIT_ENABLED, etc.) to configuration docs
 
+### Changed
+- FE polish: motion engineering foundations — custom easing curves, button press feedback, prefers-reduced-motion, hover gate
+- FE polish: migrate 12 files from raw `<button>` to shadcn Button component
+- FE polish: Reports chart colors now use CSS variables (dark mode compatible)
+- FE polish: responsive breakpoints for 9 grid/layout pages + auth pages mobile padding
+
 ## [0.1.5] - 2026-05-27
 
 ### Added

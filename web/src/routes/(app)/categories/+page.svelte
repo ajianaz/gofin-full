@@ -84,9 +84,9 @@
 							</TableCell>
 							<TableCell class="hidden md:table-cell text-muted-foreground">{cat.transaction_count}</TableCell>
 							<TableCell>
-								<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors" onclick={() => (deleteTarget = cat.id)}>
-									<Trash2 class="size-4" />
-								</button>
+					<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive" onclick={() => (deleteTarget = cat.id)}>
+						<Trash2 class="size-4" />
+					</Button>
 							</TableCell>
 						</TableRow>
 					{:else}

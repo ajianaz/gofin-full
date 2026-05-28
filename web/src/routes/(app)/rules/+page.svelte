@@ -72,9 +72,7 @@
 		<CardContent class="p-0">
 			{#each items as group}
 				<div class="flex items-center justify-between px-5 py-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors">
-					<button
-						type="button"
-						class="flex flex-1 items-center justify-between text-left"
+					<Button variant="ghost" class="flex flex-1 items-center justify-between text-left"
 						onclick={() => goto('/rules/{group.id}')}
 					>
 						<div class="flex flex-col gap-1">
@@ -92,10 +90,10 @@
 							<span class="flex size-8 items-center justify-center rounded-md bg-muted text-sm font-semibold text-foreground">{group.order}</span>
 							<ChevronRight class="size-4 text-muted-foreground" />
 						</div>
-					</button>
-					<button type="button" aria-label="{t('common.delete')}" class="text-muted-foreground hover:text-destructive transition-colors px-2" onclick={(e) => { e.stopPropagation(); handleDelete(group.id); }}>
+					</Button>
+					<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive px-2" onclick={(e) => { e.stopPropagation(); handleDelete(group.id); }}>
 						<Trash2 class="size-4" />
-					</button>
+					</Button>
 				</div>
 			{:else}
 				<EmptyState />

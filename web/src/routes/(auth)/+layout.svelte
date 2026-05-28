@@ -34,7 +34,7 @@
 		</div>
 	</div>
 
-	<div class="flex flex-1 flex-col items-center justify-center p-8 gap-6">
+	<div class="flex flex-1 flex-col items-center justify-center px-4 py-8 gap-6">
 		<div class="self-end">
 			<LanguageSwitcher />
 		</div>

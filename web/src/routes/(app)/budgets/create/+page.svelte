@@ -86,7 +86,7 @@
 					</div>
 				</div>
 
-				<div class="flex gap-2 pt-2">
+				<div class="flex flex-col sm:flex-row gap-2 pt-2">
 					{#if errorMsg}
 						<p class="text-destructive text-sm">{errorMsg}</p>
 					{/if}

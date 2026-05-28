@@ -178,12 +178,12 @@
 								<span class="text-base font-semibold text-foreground">{wallet.name}</span>
 							</div>
 							<div class="flex items-center gap-1">
-						<button type="button" aria-label={t('wallets.edit.title')} class="text-muted-foreground hover:text-primary transition-colors p-1" onclick={() => openEdit(wallet)}>
+						<Button variant="ghost" size="icon-sm" aria-label={t('wallets.edit.title')} class="text-muted-foreground hover:text-primary p-1" onclick={() => openEdit(wallet)}>
 							<Pencil class="size-4" />
-						</button>
-								<button type="button" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive transition-colors p-1" onclick={() => (deleteTarget = wallet.id)}>
-									<Trash2 class="size-4" />
-								</button>
+						</Button>
+							<Button variant="ghost" size="icon-sm" aria-label={t('common.delete')} class="text-muted-foreground hover:text-destructive p-1" onclick={() => (deleteTarget = wallet.id)}>
+							<Trash2 class="size-4" />
+						</Button>
 							</div>
 						</div>
 						<p class="text-xl font-bold {parseFloat(wallet.balance) < 0 ? 'text-red-600' : 'text-foreground'}">

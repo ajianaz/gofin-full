@@ -66,10 +66,7 @@
 	<Card>
 		<CardContent class="p-0">
 			{#each rules as rule}
-				<button
-					type="button"
-					class="flex w-full items-center justify-between px-5 py-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors text-left"
-				>
+				<Button variant="ghost" class="flex w-full items-center justify-between px-5 py-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors text-left">
 					<div class="flex flex-col gap-1">
 						<p class="text-sm font-semibold text-foreground">{rule.title}</p>
 						<p class="text-[13px] text-muted-foreground">
@@ -84,7 +81,7 @@
 						{/if}
 						<ChevronRight class="size-4 text-muted-foreground" />
 					</div>
-				</button>
+				</Button>
 			{/each}
 			{#if rules.length === 0}
 				<p class="px-5 py-8 text-center text-sm text-muted-foreground">{t('rules.group.empty')}</p>

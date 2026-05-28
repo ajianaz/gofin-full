@@ -38,7 +38,7 @@
 			<p class="text-destructive text-sm">{errorMsg}</p>
 		{/if}
 
-		<div class="flex gap-3 pt-2">
+		<div class="flex flex-col sm:flex-row gap-3 pt-2">
 			<Button type="submit" disabled={isLoading}>{isLoading ? t('common.saving') : t('common.save')}</Button>
 			<Button type="button" variant="outline" onclick={() => goto('/tags')}>{t('common.cancel')}</Button>
 		</div>
