@@ -100,6 +100,25 @@
 			.slice(0, 2) ?? 'U'
 	);
 
+	// Reactive DOM update — Svelte reactivity lost inside SidebarFooter slot
+	$effect(() => {
+		if (!mounted) return;
+		const user = authStore.user;
+		const nameEl = document.getElementById('user-name');
+		const emailEl = document.getElementById('user-email');
+		const avatarEl = document.getElementById('user-avatar');
+		if (user) {
+			const displayName = user.name || user.email?.split('@')[0] || '';
+			if (nameEl) nameEl.textContent = displayName;
+			if (emailEl) emailEl.textContent = user.email || '';
+			if (avatarEl) {
+				const initials = displayName
+					.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+				avatarEl.textContent = initials || 'U';
+			}
+		}
+	});
+
 	onMount(async () => {
 		mounted = true;
 		// Always attempt restore if there's a token — validates server-side
@@ -120,22 +139,7 @@
 				logoutEl.removeEventListener('click', handler);
 			});
 		}
-		// Attach user info via DOM (Svelte reactivity lost inside SidebarFooter)
-		const nameEl = document.getElementById('user-name');
-		const emailEl = document.getElementById('user-email');
-		const avatarEl = document.getElementById('user-avatar');
-		if (authStore.user) {
-			const displayName = authStore.user.name || authStore.user.email?.split('@')[0] || '';
-			if (nameEl) nameEl.textContent = displayName;
-			if (emailEl) emailEl.textContent = authStore.user.email || '';
-			if (avatarEl) {
-				const initials = displayName
-					.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-				avatarEl.textContent = initials || 'U';
-			}
-		}
 	});
-
 	function isActive(href: string): boolean {
 		return $page.url.pathname.startsWith(href);
 	}
