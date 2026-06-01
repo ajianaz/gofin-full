@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-06-01
+
+### Security
+- **CRITICAL: SSE auth fix** — `/notifications/stream` now uses JWT auth context instead of URL param for user_id (prevents IDOR) (closes #192)
+- **refresh_token removed from response body** — Login/register/refresh/group-switch no longer expose refresh_token in JSON; only in httpOnly cookie (closes #195)
+- **Cookie Secure flag configurable** — Uses `!cfg.IsLocal()` so local HTTP dev works without HTTPS (closes #194)
+- **Content-Security-Policy header** added to frontend responses — strict in production, relaxed for Vite HMR in dev (closes #188)
+- **Register rate limiting** — 5 requests/minute per IP for POST /auth/register, layered on existing auth group limit (closes #201)
+
+### Backend
+- Admin ListUsers returns `name` field correctly instead of email (closes #193)
+- Logout handler no longer requires Content-Type header (closes #191)
+- Removed stale `ALLOW_2FA_BYPASS` from `.env.example` (closes #208)
+- Admin role check optimized — single `HasAnyGlobalRole` query instead of double `HasGlobalRole` (closes #206)
+- UserGroup handler accepts `secureCookies` param for consistent cookie Secure flag
+- Added `PublicTokenResponse` type for safe token responses
+
+### Frontend
+- Register page auto-login after success — redirects to dashboard instead of login page (closes #189)
+- Error feedback when auto-login after registration fails
+
+### Tooling
+- Cora CLI upgraded to v0.1.7 — deterministic review output (fixes cora-cli#97)
+- `.cora.yaml` updated with `temperature: 0`, `cache_ttl: 1440` for reproducible reviews
+
 ## [0.1.7] - 2026-06-01
 
 ### Security
