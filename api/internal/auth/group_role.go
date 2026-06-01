@@ -16,6 +16,7 @@ var authLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 type RoleLookup interface {
 	GetUserRoleInGroup(ctx context.Context, userID, groupID uuid.UUID) (GroupRole, error)
 	HasGlobalRole(ctx context.Context, userID uuid.UUID, roleTitle string) (bool, error)
+	HasAnyGlobalRole(ctx context.Context, userID uuid.UUID, roleTitles ...string) (bool, error)
 }
 
 // GroupRoleMiddleware looks up the authenticated user's role in their active group
@@ -46,11 +47,7 @@ func GroupRoleMiddleware(roleLookup RoleLookup) fiber.Handler {
 		c.Locals("user_group_role", role)
 
 		// Check global admin (owner or admin)
-		isOwner, _ := roleLookup.HasGlobalRole(c.Context(), user.ID, "owner")
-		isAdmin := isOwner
-		if !isAdmin {
-			isAdmin, _ = roleLookup.HasGlobalRole(c.Context(), user.ID, "admin")
-		}
+		isAdmin, _ := roleLookup.HasAnyGlobalRole(c.Context(), user.ID, "owner", "admin")
 		c.Locals("is_admin", isAdmin)
 
 		return c.Next()
