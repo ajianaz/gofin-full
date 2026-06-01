@@ -8,6 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
+
+	"github.com/ajianaz/gofin-full/api/internal/auth"
 )
 
 // Middleware provides SSE-related Fiber middleware.
@@ -22,6 +24,7 @@ func NewMiddleware(hub *Hub, log zerolog.Logger) *Middleware {
 }
 
 // Stream upgrades an HTTP connection to SSE.
+// Requires authenticated user — uses JWT context, not URL params.
 func (m *Middleware) Stream() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/event-stream")
@@ -29,15 +32,15 @@ func (m *Middleware) Stream() fiber.Handler {
 		c.Set("Connection", "keep-alive")
 		c.Set("X-Accel-Buffering", "no")
 
-		// Get user from auth context
-		userID, err := uuid.Parse(c.Params("user_id"))
-		if err != nil {
-			return c.Status(400).JSON(fiber.Map{"error": "invalid user id format"})
+		// Get user from authenticated JWT context — NOT from URL params
+		user := auth.GetUser(c)
+		if user == nil {
+			return c.Status(401).JSON(fiber.Map{"error": "unauthenticated"})
 		}
 
 		client := &Client{
-			ID:     uuid.New(),
-			UserID: userID,
+			ID:     uuid.New(), // unique connection ID
+			UserID: user.ID,   // authenticated user ID
 			Ch:     make(chan Event, 16),
 			Done:   make(chan struct{}),
 		}
