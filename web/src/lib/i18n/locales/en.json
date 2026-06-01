@@ -4,8 +4,8 @@
   "common.delete": "Delete",
   "common.deleteConfirm": "Are you sure you want to delete this item? This action cannot be undone.",
   "common.back": "Back",
-	"common.add": "Add",
-	"common.create": "Create",
+  "common.add": "Add",
+  "common.create": "Create",
   "common.all": "All",
   "common.search": "Search...",
   "common.active": "Active",
@@ -616,5 +616,9 @@
   "auth.verifyEmail.title": "Verify Email",
   "auth.verifyEmail.success": "Email verified successfully. You can now log in.",
   "auth.verifyEmail.error": "Invalid or expired verification link.",
-  "auth.login.notVerified": "Your email has not been verified. Please check your inbox."
+  "auth.login.notVerified": "Your email has not been verified. Please check your inbox.",
+  "common.overdue": "Overdue",
+  "common.completed": "Completed",
+  "common.cancelled": "Cancelled",
+  "common.forbidden": "Forbidden"
 }

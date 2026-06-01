@@ -19,13 +19,13 @@
 		cancelled: 'outline'
 	};
 
-	const defaultLabels: Record<string, string> = {
-		active: t('common.active'),
-		inactive: t('common.inactive'),
-		overdue: 'Overdue',
-		completed: 'Completed',
-		cancelled: 'Cancelled'
-	};
+const defaultLabels: Record<string, string> = {
+	active: t('common.active'),
+	inactive: t('common.inactive'),
+	overdue: t('common.overdue'),
+	completed: t('common.completed'),
+	cancelled: t('common.cancelled')
+};
 </script>
 
 <Badge variant={variants[status]}>

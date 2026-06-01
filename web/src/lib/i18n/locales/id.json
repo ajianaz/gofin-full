@@ -4,8 +4,8 @@
   "common.delete": "Hapus",
   "common.deleteConfirm": "Apakah Anda yakin ingin menghapus item ini? Tindakan ini tidak dapat dibatalkan.",
   "common.back": "Kembali",
-	"common.add": "Tambah",
-	"common.create": "Buat",
+  "common.add": "Tambah",
+  "common.create": "Buat",
   "common.all": "Semua",
   "common.search": "Cari...",
   "common.active": "Aktif",
@@ -616,5 +616,9 @@
   "auth.verifyEmail.title": "Verifikasi Email",
   "auth.verifyEmail.success": "Email berhasil diverifikasi.",
   "auth.verifyEmail.error": "Link verifikasi tidak valid atau sudah kadaluarsa.",
-  "auth.login.notVerified": "Email belum diverifikasi. Periksa inbox Anda."
+  "auth.login.notVerified": "Email belum diverifikasi. Periksa inbox Anda.",
+  "common.overdue": "Jatuh Tempo",
+  "common.completed": "Selesai",
+  "common.cancelled": "Dibatalkan",
+  "common.forbidden": "Dilarang"
 }

@@ -1,53 +1,36 @@
 import { api } from '$lib/services/client.js';
 
-export const exportService = {
-	async downloadCSV(startDate?: string, endDate?: string, walletId?: string): Promise<void> {
-		const params = new URLSearchParams();
-		if (startDate) params.set('start', startDate);
-		if (endDate) params.set('end', endDate);
-		if (walletId) params.set('wallet_id', walletId);
-		const qs = params.toString();
-		const url = `/export/csv${qs ? '?' + qs : ''}`;
-
-		const response = await fetch(`/api/v1${url}`, {
-			headers: {
-				'Content-Type': 'application/json',
-				...(localStorage.getItem('access_token') ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` } : {})
-			}
-		});
-
-		if (!response.ok) throw new Error(`Export failed: ${response.statusText}`);
-
-		const blob = await response.blob();
-		const a = document.createElement('a');
-		a.href = URL.createObjectURL(blob);
-		a.download = 'transactions.csv';
-		a.click();
-		URL.revokeObjectURL(a.href);
-	},
-
-	async downloadOFX(startDate?: string, endDate?: string, walletId?: string): Promise<void> {
-		const params = new URLSearchParams();
-		if (startDate) params.set('start', startDate);
-		if (endDate) params.set('end', endDate);
-		if (walletId) params.set('wallet_id', walletId);
-		const qs = params.toString();
-		const url = `/export/ofx${qs ? '?' + qs : ''}`;
-
-		const response = await fetch(`/api/v1${url}`, {
-			headers: {
-				'Content-Type': 'application/json',
-				...(localStorage.getItem('access_token') ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` } : {})
-			}
-		});
-
-		if (!response.ok) throw new Error(`Export failed: ${response.statusText}`);
-
-		const blob = await response.blob();
-		const a = document.createElement('a');
-		a.href = URL.createObjectURL(blob);
-		a.download = 'transactions.ofx';
-		a.click();
-		URL.revokeObjectURL(a.href);
+async function downloadExport(format: string, filename: string, startDate?: string, endDate?: string, walletId?: string): Promise<void> {
+	const allowedFormats = ['csv', 'ofx'];
+	if (!allowedFormats.includes(format)) {
+		throw new Error(`Unsupported export format: ${format}`);
 	}
+
+	const params = new URLSearchParams();
+	if (startDate) params.set('start', startDate);
+	if (endDate) params.set('end', endDate);
+	if (walletId) params.set('wallet_id', walletId);
+	const qs = params.toString();
+	const url = `/api/v1/export/${format}${qs ? '?' + qs : ''}`;
+
+	const token = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null;
+	const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+	if (token) headers['Authorization'] = `Bearer ${token}`;
+
+	const response = await fetch(url, { headers });
+	if (!response.ok) throw new Error(`Export failed: ${response.statusText}`);
+
+	const blob = await response.blob();
+	const a = document.createElement('a');
+	a.href = URL.createObjectURL(blob);
+	a.download = filename;
+	a.click();
+	URL.revokeObjectURL(a.href);
+}
+
+export const exportService = {
+	downloadCSV: (startDate?: string, endDate?: string, walletId?: string) =>
+		downloadExport('csv', 'transactions.csv', startDate, endDate, walletId),
+	downloadOFX: (startDate?: string, endDate?: string, walletId?: string) =>
+		downloadExport('ofx', 'transactions.ofx', startDate, endDate, walletId)
 };

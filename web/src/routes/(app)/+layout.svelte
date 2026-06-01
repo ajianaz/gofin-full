@@ -6,6 +6,7 @@
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { themeStore } from '$lib/stores/theme.svelte.js';
 	import { LanguageSwitcher } from '$lib/components/shared/index.js';
+	import NavSection from '$lib/components/shared/NavSection.svelte';
 
 	const titleMap: Record<string, string> = {
 		'/dashboard': 'layout.sidebar.dashboard',
@@ -36,14 +37,8 @@
 		Sidebar,
 		SidebarContent,
 		SidebarFooter,
-		SidebarGroup,
-		SidebarGroupContent,
-		SidebarGroupLabel,
 		SidebarHeader,
 		SidebarInset,
-		SidebarMenu,
-		SidebarMenuButton,
-		SidebarMenuItem,
 		SidebarProvider,
 		SidebarRail,
 		SidebarTrigger,
@@ -130,9 +125,6 @@
 			if (emailEl) emailEl.textContent = user.email || '';
 		}
 	});
-	function isActive(href: string): boolean {
-		return $page.url.pathname.startsWith(href);
-	}
 
 	async function handleLogout() {
 		await authStore.logout();
@@ -166,77 +158,9 @@
 		</SidebarHeader>
 
 		<SidebarContent>
-			<SidebarGroup>
-				<SidebarGroupLabel>{t('layout.sidebar.menuGroup')}</SidebarGroupLabel>
-				<SidebarGroupContent>
-					<SidebarMenu>
-						{#each menuNav as item}
-							{@const Icon = item.icon}
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={isActive(item.href)}
-									tooltipContent={item.label}
-								>
-									{#snippet child({ props })}
-										<a href={item.href} {...props}>
-											<Icon />
-											<span>{item.label}</span>
-										</a>
-									{/snippet}
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						{/each}
-					</SidebarMenu>
-				</SidebarGroupContent>
-			</SidebarGroup>
-
-			<SidebarGroup>
-				<SidebarGroupLabel>{t('layout.sidebar.financeGroup')}</SidebarGroupLabel>
-				<SidebarGroupContent>
-					<SidebarMenu>
-						{#each financeNav as item}
-							{@const Icon = item.icon}
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={isActive(item.href)}
-									tooltipContent={item.label}
-								>
-									{#snippet child({ props })}
-										<a href={item.href} {...props}>
-											<Icon />
-											<span>{item.label}</span>
-										</a>
-									{/snippet}
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						{/each}
-					</SidebarMenu>
-				</SidebarGroupContent>
-			</SidebarGroup>
-
-			<SidebarGroup>
-				<SidebarGroupLabel>{t('layout.sidebar.otherGroup')}</SidebarGroupLabel>
-				<SidebarGroupContent>
-					<SidebarMenu>
-						{#each otherNav as item}
-							{@const Icon = item.icon}
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={isActive(item.href)}
-									tooltipContent={item.label}
-								>
-									{#snippet child({ props })}
-										<a href={item.href} {...props}>
-											<Icon />
-											<span>{item.label}</span>
-										</a>
-									{/snippet}
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						{/each}
-					</SidebarMenu>
-				</SidebarGroupContent>
-			</SidebarGroup>
+			<NavSection label={t('layout.sidebar.menuGroup')} items={menuNav} />
+			<NavSection label={t('layout.sidebar.financeGroup')} items={financeNav} />
+			<NavSection label={t('layout.sidebar.otherGroup')} items={otherNav} />
 		</SidebarContent>
 
 		<SidebarFooter>
