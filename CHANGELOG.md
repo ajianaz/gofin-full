@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Docker publish: GHCR only for develop, GHCR + Docker Hub for main/tags (closes #113)
 - Sync compose files: dev (traefik + GHCR) vs prod (selfhost + Docker Hub), consistent env vars (closes #115)
 - Update README + deployment docs: dev vs prod quick start, registry table, new env vars (closes #115)
+- Rename CLAUDE.md → AGENT.md (agentic-agnostic), update content (#174)
+- Fix SECURITY.md: supported branch main → develop (#173)
+- Fix docs.yml: add develop branch trigger (#175)
+- Overhaul GitHub labels: deprecated area:*, added effort:*, type:*, ci/cd (#176)
+- Update issue templates with new component selection (#178)
 
 ### Added
 - SMTP + email verification config to .env.example and configuration docs
