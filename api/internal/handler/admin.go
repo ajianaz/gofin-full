@@ -140,7 +140,6 @@ func (h *AdminHandler) FeatureFlags(c *fiber.Ctx) error {
 	}
 
 	flags := map[string]string{
-		"two_factor_auth":        "disabled",
 		"webhooks":               boolStr(h.cfg.FeatureWebhooks),
 		"csv_import":             "enabled",
 		"budgets":                "enabled",

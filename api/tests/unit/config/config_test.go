@@ -29,7 +29,7 @@ func TestLoad_Defaults(t *testing.T) {
 		"FEATURE_EXPORT", "FEATURE_WEBHOOKS", "FEATURE_HANDLE_DEBTS", "FEATURE_EXPRESSION_ENGINE", "FEATURE_RUNNING_BALANCE",
 		"BUSINESS_MAX_UPLOAD_SIZE", "BUSINESS_ALLOW_WEBHOOKS", "BUSINESS_WEBHOOK_MAX_ATTEMPTS", "BUSINESS_ENABLE_EXTERNAL_RATES", "BUSINESS_ENABLE_EXCHANGE_RATES",
 		"RATE_LIMIT_MAX", "RATE_LIMIT_WINDOW_SECONDS", "RATE_LIMIT_ENABLED", "LOGIN_RATE_LIMIT_ENABLED", "LOGIN_MAX_ATTEMPTS", "LOGIN_LOCKOUT_MINUTES",
-		"MAX_REQUEST_BODY_BYTES", "CORS_ALLOWED_ORIGINS", "ALLOW_2FA_BYPASS",
+		"MAX_REQUEST_BODY_BYTES", "CORS_ALLOWED_ORIGINS",
 	}
 	for _, k := range envVars {
 		t.Setenv(k, "")
@@ -103,7 +103,6 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, 15, cfg.LoginLockoutMinutes)
 	assert.Equal(t, int64(10485760), cfg.MaxRequestBodyBytes)
 	assert.Equal(t, "http://localhost:5173", cfg.CORSAllowedOrigins)
-	assert.False(t, cfg.Allow2FABypass)
 }
 
 func TestLoad_FromEnvVars(t *testing.T) {
