@@ -18,6 +18,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - Dropdown SelectValue shows translated label instead of raw value — added `items` prop to all 32 Select components for bits-ui label resolution without DOM mount
 - Select dropdown trigger text has proper gap from chevron icon and text truncation
+- StatusBadge hardcoded English labels replaced with i18n translations (closes #161)
+- Export service deduplicated — extracted shared `downloadExport` helper (closes #162)
+- Removed 2FA dead code: TwoFAService struct/methods, test file, Allow2FABypass config (closes #142)
+- UserRepository.Update: removed buggy double query construction, simplified to single clean SET/WHERE clause (closes #151)
+- SecurityHeaders middleware now receives config from RouterConfig instead of reading env vars directly (closes #153)
+- API key last_used goroutine uses request context instead of context.Background() for tracing/timeout (closes #163)
 
 ### Changed
 - Transactions table: better padding, right-aligned amounts, tabular numbers, text truncation, row borders

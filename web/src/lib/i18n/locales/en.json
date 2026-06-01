@@ -20,6 +20,7 @@
   "common.selectCategory": "Select category",
   "common.noData": "No data yet",
   "common.noDataDesc": "No data available.",
+  "common.forbidden": "You do not have permission to access this page.",
   "app.name": "Gofin",
   "app.tagline": "Personal Finance",
   "auth.layout.tagline": "Personal Finance Manager",

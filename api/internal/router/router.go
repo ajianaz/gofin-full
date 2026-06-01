@@ -77,7 +77,10 @@ func New(cfg RouterConfig) *fiber.App {
 	app.Use(middleware.RequestID())
 	app.Use(middleware.CORS(cfg.AppURL, cfg.AppEnv, cfg.CORSAllowedOrigins))
 	app.Use(middleware.AcceptHeaders())
-	app.Use(middleware.SecurityHeaders())
+	app.Use(middleware.SecurityHeaders(middleware.SecurityHeadersConfig{
+		IsProd:  cfg.AppEnv == "production",
+		IsDebug: cfg.AppEnv == "local",
+	}))
 	if cfg.MaxRequestBodyBytes > 0 {
 		app.Use(middleware.RequestSizeLimit(cfg.MaxRequestBodyBytes))
 	}

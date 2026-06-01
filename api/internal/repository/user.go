@@ -176,21 +176,16 @@ func (r *UserRepository) Update(ctx context.Context, id uuid.UUID, email, name s
 	}
 
 	if len(setClauses) == 0 {
-		return nil // nothing to update
+		return nil
 	}
 
 	setClauses = append(setClauses, fmt.Sprintf("updated_at = $%d", argIdx))
 	args = append(args, time.Now().UTC())
 	argIdx++
 
-	setClauses = append(setClauses, fmt.Sprintf("id = $%d", argIdx))
+	query := fmt.Sprintf("UPDATE users SET %s WHERE id = $%d AND deleted_at IS NULL",
+		strings.Join(setClauses, ", "), argIdx)
 	args = append(args, id)
-
-	query := fmt.Sprintf("UPDATE users SET %s WHERE %s AND deleted_at IS NULL",
-		strings.Join(setClauses, ", "), setClauses[len(setClauses)-2])
-	// Fix: WHERE clause should use just "id = $N"
-	query = fmt.Sprintf("UPDATE users SET %s WHERE id = $%d AND deleted_at IS NULL",
-		strings.Join(setClauses[:len(setClauses)-1], ", "), argIdx-1)
 
 	_, err := r.db.Exec(ctx, query, args...)
 	return err

@@ -38,9 +38,10 @@ func APIKeyMiddleware(lookup KeyLookup) fiber.Handler {
 			return apperrors.ErrUnauthorized
 		}
 
-		// Update last used (best-effort)
+		// Update last used (best-effort, background)
+		ctx := c.Context()
 		go func() {
-			_ = lookup.UpdateLastUsed(context.Background(), keyID)
+			_ = lookup.UpdateLastUsed(ctx, keyID)
 		}()
 
 		SetUser(c, &UserIdentity{
