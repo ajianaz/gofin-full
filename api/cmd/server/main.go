@@ -197,7 +197,7 @@ func main() {
 		MemberRepo:           walletMemberRepo,
 		KeyLookup:            apiKeyRepo,
 		RoleLookup:           userRepo,
-		TokenVersionLookup:   userRepo,
+		TokenVersionLookup:   newCachedTokenLookup(userRepo, rdb),
 		JWTManager:           jwtMgr,
 		SSEHub:               sseHub,
 		RateLimitMax:         cfg.RateLimitMax,
@@ -300,4 +300,13 @@ func connectRedis(cfg *config.Config) redis.Cmdable {
 	}
 
 	return rdb
+}
+
+// newCachedTokenLookup wraps the TokenVersionLookup with Redis caching.
+// Falls back to the plain DB lookup when Redis is unavailable (rdb == nil).
+func newCachedTokenLookup(db auth.TokenVersionLookup, rdb redis.Cmdable) auth.TokenVersionLookup {
+	if rdb == nil {
+		return db
+	}
+	return auth.NewCachedTokenVersionLookup(db, rdb, 5*time.Minute)
 }

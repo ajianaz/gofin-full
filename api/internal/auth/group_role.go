@@ -41,8 +41,12 @@ func GroupRoleMiddleware(roleLookup RoleLookup) fiber.Handler {
 
 		c.Locals("user_group_role", role)
 
-		// Check global admin
-		isAdmin, _ := roleLookup.HasGlobalRole(c.Context(), user.ID, "owner")
+		// Check global admin (owner or admin)
+		isOwner, _ := roleLookup.HasGlobalRole(c.Context(), user.ID, "owner")
+		isAdmin := isOwner
+		if !isAdmin {
+			isAdmin, _ = roleLookup.HasGlobalRole(c.Context(), user.ID, "admin")
+		}
 		c.Locals("is_admin", isAdmin)
 
 		return c.Next()
@@ -57,4 +61,12 @@ func SetGroupRoleForTest(c *fiber.Ctx, role GroupRole) {
 // SetIsAdminForTest sets the admin flag directly in context (for testing).
 func SetIsAdminForTest(c *fiber.Ctx, isAdmin bool) {
 	c.Locals("is_admin", isAdmin)
+}
+
+// InvalidateTokenCache invalidates the token version cache for a user if
+// an invalidator is available in context (set by router middleware).
+func InvalidateTokenCache(c *fiber.Ctx, userID uuid.UUID) {
+	if inv, ok := c.Locals("token_invalidator").(TokenInvalidator); ok {
+		inv.InvalidateTokenVersion(c.Context(), userID)
+	}
 }

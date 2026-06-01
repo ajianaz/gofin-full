@@ -420,6 +420,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 	if user != nil {
 		_ = h.userRepo.IncrementTokenVersion(c.Context(), user.ID)
+		auth.InvalidateTokenCache(c, user.ID)
 	}
 
 	return c.JSON(fiber.Map{

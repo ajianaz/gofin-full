@@ -16,6 +16,11 @@ type TokenVersionLookup interface {
 	GetTokenVersion(ctx context.Context, userID uuid.UUID) (int, error)
 }
 
+// TokenInvalidator is implemented by caches that need to be invalidated on auth events.
+type TokenInvalidator interface {
+	InvalidateTokenVersion(ctx context.Context, userID uuid.UUID)
+}
+
 // ErrTokenInvalidated is returned when a JWT's token_version does not match the DB value.
 var ErrTokenInvalidated = apperrors.NewWithDetail(401, "Unauthenticated", "Token has been invalidated. Please log in again.")
 
