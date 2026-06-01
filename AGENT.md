@@ -1,24 +1,30 @@
-# Gofin Full — Claude Code Guidelines
+# Gofin Full — Agent Guidelines
 
 ## Project Overview
 Personal finance tracker monorepo. Go API backend + SvelteKit frontend.
 
 ## Structure
 - `api/` — Go backend (module: github.com/ajianaz/gofin-full/api)
-- `web/` — SvelteKit frontend (bun, not npm)
+- `web/` — SvelteKit frontend
 - `deployments/docker/` — All Docker configs
-- `docs/` — OpenAPI spec, research, plans
+- `docs/` — VitePress documentation site + OpenAPI spec
 - `mobile/` — Future Flutter app (placeholder)
+
+## Branching
+- **Default branch: `develop`**
+- Always create a new branch for each task/group of related work. Branch naming: `feat/<short-name>`, `fix/<short-name>`, `chore/<short-name>`.
+- PRs target `develop`. Never commit directly to `develop` or `main`.
+- Tags are created from `develop` for releases.
 
 ## Rules
 - **No `Co-Authored-By` in commits.** Just write the commit message.
-- **Always create a new branch for each task/group of related work.** Never commit directly to `main`. Branch naming: `feat/<short-name>`, `fix/<short-name>`, `chore/<short-name>`.
 - **Update CHANGELOG.md before every commit.** Add entries under `## [Unreleased]` section. Include Added/Changed/Fixed/Removed subsections as needed. Move to versioned section on release.
-- Use `bun` for web, not npm/node.
-- API runs on port 8080, web dev on port 5173.
+- Use `npm` for web tooling. Bun is not used.
+- API runs on port 8080, web dev on port 5199+ (port 5173 reserved for other projects).
 - Integration tests require Docker (postgres:5433, redis:6380).
 - Unit tests run without Docker.
 - Module path is `github.com/ajianaz/gofin-full/api`.
+- Pre-commit hook runs `cora review` in block mode — commits will fail if major issues found.
 
 ## Commands
 - `make docker-dev` — Start daily dev stack (API + Postgres + Redis)
@@ -41,4 +47,4 @@ Personal finance tracker monorepo. Go API backend + SvelteKit frontend.
 ## Testing
 - Always run unit tests after changes: `cd api && go test ./tests/unit/... -count=1`
 - Integration tests need: `make api-test-integration-infra` then `make api-test-integration`
-- Web type check: `cd web && bun run check`
+- Web type check: `cd web && npx svelte-check --threshold error`

@@ -3,17 +3,21 @@ name: Feature Request
 about: Suggest a new feature for Gofin
 title: "[Feature] "
 labels: enhancement
-assignees: ''
+assignees: ""
+
 ---
 
 **Problem**
-What problem does this feature solve? What's the user pain point?
+What problem does this solve? Why is it needed?
 
 **Proposed Solution**
-Describe the feature you'd like.
+Describe your proposed solution.
 
 **Alternatives Considered**
-Any alternative solutions or workarounds you've tried.
+Any alternative approaches you've thought about.
 
-**Additional Context**
-Mockups, examples from other apps, or any other context.
+**Component**
+- [ ] Backend (Go API)
+- [ ] Frontend (SvelteKit)
+- [ ] Infrastructure
+- [ ] Documentation
