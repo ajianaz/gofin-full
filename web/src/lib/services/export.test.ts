@@ -26,6 +26,13 @@ describe('exportService', () => {
     const mockAnchor = { href: '', download: '', click: clickFn };
     vi.spyOn(document, 'createElement').mockReturnValue(mockAnchor as any);
 
+    // Mock the central API client's blob method
+    vi.mock('$lib/services/client.js', () => ({
+      api: {
+        blob: vi.fn()
+      }
+    }));
+
     // Re-import to get fresh module with mocks
     vi.resetModules();
     const mod = await import('./export.js');
@@ -37,85 +44,84 @@ describe('exportService', () => {
   });
 
   describe('downloadCSV', () => {
-    it('downloads CSV blob with correct URL', async () => {
+    it('downloads CSV blob via api.blob with correct path', async () => {
       const mockBlob = new Blob(['csv,data'], { type: 'text/csv' });
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      const { api } = await import('./client.js');
+      vi.mocked(api.blob).mockResolvedValue({
         ok: true,
+        status: 200,
         blob: () => Promise.resolve(mockBlob)
-      }));
+      } as Response);
 
       await exportService.downloadCSV('2026-01-01', '2026-01-31', 'w1');
 
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/v1/export/csv?start=2026-01-01&end=2026-01-31&wallet_id=w1',
-        expect.objectContaining({
-          headers: { 'Content-Type': 'application/json' }
-        })
-      );
+      expect(api.blob).toHaveBeenCalledWith('/export/csv?start=2026-01-01&end=2026-01-31&wallet_id=w1');
       expect(URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
     });
 
     it('includes auth header when token exists', async () => {
       localStorageMock.getItem.mockReturnValue('my-token' as any);
       const mockBlob = new Blob(['csv'], { type: 'text/csv' });
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      const { api } = await import('./client.js');
+      vi.mocked(api.blob).mockResolvedValue({
         ok: true,
+        status: 200,
         blob: () => Promise.resolve(mockBlob)
-      }));
+      } as Response);
 
       await exportService.downloadCSV();
 
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/v1/export/csv',
-        expect.objectContaining({
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer my-token' }
-        })
-      );
+      // api.blob is called — the central client handles the token internally
+      expect(api.blob).toHaveBeenCalledWith('/export/csv');
     });
 
-    it('builds URL without params when none provided', async () => {
+    it('builds path without params when none provided', async () => {
       const mockBlob = new Blob(['csv']);
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      const { api } = await import('./client.js');
+      vi.mocked(api.blob).mockResolvedValue({
         ok: true,
+        status: 200,
         blob: () => Promise.resolve(mockBlob)
-      }));
+      } as Response);
 
       await exportService.downloadCSV();
-
-      expect(fetch).toHaveBeenCalledWith('/api/v1/export/csv', expect.any(Object));
+      expect(api.blob).toHaveBeenCalledWith('/export/csv');
     });
 
     it('throws when response is not ok', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      const { api } = await import('./client.js');
+      vi.mocked(api.blob).mockResolvedValue({
         ok: false,
+        status: 404,
         statusText: 'Not Found'
-      }));
+      } as Response);
 
       await expect(exportService.downloadCSV()).rejects.toThrow('Export failed: Not Found');
     });
   });
 
   describe('downloadOFX', () => {
-    it('downloads OFX blob with correct URL', async () => {
+    it('downloads OFX blob with correct path', async () => {
       const mockBlob = new Blob(['ofx,data'], { type: 'application/x-ofx' });
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      const { api } = await import('./client.js');
+      vi.mocked(api.blob).mockResolvedValue({
         ok: true,
+        status: 200,
         blob: () => Promise.resolve(mockBlob)
-      }));
+      } as Response);
 
       await exportService.downloadOFX('2026-01-01', '2026-01-31', 'w1');
 
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/v1/export/ofx?start=2026-01-01&end=2026-01-31&wallet_id=w1',
-        expect.any(Object)
-      );
+      expect(api.blob).toHaveBeenCalledWith('/export/ofx?start=2026-01-01&end=2026-01-31&wallet_id=w1');
     });
 
     it('throws when response is not ok', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      const { api } = await import('./client.js');
+      vi.mocked(api.blob).mockResolvedValue({
         ok: false,
+        status: 500,
         statusText: 'Internal Server Error'
-      }));
+      } as Response);
 
       await expect(exportService.downloadOFX()).rejects.toThrow('Export failed: Internal Server Error');
     });

@@ -11,13 +11,10 @@ async function downloadExport(format: string, filename: string, startDate?: stri
 	if (endDate) params.set('end', endDate);
 	if (walletId) params.set('wallet_id', walletId);
 	const qs = params.toString();
-	const url = `/api/v1/export/${format}${qs ? '?' + qs : ''}`;
+	const path = `/export/${format}${qs ? '?' + qs : ''}`;
 
-	const token = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null;
-	const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-	if (token) headers['Authorization'] = `Bearer ${token}`;
-
-	const response = await fetch(url, { headers });
+	// Use the central API client which handles auth headers and token refresh
+	const response = await api.blob(path);
 	if (!response.ok) throw new Error(`Export failed: ${response.statusText}`);
 
 	const blob = await response.blob();

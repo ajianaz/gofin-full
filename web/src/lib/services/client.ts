@@ -1,5 +1,6 @@
 import type { ApiError, TokenResponse } from '$lib/types/index.js';
 import { authStore } from '$lib/stores/auth.svelte.js';
+import { handleApiError } from '$lib/stores/toast.js';
 
 const API_BASE = '/api/v1';
 
@@ -116,6 +117,7 @@ async function request<T>(
 		} catch {
 			error.detail = 'Session expired';
 		}
+		handleApiError(error);
 		throw error;
 	}
 
@@ -126,11 +128,59 @@ async function request<T>(
 		} catch {
 			error.detail = response.statusText;
 		}
+		handleApiError(error);
 		throw error;
 	}
 
 	if (response.status === 204) return undefined as T;
 	return response.json();
+}
+
+async function requestBlob(
+	path: string,
+	options: RequestInit = {}
+): Promise<Response> {
+	const url = `${API_BASE}${path}`;
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json',
+		...((options.headers as Record<string, string>) || {})
+	};
+
+	const token = localStorage.getItem('access_token');
+	if (token) {
+		headers['Authorization'] = `Bearer ${token}`;
+	}
+
+	const response = await fetch(url, {
+		...options,
+		headers
+	});
+
+	if (response.status === 401 && path !== '/auth/refresh' && path !== '/auth/login' && path !== '/auth/register') {
+		const newTokens = await getRefreshedToken();
+
+		if (newTokens) {
+			const retryHeaders: Record<string, string> = {
+				'Content-Type': 'application/json',
+				...((options.headers as Record<string, string>) || {})
+			};
+			retryHeaders['Authorization'] = `Bearer ${newTokens.access_token}`;
+			return fetch(url, {
+				...options,
+				headers: retryHeaders
+			});
+		}
+
+		// Refresh failed — clear tokens and redirect to login
+		localStorage.removeItem('access_token');
+		localStorage.removeItem('refresh_token');
+		authStore.clearTokens();
+		if (typeof window !== 'undefined') {
+			window.location.href = '/login';
+		}
+	}
+
+	return response;
 }
 
 export const api = {
@@ -156,5 +206,11 @@ export const api = {
 
 	delete<T>(path: string, options?: RequestInit): Promise<T> {
 		return request<T>(path, { ...options, method: 'DELETE' });
+	},
+
+	/** Fetch a binary endpoint; returns the raw Response for blob/stream handling.
+	 *  Token refresh is handled transparently. */
+	blob(path: string, options?: RequestInit): Promise<Response> {
+		return requestBlob(path, { ...options, method: 'GET' });
 	}
 };
