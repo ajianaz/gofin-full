@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"log"
-"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -10,11 +10,12 @@ import (
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type ConfigurationHandler struct {
+	log  zerolog.Logger
 	repo *repository.ConfigurationRepository
 }
 
-func NewConfigurationHandler(repo *repository.ConfigurationRepository) *ConfigurationHandler {
-	return &ConfigurationHandler{repo: repo}
+func NewConfigurationHandler(log zerolog.Logger, repo *repository.ConfigurationRepository) *ConfigurationHandler {
+	return &ConfigurationHandler{log: log, repo: repo}
 }
 
 func (h *ConfigurationHandler) Index(c *fiber.Ctx) error {
@@ -22,7 +23,7 @@ func (h *ConfigurationHandler) Index(c *fiber.Ctx) error {
 
 	configs, err := h.repo.List(c.Context())
 	if err != nil {
-		log.Printf("handler/Index: failed to list configurations: %v", err)
+		h.log.Error().Err(err).Msg("handler/Index: failed to list configurations")
 		return apperrors.ErrInternal
 	}
 
@@ -78,7 +79,7 @@ func (h *ConfigurationHandler) Set(c *fiber.Ctx) error {
 
 	cfg, err := h.repo.Set(c.Context(), req.Name, req.Value)
 	if err != nil {
-		log.Printf("handler/Index: failed to set configuration: %v", err)
+		h.log.Error().Err(err).Msg("handler/Index: failed to set configuration")
 		return apperrors.ErrInternal
 	}
 

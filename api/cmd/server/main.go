@@ -112,7 +112,7 @@ func main() {
 
 	// Create handlers
 	healthHandler := handler.NewHealthHandler(db, rdb)
-	authHandler := handler.NewAuthHandler(jwtMgr, authProvider, cfg, userRepo, oauthStateRepo, refreshRepo)
+	authHandler := handler.NewAuthHandler(log, jwtMgr, authProvider, cfg, userRepo, oauthStateRepo, refreshRepo)
 	if rdb != nil {
 		authHandler.SetRedis(rdb)
 	}
@@ -138,7 +138,7 @@ func main() {
 	attachmentHandler := handler.NewAttachmentHandler(attachmentRepo)
 	notificationHandler := handler.NewNotificationHandler(notificationRepo)
 	preferenceHandler := handler.NewPreferenceHandler(preferenceRepo)
-	configurationHandler := handler.NewConfigurationHandler(configurationRepo)
+	configurationHandler := handler.NewConfigurationHandler(log, configurationRepo)
 	objectGroupHandler := handler.NewObjectGroupHandler(objectGroupRepo)
 	noteHandler := handler.NewNoteHandler(noteRepo)
 	locationHandler := handler.NewLocationHandler(locationRepo)
@@ -151,7 +151,7 @@ func main() {
 	exportHandler := handler.NewExportHandler(exportService)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo)
 	auditHandler := handler.NewAuditHandler(auditRepo)
-	adminHandler := handler.NewAdminHandler(userRepo, configurationRepo)
+	adminHandler := handler.NewAdminHandler(log, cfg, userRepo, configurationRepo)
 	apiKeyHandler := handler.NewAPIKeyHandler(apiKeyRepo)
 	apiDocHandler := handler.NewAPIDocHandler()
 	metricsHandler := handler.NewMetricsHandler()

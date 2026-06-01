@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/rs/zerolog"
+
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/config"
 	"github.com/ajianaz/gofin-full/api/internal/handler"
@@ -106,7 +108,7 @@ func TestRouter_AuthProviderEndpoint(t *testing.T) {
 
 	cfg := &router.RouterConfig{
 		HealthHandler: healthHandler,
-		AuthHandler:   handler.NewAuthHandler(jwtMgr, provider, &config.Config{AuthProvider: "disabled"}, nil, nil, nil),
+		AuthHandler:   handler.NewAuthHandler(zerolog.Nop(), jwtMgr, provider, &config.Config{AuthProvider: "disabled"}, nil, nil, nil),
 		JWTManager:    jwtMgr,
 	}
 	app := router.New(*cfg)

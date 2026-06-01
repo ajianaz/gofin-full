@@ -2,22 +2,25 @@ package handler
 
 import (
 "strings"
-	"log"
+	"github.com/rs/zerolog"
 
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/config"
 	"github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
 
 type AdminHandler struct {
+	log        zerolog.Logger
+	cfg        *config.Config
 	userRepo   *repository.UserRepository
 	configRepo *repository.ConfigurationRepository
 }
 
-func NewAdminHandler(userRepo *repository.UserRepository, configRepo *repository.ConfigurationRepository) *AdminHandler {
-	return &AdminHandler{userRepo: userRepo, configRepo: configRepo}
+func NewAdminHandler(log zerolog.Logger, cfg *config.Config, userRepo *repository.UserRepository, configRepo *repository.ConfigurationRepository) *AdminHandler {
+	return &AdminHandler{log: log, cfg: cfg, userRepo: userRepo, configRepo: configRepo}
 }
 
 // requireAdmin checks that the caller has a global admin or owner role.
@@ -49,7 +52,7 @@ func (h *AdminHandler) ListUsers(c *fiber.Ctx) error {
 
 	users, err := h.userRepo.ListAll(c.Context())
 	if err != nil {
-		log.Printf("handler/requireAdmin: failed to list users: %v", err)
+		h.log.Error().Err(err).Msg("handler/requireAdmin: failed to list users")
 		return apperrors.ErrInternal
 	}
 
@@ -128,16 +131,24 @@ func (h *AdminHandler) FeatureFlags(c *fiber.Ctx) error {
 		return err
 	}
 
+	// boolStr converts a bool to "enabled" or "disabled".
+	boolStr := func(b bool) string {
+		if b {
+			return "enabled"
+		}
+		return "disabled"
+	}
+
 	flags := map[string]string{
 		"two_factor_auth":        "disabled",
-		"webhooks":               "enabled",
+		"webhooks":               boolStr(h.cfg.FeatureWebhooks),
 		"csv_import":             "enabled",
 		"budgets":                "enabled",
 		"piggy_banks":            "enabled",
 		"recurring_transactions": "enabled",
 		"rules_engine":           "enabled",
-		"export_csv":             "enabled",
-		"export_ofx":             "enabled",
+		"export_csv":             boolStr(h.cfg.FeatureExport),
+		"export_ofx":             boolStr(h.cfg.FeatureExport),
 		"audit_trail":            "enabled",
 		"wallet_sharing":         "enabled",
 	}
@@ -175,7 +186,7 @@ func (h *AdminHandler) SetFeatureFlag(c *fiber.Ctx) error {
 
 	_, err := h.configRepo.Set(c.Context(), "feature_"+req.Flag, req.Value)
 	if err != nil {
-		log.Printf("handler/requireAdmin: failed to set feature flag: %v", err)
+		h.log.Error().Err(err).Msg("handler/requireAdmin: failed to set feature flag")
 		return apperrors.ErrInternal
 	}
 
