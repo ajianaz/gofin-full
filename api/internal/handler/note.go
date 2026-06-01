@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -47,7 +47,7 @@ func (h *NoteHandler) Index(c *fiber.Ctx) error {
 
 	notes, err := h.repo.ListByEntity(c.Context(), noteableType, noteableID)
 	if err != nil {
-		log.Printf("handler: failed to list notes: %v", err)
+		log.Error().Err(err).Msg("handler: failed to list notes")
 		return apperrors.ErrInternal
 	}
 
@@ -98,7 +98,7 @@ func (h *NoteHandler) Store(c *fiber.Ctx) error {
 
 	n, err := h.repo.Create(c.Context(), user.ID, *groupID, req.NoteableType, req.NoteableID, sanitizeStr(req.Note))
 	if err != nil {
-		log.Printf("handler: failed to create note: %v", err)
+		log.Error().Err(err).Msg("handler: failed to create note")
 		return apperrors.ErrInternal
 	}
 

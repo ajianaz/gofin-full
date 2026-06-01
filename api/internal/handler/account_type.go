@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 "github.com/gofiber/fiber/v2"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -21,7 +21,7 @@ func (h *AccountTypeHandler) Index(c *fiber.Ctx) error {
 
 	types, err := h.repo.List(c.Context())
 	if err != nil {
-		log.Printf("handler/Index: failed to list wallet types: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list wallet types")
 		return apperrors.ErrInternal
 	}
 

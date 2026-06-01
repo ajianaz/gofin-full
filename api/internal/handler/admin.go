@@ -1,16 +1,18 @@
 package handler
 
 import (
-"strings"
-	"github.com/rs/zerolog"
+	"strings"
 
+	"github.com/rs/zerolog"
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/config"
 	"github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
+	"github.com/ajianaz/gofin-full/api/internal/validation"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
 
 type AdminHandler struct {
 	log        zerolog.Logger
@@ -109,20 +111,17 @@ func (h *AdminHandler) CreateUser(c *fiber.Ctx) error {
 		Password string `json:"password"`
 	}
 	if err := c.BodyParser(&req); err != nil {
-		return apperrors.NewValidationError(map[string][]string{
-			"body": {"Invalid request body."},
-		})
+		return validation.FieldErrors{"body": {"Invalid request body."}}.ToAppError()
 	}
 
-	if req.Email == "" {
-		return apperrors.NewValidationError(map[string][]string{
-			"email": {"Email is required."},
-		})
-	}
-	if len(req.Password) < 8 {
-		return apperrors.NewValidationError(map[string][]string{
-			"password": {"Password must be at least 8 characters."},
-		})
+	// Validate input using validation framework
+	errs := make(validation.FieldErrors)
+	validation.Required("email", req.Email, errs)
+	validation.Email("email", req.Email, errs)
+	validation.Required("password", req.Password, errs)
+	validation.MinLength("password", req.Password, 8, errs)
+	if errs.Has() {
+		return errs.ToAppError()
 	}
 
 	hash, err := auth.HashPassword(req.Password)

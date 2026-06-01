@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"github.com/rs/zerolog/log"
 "bytes"
 	"time"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -32,7 +32,7 @@ func (h *ExportHandler) CSV(c *fiber.Ctx) error {
 
 	buf := &bytes.Buffer{}
 	if err := h.exportService.ExportTransactionsCSV(c.Context(), *groupID, buf, filter); err != nil {
-		log.Printf("handler/CSV: failed to export CSV: %v", err)
+		log.Error().Err(err).Msg("handler/CSV: failed to export CSV")
 		return apperrors.ErrInternal
 	}
 
@@ -52,7 +52,7 @@ func (h *ExportHandler) OFX(c *fiber.Ctx) error {
 
 	buf := &bytes.Buffer{}
 	if err := h.exportService.ExportTransactionsOFX(c.Context(), *groupID, buf, filter); err != nil {
-		log.Printf("handler/CSV: failed to export OFX: %v", err)
+		log.Error().Err(err).Msg("handler/CSV: failed to export OFX")
 		return apperrors.ErrInternal
 	}
 
@@ -75,7 +75,7 @@ func (h *ExportHandler) Reconcile(c *fiber.Ctx) error {
 
 	result, err := h.exportService.Reconcile(c.Context(), *groupID, req)
 	if err != nil {
-		log.Printf("handler/CSV: failed to reconcile: %v", err)
+		log.Error().Err(err).Msg("handler/CSV: failed to reconcile")
 		return apperrors.ErrInternal
 	}
 

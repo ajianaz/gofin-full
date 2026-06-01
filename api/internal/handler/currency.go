@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"github.com/rs/zerolog/log"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"log"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
@@ -23,7 +23,7 @@ func (h *CurrencyHandler) Index(c *fiber.Ctx) error {
 
 	currencies, err := h.repo.List(c.Context())
 	if err != nil {
-		log.Printf("handler/Index: failed to list currencies: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list currencies")
 		return apperrors.ErrInternal
 	}
 

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 "github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -26,7 +26,7 @@ func (h *ObjectGroupHandler) Index(c *fiber.Ctx) error {
 
 	groups, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list object groups: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list object groups")
 		return apperrors.ErrInternal
 	}
 
@@ -91,7 +91,7 @@ func (h *ObjectGroupHandler) Store(c *fiber.Ctx) error {
 
 	g, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.Order)
 	if err != nil {
-		log.Printf("handler/Index: failed to create object group: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create object group")
 		return apperrors.ErrInternal
 	}
 

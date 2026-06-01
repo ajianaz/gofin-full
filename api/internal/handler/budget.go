@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 "github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -27,7 +27,7 @@ func (h *BudgetHandler) Index(c *fiber.Ctx) error {
 
 	budgets, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list budgets: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list budgets")
 		return apperrors.ErrInternal
 	}
 
@@ -93,7 +93,7 @@ func (h *BudgetHandler) Store(c *fiber.Ctx) error {
 
 	b, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Name), req.Order)
 	if err != nil {
-		log.Printf("handler/Index: failed to create budget: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create budget")
 		return apperrors.ErrInternal
 	}
 

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,6 +11,7 @@ import (
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	"github.com/ajianaz/gofin-full/api/internal/service"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type TransactionHandler struct {
@@ -58,7 +58,7 @@ func (h *TransactionHandler) Index(c *fiber.Ctx) error {
 
 	groups, total, err := h.txRepo.ListGroups(c.Context(), *groupID, filter)
 	if err != nil {
-		log.Printf("handler/Index: failed to list transactions: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list transactions")
 		return apperrors.ErrInternal
 	}
 
@@ -169,7 +169,7 @@ func (h *TransactionHandler) Store(c *fiber.Ctx) error {
 	if input.CurrencyID == "" {
 		sourceWallet, err := h.walletRepo.FindByID(c.Context(), input.SourceID, *groupID)
 		if err != nil {
-			log.Printf("handler/Store: failed to find source wallet %s: %v", input.SourceID, err)
+			log.Error().Err(err).Str("source_id", input.SourceID.String()).Msg("handler/Store: failed to find source wallet")
 			return apperrors.New(422, "Source wallet not found.")
 		}
 		if sourceWallet.CurrencyID != nil && *sourceWallet.CurrencyID != "" {
@@ -179,7 +179,7 @@ func (h *TransactionHandler) Store(c *fiber.Ctx) error {
 
 	result, err := h.txService.CreateTransaction(c.Context(), user.ID, *groupID, input)
 	if err != nil {
-		log.Printf("create transaction failed: %v", err)
+		log.Error().Err(err).Msg("create transaction failed")
 		return apperrors.New(422, "Transaction could not be created. Check your account balances.")
 	}
 
@@ -234,7 +234,7 @@ func (h *TransactionHandler) StoreSplit(c *fiber.Ctx) error {
 
 	result, err := h.txService.CreateSplitTransaction(c.Context(), user.ID, *groupID, req.Type, reqDate, req.Title, req.Journals)
 	if err != nil {
-		log.Printf("create split transaction failed: %v", err)
+		log.Error().Err(err).Msg("create split transaction failed")
 		return apperrors.New(422, "Split transaction could not be created. Check your account balances.")
 	}
 

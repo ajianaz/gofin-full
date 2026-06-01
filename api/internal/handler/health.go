@@ -3,13 +3,13 @@ package handler
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 )
 
 // HealthHandler handles health check requests.
@@ -38,7 +38,7 @@ func (h *HealthHandler) Check(c *fiber.Ctx) error {
 	if err := h.checkPostgres(ctx); err != nil {
 		pgStatus.Status = "error"
 		pgStatus.Error = "connection failed"
-		log.Printf("health check: postgresql error: %v", err)
+		log.Error().Err(err).Msg("health check: postgresql error")
 		health.Status = "degraded"
 	} else {
 		pgStatus.Status = "ok"
@@ -50,7 +50,7 @@ func (h *HealthHandler) Check(c *fiber.Ctx) error {
 	if err := h.checkRedis(ctx); err != nil {
 		redisStatus.Status = "error"
 		redisStatus.Error = "connection failed"
-		log.Printf("health check: redis error: %v", err)
+		log.Error().Err(err).Msg("health check: redis error")
 		health.Status = "degraded"
 	} else {
 		redisStatus.Status = "ok"

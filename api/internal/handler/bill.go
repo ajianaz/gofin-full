@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -32,7 +32,7 @@ func (h *BillHandler) Index(c *fiber.Ctx) error {
 
 	bills, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list bills: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list bills")
 		return apperrors.ErrInternal
 	}
 
@@ -117,7 +117,7 @@ func (h *BillHandler) Store(c *fiber.Ctx) error {
 
 	b, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Name), amountMin, amountMax, date, req.RepeatFreq, req.CurrencyID, req.Order)
 	if err != nil {
-		log.Printf("handler/Index: failed to create bill: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create bill")
 		return apperrors.ErrInternal
 	}
 

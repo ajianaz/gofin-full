@@ -1,15 +1,19 @@
 package middleware
 
 import (
-	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
+
+// log is the package-level zerolog logger for middleware.
+var log = zerolog.New(os.Stderr).With().Timestamp().Logger()
 
 // WalletRBAC checks wallet membership and enforces role-based access.
 // requiredRole: "owner", "editor", "viewer"
@@ -34,7 +38,7 @@ func WalletRBAC(memberRepo *repository.WalletMemberRepository, requiredRole stri
 		// Check if user is the wallet owner
 		isOwner, err := memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
 		if err != nil {
-			log.Printf("WalletRBAC: failed to check wallet ownership: %v", err)
+			log.Error().Err(err).Msg("WalletRBAC: failed to check wallet ownership")
 			return apperrors.ErrInternal
 		}
 		if isOwner {
@@ -44,7 +48,7 @@ func WalletRBAC(memberRepo *repository.WalletMemberRepository, requiredRole stri
 		// Check membership
 		role, err := memberRepo.GetWalletRole(c.Context(), walletID, user.ID)
 		if err != nil {
-			log.Printf("WalletRBAC: failed to check wallet membership: %v", err)
+			log.Error().Err(err).Msg("WalletRBAC: failed to check wallet membership")
 			return apperrors.ErrInternal
 		}
 		if role == "" {

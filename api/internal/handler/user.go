@@ -6,6 +6,7 @@ import (
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/validation"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
@@ -31,27 +32,16 @@ func (h *UserHandler) ChangePassword(c *fiber.Ctx) error {
 		NewPassword     string `json:"new_password"`
 	}
 	if err := c.BodyParser(&req); err != nil {
-		return apperrors.NewValidationError(map[string][]string{
-			"body": {"Invalid request body."},
-		})
+		return validation.FieldErrors{"body": {"Invalid request body."}}.ToAppError()
 	}
 
-	if req.CurrentPassword == "" || req.NewPassword == "" {
-		return apperrors.NewValidationError(map[string][]string{
-			"current_password": {"Current password is required."},
-			"new_password":     {"New password is required."},
-		})
-	}
-
-	if len(req.NewPassword) < 8 {
-		return apperrors.NewValidationError(map[string][]string{
-			"new_password": {"New password must be at least 8 characters."},
-		})
-	}
-	if pwErrs := validatePasswordStrength(req.NewPassword); len(pwErrs) > 0 {
-		return apperrors.NewValidationError(map[string][]string{
-			"new_password": pwErrs,
-		})
+	// Validate input using validation framework
+	errs := make(validation.FieldErrors)
+	validation.Required("current_password", req.CurrentPassword, errs)
+	validation.Required("new_password", req.NewPassword, errs)
+	validation.PasswordStrength("new_password", req.NewPassword, errs)
+	if errs.Has() {
+		return errs.ToAppError()
 	}
 
 	// Fetch current user to verify old password

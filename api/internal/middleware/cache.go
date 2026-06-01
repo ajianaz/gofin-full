@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -106,7 +105,7 @@ func RateLimit(rdb redis.Cmdable, limit int, window time.Duration) fiber.Handler
 
 		if incr.Err() != nil || removeOld.Err() != nil || count.Err() != nil || expire.Err() != nil {
 			// Redis unavailable — fall back to in-memory rate limiter
-			log.Printf("rate limiter: redis error, applying in-memory fallback for %s", key)
+			log.Error().Str("key", key).Msg("rate limiter: redis error, applying in-memory fallback")
 			if !memRateLimitCheck(key, limit, window) {
 				c.Set("Retry-After", strconv.Itoa(int(window.Seconds())))
 				return c.Status(429).JSON(fiber.Map{

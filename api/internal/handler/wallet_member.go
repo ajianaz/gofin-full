@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 "github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -29,7 +29,7 @@ func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
 	// Verify the requesting user is a member (or owner) of this wallet
 	isOwner, err := h.memberRepo.IsWalletOwner(c.Context(), walletID, user.ID)
 	if err != nil {
-		log.Printf("handler/Index: failed to check wallet ownership: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to check wallet ownership")
 		return apperrors.ErrInternal
 	}
 
@@ -42,7 +42,7 @@ func (h *WalletMemberHandler) Index(c *fiber.Ctx) error {
 
 	members, err := h.memberRepo.ListByWallet(c.Context(), walletID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list wallet members: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list wallet members")
 		return apperrors.ErrInternal
 	}
 
@@ -94,7 +94,7 @@ func (h *WalletMemberHandler) Store(c *fiber.Ctx) error {
 
 	m, err := h.memberRepo.AddMember(c.Context(), walletID, req.UserID, req.Role)
 	if err != nil {
-		log.Printf("handler/Index: failed to add wallet member: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to add wallet member")
 		return apperrors.ErrInternal
 	}
 
@@ -166,7 +166,7 @@ func (h *WalletMemberHandler) Delete(c *fiber.Ctx) error {
 	}
 
 	if err := h.memberRepo.RemoveMember(c.Context(), walletID, userID); err != nil {
-		log.Printf("handler/Index: failed to remove wallet member: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to remove wallet member")
 		return apperrors.ErrInternal
 	}
 

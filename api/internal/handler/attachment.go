@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -42,7 +42,7 @@ func (h *AttachmentHandler) Index(c *fiber.Ctx) error {
 
 	attachments, err := h.repo.ListByEntityAndUser(c.Context(), attachableType, attachableID, user.ID)
 	if err != nil {
-		log.Printf("handler: failed to list attachments: %v", err)
+		log.Error().Err(err).Msg("handler: failed to list attachments")
 		return apperrors.ErrInternal
 	}
 
@@ -125,7 +125,7 @@ func (h *AttachmentHandler) Store(c *fiber.Ctx) error {
 
 	a, err := h.repo.Create(c.Context(), user.ID, req.AttachableType, req.AttachableID, req.Filename, req.MimeType, req.Size)
 	if err != nil {
-		log.Printf("handler: failed to create attachment: %v", err)
+		log.Error().Err(err).Msg("handler: failed to create attachment")
 		return apperrors.ErrInternal
 	}
 

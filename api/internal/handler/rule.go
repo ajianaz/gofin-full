@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 "github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -27,7 +27,7 @@ func (h *RuleGroupHandler) Index(c *fiber.Ctx) error {
 
 	groups, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list rule groups: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list rule groups")
 		return apperrors.ErrInternal
 	}
 
@@ -61,7 +61,7 @@ func (h *RuleGroupHandler) Store(c *fiber.Ctx) error {
 
 	g, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.Order)
 	if err != nil {
-		log.Printf("handler/Index: failed to create rule group: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create rule group")
 		return apperrors.ErrInternal
 	}
 
@@ -161,7 +161,7 @@ func (h *RuleHandler) Index(c *fiber.Ctx) error {
 
 	rules, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list rules: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list rules")
 		return apperrors.ErrInternal
 	}
 
@@ -221,7 +221,7 @@ func (h *RuleHandler) Store(c *fiber.Ctx) error {
 
 	rule, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.Priority, req.RuleGroupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to create rule: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create rule")
 		return apperrors.ErrInternal
 	}
 
