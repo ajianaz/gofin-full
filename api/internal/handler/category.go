@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -28,7 +27,7 @@ func (h *CategoryHandler) Index(c *fiber.Ctx) error {
 
 	categories, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list categories: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list categories")
 		return apperrors.ErrInternal
 	}
 
@@ -89,7 +88,7 @@ func (h *CategoryHandler) Store(c *fiber.Ctx) error {
 
 	cat, err := h.repo.Create(c.Context(), user.ID, *groupID, strings.TrimSpace(sanitizeStr(req.Name)))
 	if err != nil {
-		log.Printf("handler/Index: failed to create category: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create category")
 		return apperrors.ErrInternal
 	}
 

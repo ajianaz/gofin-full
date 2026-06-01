@@ -2,11 +2,15 @@ package auth
 
 import (
 	"context"
-	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 )
+
+// authLog is the package-level zerolog logger for the auth package.
+var authLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 
 // RoleLookup is implemented by repositories that can resolve a user's group role.
 type RoleLookup interface {
@@ -32,7 +36,7 @@ func GroupRoleMiddleware(roleLookup RoleLookup) fiber.Handler {
 		role, err := roleLookup.GetUserRoleInGroup(c.Context(), user.ID, *groupID)
 		if err != nil {
 			// DB error — fail closed to prevent unauthorised access.
-			log.Printf("GroupRoleMiddleware: failed to lookup role for user %s in group %s: %v", user.ID, *groupID, err)
+			authLog.Error().Err(err).Str("user_id", user.ID.String()).Str("group_id", groupID.String()).Msg("GroupRoleMiddleware: failed to lookup role")
 			return c.Status(401).JSON(fiber.Map{
 				"status": 401,
 				"title":  "Unable to verify permissions",

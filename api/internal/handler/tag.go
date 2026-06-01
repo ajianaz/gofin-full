@@ -2,7 +2,6 @@ package handler
 
 import (
 "time"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -28,7 +27,7 @@ func (h *TagHandler) Index(c *fiber.Ctx) error {
 
 	tags, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list tags: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list tags")
 		return apperrors.ErrInternal
 	}
 
@@ -87,7 +86,7 @@ func (h *TagHandler) Store(c *fiber.Ctx) error {
 
 	t, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Tag), req.Date)
 	if err != nil {
-		log.Printf("handler/Index: failed to create tag: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create tag")
 		return apperrors.ErrInternal
 	}
 

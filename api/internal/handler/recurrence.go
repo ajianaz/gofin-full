@@ -2,7 +2,6 @@ package handler
 
 import (
 "time"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -30,7 +29,7 @@ func (h *RecurrenceHandler) Index(c *fiber.Ctx) error {
 
 	recurrences, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list recurrences: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list recurrences")
 		return apperrors.ErrInternal
 	}
 
@@ -112,7 +111,7 @@ func (h *RecurrenceHandler) Store(c *fiber.Ctx) error {
 
 	rec, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.FirstDate, req.RepeatFreq)
 	if err != nil {
-		log.Printf("handler/Index: failed to create recurrence: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create recurrence")
 		return apperrors.ErrInternal
 	}
 

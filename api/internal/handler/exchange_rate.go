@@ -2,7 +2,6 @@ package handler
 
 import (
 "time"
-	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -29,7 +28,7 @@ func (h *ExchangeRateHandler) Index(c *fiber.Ctx) error {
 
 	rates, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list exchange rates: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list exchange rates")
 		return apperrors.ErrInternal
 	}
 
@@ -84,7 +83,7 @@ func (h *ExchangeRateHandler) Store(c *fiber.Ctx) error {
 
 	er, err := h.repo.Create(c.Context(), user.ID, *groupID, req.FromCurrencyID, req.ToCurrencyID, rate, date)
 	if err != nil {
-		log.Printf("handler/Index: failed to create exchange rate: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create exchange rate")
 		return apperrors.ErrInternal
 	}
 
@@ -123,7 +122,7 @@ func (h *ExchangeRateHandler) Show(c *fiber.Ctx) error {
 
 	rate, err := h.repo.FindRate(c.Context(), *groupID, from, to, date)
 	if err != nil {
-		log.Printf("handler/Index: failed to find exchange rate: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to find exchange rate")
 		return apperrors.ErrInternal
 	}
 

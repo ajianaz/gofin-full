@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -230,7 +229,7 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 	}
 
 	if err := h.userRepo.SetActiveGroup(c.Context(), user.ID, parsedUUID); err != nil {
-		log.Printf("group switch failed: %v", err)
+		log.Error().Err(err).Msg("group switch failed")
 		return apperrors.New(404, "Group not found or you are not a member.")
 	}
 

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -59,7 +58,7 @@ func (h *PiggyBankHandler) Index(c *fiber.Ctx) error {
 
 	pbs, err := h.repo.List(c.Context(), accountID, groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list piggy banks: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list piggy banks")
 		return apperrors.ErrInternal
 	}
 
@@ -167,7 +166,7 @@ func (h *PiggyBankHandler) Store(c *fiber.Ctx) error {
 
 	pb, err = h.repo.Create(c.Context(), pb, groupID)
 	if err != nil {
-		log.Printf("handler/Index: failed to create piggy bank: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to create piggy bank")
 		return apperrors.ErrInternal
 	}
 
@@ -274,7 +273,7 @@ func (h *PiggyBankHandler) AddMoney(c *fiber.Ctx) error {
 	}
 	evt, err := h.repo.AddMoney(c.Context(), id, groupID, amount)
 	if err != nil {
-		log.Printf("piggy bank add money failed: %v", err)
+		log.Error().Err(err).Msg("piggy bank add money failed")
 		return apperrors.New(422, "Could not add money to piggy bank. Check your wallet balance.")
 	}
 
@@ -312,7 +311,7 @@ func (h *PiggyBankHandler) RemoveMoney(c *fiber.Ctx) error {
 	}
 	evt, err := h.repo.RemoveMoney(c.Context(), id, groupID, amount)
 	if err != nil {
-		log.Printf("piggy bank remove money failed: %v", err)
+		log.Error().Err(err).Msg("piggy bank remove money failed")
 		return apperrors.New(422, "Could not remove money from piggy bank. Insufficient piggy bank balance.")
 	}
 

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/url"
 	"strings"
@@ -104,7 +103,7 @@ func (h *WebhookHandler) Index(c *fiber.Ctx) error {
 
 	webhooks, err := h.repo.List(c.Context(), *groupID)
 	if err != nil {
-		log.Printf("handler: failed to list webhooks: %v", err)
+		log.Error().Err(err).Msg("handler: failed to list webhooks")
 		return apperrors.ErrInternal
 	}
 
@@ -183,7 +182,7 @@ func (h *WebhookHandler) Store(c *fiber.Ctx) error {
 
 	w, err := h.repo.Create(c.Context(), user.ID, *groupID, req.Title, req.URL)
 	if err != nil {
-		log.Printf("handler: failed to create webhook: %v", err)
+		log.Error().Err(err).Msg("handler: failed to create webhook")
 		return apperrors.ErrInternal
 	}
 
@@ -282,7 +281,7 @@ func (h *WebhookHandler) Messages(c *fiber.Ctx) error {
 
 	messages, err := h.repo.ListMessages(c.Context(), id)
 	if err != nil {
-		log.Printf("handler: failed to list webhook messages: %v", err)
+		log.Error().Err(err).Msg("handler: failed to list webhook messages")
 		return apperrors.ErrInternal
 	}
 

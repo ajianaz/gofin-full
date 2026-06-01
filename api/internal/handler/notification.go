@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 "github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -22,7 +21,7 @@ func (h *NotificationHandler) Index(c *fiber.Ctx) error {
 
 	notifications, err := h.repo.List(c.Context(), user.ID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list notifications: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list notifications")
 		return apperrors.ErrInternal
 	}
 
@@ -48,7 +47,7 @@ func (h *NotificationHandler) Unread(c *fiber.Ctx) error {
 
 	notifications, err := h.repo.ListUnread(c.Context(), user.ID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list unread notifications: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list unread notifications")
 		return apperrors.ErrInternal
 	}
 
@@ -92,7 +91,7 @@ func (h *NotificationHandler) MarkAllRead(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 
 	if err := h.repo.MarkAllRead(c.Context(), user.ID); err != nil {
-		log.Printf("handler/Index: failed to mark all notifications as read: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to mark all notifications as read")
 		return apperrors.ErrInternal
 	}
 

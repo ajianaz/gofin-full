@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -37,7 +36,7 @@ func (h *PreferenceHandler) Index(c *fiber.Ctx) error {
 
 	prefs, err := h.repo.List(c.Context(), user.ID)
 	if err != nil {
-		log.Printf("handler/Index: failed to list preferences: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to list preferences")
 		return apperrors.ErrInternal
 	}
 
@@ -98,7 +97,7 @@ func (h *PreferenceHandler) Set(c *fiber.Ctx) error {
 
 	p, err := h.repo.Set(c.Context(), user.ID, req.Name, req.Data)
 	if err != nil {
-		log.Printf("handler/Index: failed to set preference: %v", err)
+		log.Error().Err(err).Msg("handler/Index: failed to set preference")
 		return apperrors.ErrInternal
 	}
 

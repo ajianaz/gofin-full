@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	response "github.com/ajianaz/gofin-full/api/internal/dto/response"
@@ -38,7 +37,7 @@ func (h *HealthHandler) Check(c *fiber.Ctx) error {
 	if err := h.checkPostgres(ctx); err != nil {
 		pgStatus.Status = "error"
 		pgStatus.Error = "connection failed"
-		log.Printf("health check: postgresql error: %v", err)
+		log.Error().Err(err).Msg("health check: postgresql error")
 		health.Status = "degraded"
 	} else {
 		pgStatus.Status = "ok"
@@ -50,7 +49,7 @@ func (h *HealthHandler) Check(c *fiber.Ctx) error {
 	if err := h.checkRedis(ctx); err != nil {
 		redisStatus.Status = "error"
 		redisStatus.Error = "connection failed"
-		log.Printf("health check: redis error: %v", err)
+		log.Error().Err(err).Msg("health check: redis error")
 		health.Status = "degraded"
 	} else {
 		redisStatus.Status = "ok"

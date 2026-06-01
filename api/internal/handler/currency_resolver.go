@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -106,7 +105,7 @@ func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[st
 
 	rows, err := r.db.Query(ctx, query, queryArgs...)
 	if err != nil {
-		log.Printf("currency: resolve failed: %v", err)
+		log.Error().Err(err).Msg("currency: resolve failed")
 		return result
 	}
 	defer rows.Close()
@@ -116,7 +115,7 @@ func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[st
 		var uuid, code, symbol string
 		var dp int
 		if err := rows.Scan(&uuid, &code, &symbol, &dp); err != nil {
-			log.Printf("currency: scan failed: %v", err)
+			log.Error().Err(err).Msg("currency: scan failed")
 			continue
 		}
 		info := CurrencyInfo{Code: code, Symbol: symbol, DecimalPlaces: dp}
@@ -126,7 +125,7 @@ func (r *CurrencyResolver) ResolveMany(ctx context.Context, ids []string) map[st
 		}
 	}
 	if err := rows.Err(); err != nil {
-		log.Printf("currency: rows iteration failed: %v", err)
+		log.Error().Err(err).Msg("currency: rows iteration failed")
 	}
 	return result
 }

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 "github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
@@ -86,7 +85,7 @@ func (h *LocationHandler) Store(c *fiber.Ctx) error {
 
 	loc, err := h.repo.Set(c.Context(), user.ID, *groupID, req.LocatableType, req.LocatableID, req.Latitude, req.Longitude, req.ZoomLevel)
 	if err != nil {
-		log.Printf("handler/Show: failed to set location: %v", err)
+		log.Error().Err(err).Msg("handler/Show: failed to set location")
 		return apperrors.ErrInternal
 	}
 
