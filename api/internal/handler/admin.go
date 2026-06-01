@@ -81,7 +81,7 @@ func (h *AdminHandler) ListUsers(c *fiber.Ctx) error {
 			"id":   u.ID,
 			"attributes": fiber.Map{
 				"email":      u.Email,
-				"name":       u.Email,
+				"name":       u.Name,
 				"role":       uwr.Role,
 				"is_active":  !u.Blocked,
 				"created_at": u.CreatedAt.Format("2006-01-02T15:04:05Z"),
