@@ -4,8 +4,15 @@ import { handleApiError } from '$lib/stores/toast.js';
 
 const API_BASE = '/api/v1';
 
+// Paths excluded from token refresh on 401 (self-managed auth endpoints)
+const AUTH_PATHS = new Set(['/auth/refresh', '/auth/login', '/auth/register']);
+
 let isRefreshing = false;
 let refreshPromise: Promise<TokenResponse | null> | null = null;
+
+function isAuthPath(path: string): boolean {
+	return AUTH_PATHS.has(path);
+}
 
 async function refreshAccessToken(): Promise<TokenResponse | null> {
 	// Try in-memory refresh token first (available right after login/register).
@@ -25,13 +32,11 @@ async function refreshAccessToken(): Promise<TokenResponse | null> {
 		});
 
 		if (!response.ok) {
-			// Refresh failed — clear reactive state
 			authStore.clearTokens();
 			return null;
 		}
 
 		const tokens: TokenResponse = await response.json();
-		// Sync with reactive auth store (cookie persistence handled by server)
 		authStore.setTokens(tokens);
 		return tokens;
 	} catch {
@@ -40,7 +45,6 @@ async function refreshAccessToken(): Promise<TokenResponse | null> {
 }
 
 async function getRefreshedToken(): Promise<TokenResponse | null> {
-	// If a refresh is already in flight, reuse the same promise
 	if (isRefreshing && refreshPromise) {
 		return refreshPromise;
 	}
@@ -54,25 +58,38 @@ async function getRefreshedToken(): Promise<TokenResponse | null> {
 	return refreshPromise;
 }
 
+/**
+ * Build request headers with auth token from authStore (single source of truth).
+ * authStore is updated synchronously by refreshAccessToken before this is called for retries.
+ */
+function buildHeaders(options: RequestInit): Record<string, string> {
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json',
+		...((options.headers as Record<string, string>) || {})
+	};
+	const token = authStore.accessToken;
+	if (token) {
+		headers['Authorization'] = `Bearer ${token}`;
+	}
+	return headers;
+}
+
+/**
+ * Make an authenticated API request with automatic token refresh on 401.
+ *
+ * Flow:
+ * 1. Read token from authStore (single source of truth)
+ * 2. If 401 on non-auth path, refresh token via API
+ * 3. refreshAccessToken updates authStore.setTokens (synchronous state update)
+ * 4. Retry with buildHeaders which reads the now-fresh token from authStore
+ * 5. If refresh also fails, clear tokens and redirect to login
+ */
 async function request<T>(
 	path: string,
 	options: RequestInit = {}
 ): Promise<T> {
 	const url = `${API_BASE}${path}`;
-
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json',
-		...((options.headers as Record<string, string>) || {})
-	};
-
-	// Set Authorization header from in-memory token for backward compatibility.
-	// The httpOnly cookie is always sent by the browser and is the primary
-	// auth mechanism. This header ensures existing API key / header-based
-	// clients continue to work during the migration.
-	const token = authStore.accessToken;
-	if (token) {
-		headers['Authorization'] = `Bearer ${token}`;
-	}
+	const headers = buildHeaders(options);
 
 	const response = await fetch(url, {
 		...options,
@@ -80,17 +97,11 @@ async function request<T>(
 		headers
 	});
 
-	if (response.status === 401 && path !== '/auth/refresh' && path !== '/auth/login' && path !== '/auth/register') {
+	if (response.status === 401 && !isAuthPath(path)) {
 		const newTokens = await getRefreshedToken();
 
 		if (newTokens) {
-			// Retry the original request with the new token
-			const retryHeaders: Record<string, string> = {
-				'Content-Type': 'application/json',
-				...((options.headers as Record<string, string>) || {})
-			};
-			retryHeaders['Authorization'] = `Bearer ${newTokens.access_token}`;
-
+			const retryHeaders = buildHeaders(options);
 			const retryResponse = await fetch(url, {
 				...options,
 				credentials: 'same-origin',
@@ -116,7 +127,6 @@ async function request<T>(
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';
 		}
-
 		let error: ApiError = { status: 401 };
 		try {
 			error = await response.json();
@@ -142,43 +152,36 @@ async function request<T>(
 	return response.json();
 }
 
+/**
+ * Make an authenticated blob request with automatic token refresh on 401.
+ *
+ * Returns the raw Response for non-auth cases (caller handles HTTP status).
+ * On auth failure (401 + refresh failed), throws and redirects to login.
+ */
 async function requestBlob(
 	path: string,
 	options: RequestInit = {}
 ): Promise<Response> {
 	const url = `${API_BASE}${path}`;
-
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json',
-		...((options.headers as Record<string, string>) || {})
-	};
-
-	const token = authStore.accessToken;
-	if (token) {
-		headers['Authorization'] = `Bearer ${token}`;
-	}
+	const headers = buildHeaders(options);
 
 	const response = await fetch(url, {
 		...options,
-		credentials: 'same-origin',
+		credentials: 'same-origin', // ensure httpOnly cookies are sent
 		headers
 	});
 
-	if (response.status === 401 && path !== '/auth/refresh' && path !== '/auth/login' && path !== '/auth/register') {
+	if (response.status === 401 && !isAuthPath(path)) {
 		const newTokens = await getRefreshedToken();
 
 		if (newTokens) {
-			const retryHeaders: Record<string, string> = {
-				'Content-Type': 'application/json',
-				...((options.headers as Record<string, string>) || {})
-			};
-			retryHeaders['Authorization'] = `Bearer ${newTokens.access_token}`;
-
-			return fetch(url, {
+			const retryHeaders = buildHeaders(options);
+			const retryResponse = await fetch(url, {
 				...options,
 				credentials: 'same-origin',
 				headers: retryHeaders
 			});
+			if (retryResponse.ok) return retryResponse;
 		}
 
 		// Refresh failed — clear tokens and redirect to login
@@ -186,8 +189,10 @@ async function requestBlob(
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';
 		}
+		throw new Error('Authentication failed — session expired');
 	}
 
+	// Return raw response — caller handles non-2xx (export.ts checks response.ok)
 	return response;
 }
 
@@ -216,8 +221,7 @@ export const api = {
 		return request<T>(path, { ...options, method: 'DELETE' });
 	},
 
-	/** Fetch a binary endpoint; returns the raw Response for blob/stream handling.
-	 *  Token refresh is handled transparently. */
+	/** Fetch a binary endpoint. Returns raw Response for non-auth cases. Throws on auth failure. */
 	blob(path: string, options?: RequestInit): Promise<Response> {
 		return requestBlob(path, { ...options, method: 'GET' });
 	}
