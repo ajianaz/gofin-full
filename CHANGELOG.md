@@ -6,41 +6,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-06-01
+
+### Security
+- **httpOnly cookies**: Migrated token storage from localStorage to httpOnly, Secure, SameSite=Lax cookies — tokens no longer accessible via JavaScript (XSS protection) (closes #128)
+- Tokens removed from OAuth redirect URL fragment (closes #143)
+- OAuth callback uses cookie-based session verification via `restoreSession()`
+- Logout clears httpOnly cookies + increments token_version
+
 ### Changed
-- Docker publish: GHCR only for develop, GHCR + Docker Hub for main/tags (closes #113)
-- Sync compose files: dev (traefik + GHCR) vs prod (selfhost + Docker Hub), consistent env vars (closes #115)
-- Update README + deployment docs: dev vs prod quick start, registry table, new env vars (closes #115)
-- Rename CLAUDE.md → AGENT.md (agentic-agnostic), update content (#174)
-- Fix SECURITY.md: supported branch main → develop (#173)
-- Fix docs.yml: add develop branch trigger (#175)
-- Overhaul GitHub labels: deprecated area:*, added effort:*, type:*, ci/cd (#176)
-- Update issue templates with new component selection (#178)
+- Backend: Replaced all 63 `log.Printf` calls with zerolog structured logging (closes #138)
+- Backend: Wired validation framework — Required, MinLength, Email, PasswordStrength validators (closes #137)
+- Backend: Cached token_version in Redis (eliminates per-request DB query) (closes #139)
+- Backend: Fixed N+1 queries in transaction detail & admin user list (closes #140)
+- Backend: Added pagination to all unpaginated list endpoints (closes #150)
+- Backend: RBAC hierarchy gaps — reviewed and fixed semantic role relationships (closes #154)
+- Backend: Added FK from wallets to user_groups table (closes #155)
+- Backend: Removed legacy unused columns on users (reset_token, remember_token) (closes #156)
+- Backend: Disabled auth provider hardened — explicit config-based enforcement (closes #132)
+- Backend: Feature flags sourced from config instead of env vars (closes #158)
+- Backend: SecurityHeaders receives config from RouterConfig instead of env vars (closes #153)
+- Frontend: Unified token state management — authStore as single source of truth (closes #145)
+- Frontend: Export service uses central API client with token refresh (closes #134)
+- Frontend: Added global toast/notification system for API errors (closes #146)
+- Frontend: SvelteKit load functions for auth guards instead of onMount (closes #147)
+- Frontend: Vendor chunk splitting — ui-vendor + data-vendor for better caching (closes #148)
+- Frontend: Generated TypeScript interfaces from OpenAPI spec — 78 typed interfaces (closes #133)
+- Frontend: CSP headers tightened in hooks.server.ts (closes #129)
+- Frontend: Admin layout guard — unauthenticated users redirected from admin routes (closes #130)
+- Frontend: Sidebar DOM manipulation replaced with Svelte `$effect` (closes #131)
+- Frontend: StatusBadge i18n — hardcoded English labels replaced with translations (closes #161)
+- Frontend: Export download deduplicated — extracted shared helper (closes #162)
+- Frontend: NavSection component extracted for consistent nav rendering (closes #159)
+- Frontend: Dark mode CSS tokens added to component variables (closes #160)
+- Housekeeping: Renamed CLAUDE.md → AGENT.md, updated issue templates, overhauled labels
 
 ### Added
-- SMTP + email verification config to .env.example and configuration docs
-- Rate limiting vars (RATE_LIMIT_ENABLED, LOGIN_RATE_LIMIT_ENABLED, etc.) to configuration docs
+- Backend: Unit tests for validation framework — 9 test cases (closes #157)
+- Backend: API key last_used goroutine uses request context for tracing (closes #163)
+- Backend: UserRepository.Update simplified — removed buggy double query construction (closes #151)
 
 ### Removed
-- Remove 2FA dead code: unused TwoFAService, config field, preference schema entry, and otp dependency (#142)
-
-### Fixed
-- Dropdown SelectValue shows translated label instead of raw value — added `items` prop to all 32 Select components for bits-ui label resolution without DOM mount
-- Select dropdown trigger text has proper gap from chevron icon and text truncation
-- StatusBadge hardcoded English labels replaced with i18n translations (closes #161)
-- Export service deduplicated — extracted shared `downloadExport` helper (closes #162)
-- Removed 2FA dead code: TwoFAService struct/methods, test file, Allow2FABypass config (closes #142)
-- UserRepository.Update: removed buggy double query construction, simplified to single clean SET/WHERE clause (closes #151)
-- SecurityHeaders middleware now receives config from RouterConfig instead of reading env vars directly (closes #153)
-- API key last_used goroutine uses request context instead of context.Background() for tracing/timeout (closes #163)
-
-### Changed
-- Transactions table: better padding, right-aligned amounts, tabular numbers, text truncation, row borders
-- Select dropdown: gap between text and icon, overflow truncation in trigger
-- FE polish: migrate 12 files from raw `<button>` to shadcn Button component
-- FE polish: Reports chart colors now use CSS variables (dark mode compatible)
-- FE polish: responsive breakpoints for 9 grid/layout pages + auth pages mobile padding
-- FE fix: Currency symbol fallback now uses locale-aware `getDefaultSymbol()` (ID→Rp, EN→$) instead of hardcoded `$`
-- FE fix: Sidebar user info improved — name/email truncation, muted-foreground email color
+- 2FA dead code: unused TwoFAService, config field, preference schema entry (closes #142)
 
 ## [0.1.5]
 
