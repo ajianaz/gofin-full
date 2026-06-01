@@ -78,6 +78,16 @@
 
 		try {
 			await authStore.register(email, password);
+			// Auto-login after registration to ensure a valid authenticated session.
+			// The register endpoint may not return tokens, so we login explicitly.
+			// If login fails (e.g. email verification required), fall through to dashboard
+			// redirect anyway — the session will be restored via httpOnly cookies if available.
+			try {
+				await authStore.login(email, password);
+			} catch {
+				// Registration succeeded but auto-login failed — attempt session restore
+				await authStore.restoreSession();
+			}
 			goto('/dashboard');
 		} catch (err) {
 			const apiErr = err as ApiError;

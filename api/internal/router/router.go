@@ -67,6 +67,18 @@ type RouterConfig struct {
 	MaxRequestBodyBytes  int64
 }
 
+// registerRateLimit applies a stricter rate limit (5 req/min/IP) to the registration endpoint.
+// This is applied in addition to the general auth group rate limit to prevent abuse.
+// Returns a no-op handler when rate limiting is disabled.
+func registerRateLimit(cfg RouterConfig) fiber.Handler {
+	if cfg.RedisClient != nil && cfg.RateLimitEnabled && cfg.RateLimitMax > 0 {
+		return middleware.RateLimitByKey(cfg.RedisClient, 5, time.Minute, "ratelimit:register")
+	}
+	return func(c *fiber.Ctx) error {
+		return c.Next()
+	}
+}
+
 // New creates a new Fiber app with all routes registered.
 func New(cfg RouterConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
@@ -107,7 +119,7 @@ func New(cfg RouterConfig) *fiber.App {
 	}
 	authGroup.Get("/provider", cfg.AuthHandler.Provider)
 authGroup.Post("/login", cfg.AuthHandler.Login)
-authGroup.Post("/register", cfg.AuthHandler.Register)
+authGroup.Post("/register", registerRateLimit(cfg), cfg.AuthHandler.Register)
 authGroup.Post("/refresh", cfg.AuthHandler.Refresh)
 authGroup.Post("/forgot-password", cfg.AuthHandler.ForgotPassword)
 authGroup.Post("/reset-password", cfg.AuthHandler.ResetPassword)

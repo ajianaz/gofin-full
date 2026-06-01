@@ -86,10 +86,24 @@ func CacheControl(maxAgeSeconds int) fiber.Handler {
 // RateLimit provides a Redis-based sliding window rate limiter.
 // Falls back to an in-memory limiter when Redis is unavailable.
 func RateLimit(rdb redis.Cmdable, limit int, window time.Duration) fiber.Handler {
+	return rateLimitWithKey(rdb, limit, window, func(c *fiber.Ctx) string {
+		return fmt.Sprintf("ratelimit:%s:%s", c.IP(), c.Path())
+	})
+}
+
+// RateLimitByKey provides a Redis-based sliding window rate limiter with a custom key prefix.
+// Use this for endpoint-specific stricter limits. The key format is {prefix}:{ip}.
+// Falls back to an in-memory limiter when Redis is unavailable.
+func RateLimitByKey(rdb redis.Cmdable, limit int, window time.Duration, prefix string) fiber.Handler {
+	return rateLimitWithKey(rdb, limit, window, func(c *fiber.Ctx) string {
+		return fmt.Sprintf("%s:%s", prefix, c.IP())
+	})
+}
+
+// rateLimitWithKey is the core rate limiter that accepts a key function.
+func rateLimitWithKey(rdb redis.Cmdable, limit int, window time.Duration, keyFunc func(*fiber.Ctx) string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ip := c.IP()
-		path := c.Path()
-		key := fmt.Sprintf("ratelimit:%s:%s", ip, path)
+		key := keyFunc(c)
 
 		now := time.Now().UnixMilli()
 		windowMs := window.Milliseconds()
