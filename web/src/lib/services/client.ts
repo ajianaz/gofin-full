@@ -8,27 +8,30 @@ let isRefreshing = false;
 let refreshPromise: Promise<TokenResponse | null> | null = null;
 
 async function refreshAccessToken(): Promise<TokenResponse | null> {
-	const refreshToken = localStorage.getItem('refresh_token');
-	if (!refreshToken) return null;
+	// Try in-memory refresh token first (available right after login/register).
+	// If null (page reload), send request anyway — server reads httpOnly cookie.
+	const refreshToken = authStore.refreshToken;
+
+	const body = refreshToken
+		? JSON.stringify({ refresh_token: refreshToken })
+		: '{}';
 
 	try {
 		const response = await fetch(`${API_BASE}/auth/refresh`, {
 			method: 'POST',
+			credentials: 'same-origin', // ensure httpOnly cookies are sent
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ refresh_token: refreshToken })
+			body
 		});
 
 		if (!response.ok) {
-			// Refresh failed — clear tokens
-			localStorage.removeItem('access_token');
-			localStorage.removeItem('refresh_token');
+			// Refresh failed — clear reactive state
+			authStore.clearTokens();
 			return null;
 		}
 
 		const tokens: TokenResponse = await response.json();
-		localStorage.setItem('access_token', tokens.access_token);
-		localStorage.setItem('refresh_token', tokens.refresh_token);
-		// Sync with reactive auth store
+		// Sync with reactive auth store (cookie persistence handled by server)
 		authStore.setTokens(tokens);
 		return tokens;
 	} catch {
@@ -62,13 +65,18 @@ async function request<T>(
 		...((options.headers as Record<string, string>) || {})
 	};
 
-	const token = localStorage.getItem('access_token');
+	// Set Authorization header from in-memory token for backward compatibility.
+	// The httpOnly cookie is always sent by the browser and is the primary
+	// auth mechanism. This header ensures existing API key / header-based
+	// clients continue to work during the migration.
+	const token = authStore.accessToken;
 	if (token) {
 		headers['Authorization'] = `Bearer ${token}`;
 	}
 
 	const response = await fetch(url, {
 		...options,
+		credentials: 'same-origin', // ensure httpOnly cookies are sent
 		headers
 	});
 
@@ -85,6 +93,7 @@ async function request<T>(
 
 			const retryResponse = await fetch(url, {
 				...options,
+				credentials: 'same-origin',
 				headers: retryHeaders
 			});
 
@@ -103,9 +112,6 @@ async function request<T>(
 		}
 
 		// Refresh failed — clear tokens and redirect to login
-		localStorage.removeItem('access_token');
-		localStorage.removeItem('refresh_token');
-		// Sync with reactive auth store
 		authStore.clearTokens();
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';
@@ -141,18 +147,20 @@ async function requestBlob(
 	options: RequestInit = {}
 ): Promise<Response> {
 	const url = `${API_BASE}${path}`;
+
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json',
 		...((options.headers as Record<string, string>) || {})
 	};
 
-	const token = localStorage.getItem('access_token');
+	const token = authStore.accessToken;
 	if (token) {
 		headers['Authorization'] = `Bearer ${token}`;
 	}
 
 	const response = await fetch(url, {
 		...options,
+		credentials: 'same-origin',
 		headers
 	});
 
@@ -165,15 +173,15 @@ async function requestBlob(
 				...((options.headers as Record<string, string>) || {})
 			};
 			retryHeaders['Authorization'] = `Bearer ${newTokens.access_token}`;
+
 			return fetch(url, {
 				...options,
+				credentials: 'same-origin',
 				headers: retryHeaders
 			});
 		}
 
 		// Refresh failed — clear tokens and redirect to login
-		localStorage.removeItem('access_token');
-		localStorage.removeItem('refresh_token');
 		authStore.clearTokens();
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';

@@ -1,44 +1,31 @@
-import { browser } from '$app/environment';
 import type { User, TokenResponse } from '$lib/types/index.js';
 import { authService } from '$lib/services/auth.js';
 import { api } from '$lib/services/client.js';
 
-function getStoredToken(key: string): string | null {
-	if (!browser) return null;
-	return localStorage.getItem(key);
-}
-
-function setStoredToken(key: string, value: string) {
-	if (!browser) return;
-	localStorage.setItem(key, value);
-}
-
-function removeStoredToken(key: string) {
-	if (!browser) return;
-	localStorage.removeItem(key);
-}
-
 function createAuthStore() {
 	let user = $state<User | null>(null);
-	let accessToken = $state<string | null>(getStoredToken('access_token'));
-	let refreshToken = $state<string | null>(getStoredToken('refresh_token'));
+	let accessToken = $state<string | null>(null);
+	let refreshToken = $state<string | null>(null);
 	let isLoading = $state(false);
 
 	const isAuthenticated = $derived(!!accessToken);
 
+	// Token persistence is now handled server-side via httpOnly cookies.
+	// The reactive state serves two purposes:
+	//   1. Authorization header fallback during migration (backward compat)
+	//   2. Client-side isAuthenticated derived state for UI reactivity
+	// After page reload, accessToken starts null; the server authenticates
+	// via httpOnly cookie. The in-memory token is populated by setTokens()
+	// when tokens come back from login/register/refresh responses.
 	function setTokens(tokens: TokenResponse) {
 		accessToken = tokens.access_token;
 		refreshToken = tokens.refresh_token;
-		setStoredToken('access_token', tokens.access_token);
-		setStoredToken('refresh_token', tokens.refresh_token);
 	}
 
 	function clearTokens() {
 		user = null;
 		accessToken = null;
 		refreshToken = null;
-		removeStoredToken('access_token');
-		removeStoredToken('refresh_token');
 	}
 
 	async function setupGroup(): Promise<void> {
@@ -112,11 +99,17 @@ function createAuthStore() {
 	}
 
 	async function restore() {
-		if (!accessToken) return;
+		// On page load, attempt to fetch user via httpOnly cookies.
+		// We call authService.getMe() directly instead of fetchUser() because
+		// fetchUser() guards on `if (!accessToken)` which is null after reload.
+		// The server authenticates the request via the httpOnly cookie.
 		isLoading = true;
 		try {
-			await fetchUser();
+			user = await authService.getMe();
 			await setupGroup();
+		} catch {
+			// No valid cookie session — user is unauthenticated
+			clearTokens();
 		} finally {
 			isLoading = false;
 		}
@@ -135,7 +128,22 @@ function createAuthStore() {
 		logout,
 		fetchUser,
 		restore,
-		setupGroup
+		setupGroup,
+		/** Restore session from httpOnly cookies — bypasses accessToken guard.
+		 *  Use in OAuth callback and similar flows where tokens are server-set. */
+		async restoreSession() {
+			isLoading = true;
+			try {
+				user = await authService.getMe();
+				await setupGroup();
+				return user;
+			} catch {
+				clearTokens();
+				return null;
+			} finally {
+				isLoading = false;
+			}
+		}
 	};
 }
 
