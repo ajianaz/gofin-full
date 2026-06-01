@@ -155,10 +155,11 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		_ = h.refreshRepo.Store(c.Context(), identity.ID, tokenHash, expiresAt)
 	}
 
-	// Set httpOnly cookies (tokens still returned in body for backward compat)
-	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
+	// Set httpOnly cookies (secure in production, insecure for local HTTP dev)
+	secure := !h.cfg.IsLocal()
+	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken, secure)
 
-	return c.JSON(tokens)
+	return c.JSON(tokens.PublicResponse())
 }
 
 // loginAttemptEntry tracks in-memory login attempt state per key.
@@ -378,10 +379,11 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		_ = h.userRepo.SetVerified(c.Context(), user.ID)
 	}
 
-	// Set httpOnly cookies (tokens still returned in body for backward compat)
-	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
+	// Set httpOnly cookies (secure in production, insecure for local HTTP dev)
+	secure := !h.cfg.IsLocal()
+	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken, secure)
 
-	return c.Status(201).JSON(tokens)
+	return c.Status(201).JSON(tokens.PublicResponse())
 }
 
 // Me handles GET /api/v1/auth/me.
@@ -430,7 +432,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	}
 
 	// Clear httpOnly cookies
-	auth.ClearTokenCookies(c)
+	auth.ClearTokenCookies(c, !h.cfg.IsLocal())
 
 	return c.JSON(fiber.Map{
 		"message": "Logged out successfully.",
@@ -494,10 +496,11 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		_ = h.refreshRepo.Store(c.Context(), claims.UserID, newHash, newExpiresAt)
 	}
 
-	// Set httpOnly cookies (tokens still returned in body for backward compat)
-	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
+	// Set httpOnly cookies (secure in production, insecure for local HTTP dev)
+	secure := !h.cfg.IsLocal()
+	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken, secure)
 
-	return c.JSON(tokens)
+	return c.JSON(tokens.PublicResponse())
 }
 
 // OAuthURL handles GET /api/v1/auth/:provider/url.
@@ -598,8 +601,9 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 		_ = h.refreshRepo.Store(c.Context(), user.ID, tokenHash, expiresAt)
 	}
 
-	// Set httpOnly cookies (tokens still returned in body for backward compat)
-	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
+	// Set httpOnly cookies (secure in production, insecure for local HTTP dev)
+	secure := !h.cfg.IsLocal()
+	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken, secure)
 
 	// If redirect URL is set, validate against APP_URL allowlist and redirect.
 	// Tokens are no longer included in the URL fragment — httpOnly cookies are set above.
@@ -607,7 +611,7 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 		return c.Redirect(redirect)
 	}
 
-	return c.JSON(tokens)
+	return c.JSON(tokens.PublicResponse())
 }
 
 // isAllowedRedirect validates that a redirect URL matches the configured APP_URL origin.

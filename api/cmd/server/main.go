@@ -121,7 +121,7 @@ func main() {
 		log.Info().Str("from", cfg.SMTPFrom).Msg("SMTP mail service configured")
 	}
 	userHandler := handler.NewUserHandler(userRepo)
-	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr)
+	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr, !cfg.IsLocal())
 	walletHandler := handler.NewWalletHandler(walletRepo, handler.NewCurrencyResolver(db))
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	tagHandler := handler.NewTagHandler(tagRepo)

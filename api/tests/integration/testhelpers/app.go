@@ -112,7 +112,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 	healthHandler := handler.NewHealthHandler(db, nil) // nil Redis is fine for tests
 	authHandler := handler.NewAuthHandler(zerolog.Nop(), jwtMgr, authProvider, prodCfg, userRepo, oauthStateRepo, refreshRepo)
 	userHandler := handler.NewUserHandler(userRepo)
-	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr)
+	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr, false)
 	walletHandler := handler.NewWalletHandler(walletRepo, handler.NewCurrencyResolver(db))
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	tagHandler := handler.NewTagHandler(tagRepo)
