@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { authStore } from '$lib/stores/auth.svelte.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -25,9 +25,7 @@
 
 	const pageTitle = $derived(() => {
 		const path = $page.url.pathname;
-		// Exact match first
 		if (titleMap[path]) return t(titleMap[path]);
-		// Prefix match for sub-routes (e.g., /settings/account → Settings)
 		const base = '/' + path.split('/').filter(Boolean)[0];
 		if (titleMap[base]) return t(titleMap[base]);
 		return t('app.name');
@@ -72,6 +70,20 @@
 	const t = localeStore.t;
 	let mounted = $state(false);
 
+	const displayName = $derived(
+		authStore.user?.name || authStore.user?.email?.split('@')[0] || ''
+	);
+	const userEmail = $derived(authStore.user?.email || '');
+
+	// Reactively update sidebar footer DOM elements (shadcn SidebarFooter breaks Svelte reactivity)
+	$effect(() => {
+		if (!mounted) return;
+		const nameEl = document.getElementById('user-name');
+		const emailEl = document.getElementById('user-email');
+		if (nameEl) nameEl.textContent = displayName;
+		if (emailEl) emailEl.textContent = userEmail;
+	});
+
 	const menuNav = $derived([
 		{ label: t('layout.sidebar.dashboard'), href: '/dashboard', icon: LayoutDashboard },
 		{ label: t('layout.sidebar.transactions'), href: '/transactions', icon: ArrowLeftRight },
@@ -102,34 +114,14 @@
 
 	onMount(async () => {
 		mounted = true;
-		// Always attempt restore if there's a token — validates server-side
 		if (authStore.accessToken) {
 			await authStore.restore();
 		}
-		// If still not authenticated or user not loaded, redirect to login
 		if (!authStore.isAuthenticated || !authStore.user) {
 			goto('/login');
-			return;
-		}
-		// Attach logout handler + user info via DOM (Svelte reactivity lost inside SidebarFooter)
-		const logoutEl = document.getElementById('logout-btn');
-		if (logoutEl) {
-			const handler = () => handleLogout();
-			logoutEl.addEventListener('click', handler);
-			onDestroy(() => {
-				logoutEl.removeEventListener('click', handler);
-			});
-		}
-		// Update user info in SidebarFooter via DOM
-		const user = authStore.user;
-		if (user) {
-			const nameEl = document.getElementById('user-name');
-			const emailEl = document.getElementById('user-email');
-			const displayName = user.name || user.email?.split('@')[0] || '';
-			if (nameEl) nameEl.textContent = displayName;
-			if (emailEl) emailEl.textContent = user.email || '';
 		}
 	});
+
 	function isActive(href: string): boolean {
 		return $page.url.pathname.startsWith(href);
 	}
@@ -243,7 +235,7 @@
 			<div class="flex flex-col gap-2">
 				<div class="flex items-center gap-2 rounded-md bg-sidebar p-2">
 					<Avatar class="size-8">
-						<AvatarFallback class="bg-sidebar-accent text-sidebar-accent-foreground text-xs" id="user-avatar">
+						<AvatarFallback class="bg-sidebar-accent text-sidebar-accent-foreground text-xs">
 							{userInitials}
 						</AvatarFallback>
 					</Avatar>
@@ -272,7 +264,7 @@
 					<Button
 						variant="ghost"
 						size="sm"
-						id="logout-btn"
+						onclick={handleLogout}
 						class="gap-1.5 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
 						title={t('layout.sidebar.logout')}
 					>
