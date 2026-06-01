@@ -4,11 +4,18 @@ import { handleApiError } from '$lib/stores/toast.js';
 
 const API_BASE = '/api/v1';
 
+// Paths excluded from token refresh on 401 (self-managed auth endpoints)
+const AUTH_PATHS = new Set(['/auth/refresh', '/auth/login', '/auth/register']);
+
 let isRefreshing = false;
 let refreshPromise: Promise<TokenResponse | null> | null = null;
 
+function isAuthPath(path: string): boolean {
+	return AUTH_PATHS.has(path);
+}
+
 async function refreshAccessToken(): Promise<TokenResponse | null> {
-	const refreshToken = localStorage.getItem('refresh_token');
+	const refreshToken = authStore.refreshToken;
 	if (!refreshToken) return null;
 
 	try {
@@ -19,16 +26,11 @@ async function refreshAccessToken(): Promise<TokenResponse | null> {
 		});
 
 		if (!response.ok) {
-			// Refresh failed — clear tokens
-			localStorage.removeItem('access_token');
-			localStorage.removeItem('refresh_token');
+			authStore.clearTokens();
 			return null;
 		}
 
 		const tokens: TokenResponse = await response.json();
-		localStorage.setItem('access_token', tokens.access_token);
-		localStorage.setItem('refresh_token', tokens.refresh_token);
-		// Sync with reactive auth store
 		authStore.setTokens(tokens);
 		return tokens;
 	} catch {
@@ -37,7 +39,6 @@ async function refreshAccessToken(): Promise<TokenResponse | null> {
 }
 
 async function getRefreshedToken(): Promise<TokenResponse | null> {
-	// If a refresh is already in flight, reuse the same promise
 	if (isRefreshing && refreshPromise) {
 		return refreshPromise;
 	}
@@ -51,42 +52,52 @@ async function getRefreshedToken(): Promise<TokenResponse | null> {
 	return refreshPromise;
 }
 
-async function request<T>(
-	path: string,
-	options: RequestInit = {}
-): Promise<T> {
-	const url = `${API_BASE}${path}`;
-
+/**
+ * Build request headers with auth token from authStore (single source of truth).
+ * authStore is updated synchronously by refreshAccessToken before this is called for retries.
+ */
+function buildHeaders(options: RequestInit): Record<string, string> {
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json',
 		...((options.headers as Record<string, string>) || {})
 	};
 
-	const token = localStorage.getItem('access_token');
+	const token = authStore.accessToken;
 	if (token) {
 		headers['Authorization'] = `Bearer ${token}`;
 	}
 
-	const response = await fetch(url, {
-		...options,
-		headers
-	});
+	return headers;
+}
 
-	if (response.status === 401 && path !== '/auth/refresh' && path !== '/auth/login' && path !== '/auth/register') {
+/**
+ * Make an authenticated API request with automatic token refresh on 401.
+ *
+ * Flow:
+ * 1. Read token from authStore (single source of truth)
+ * 2. If 401 on non-auth path, refresh token via API
+ * 3. refreshAccessToken updates authStore.setTokens (synchronous state update)
+ * 4. Retry with buildHeaders which reads the now-fresh token from authStore
+ * 5. If refresh also fails, clear tokens and redirect to login
+ */
+async function request<T>(
+	path: string,
+	options: RequestInit = {}
+): Promise<T> {
+	const url = `${API_BASE}${path}`;
+	const headers = buildHeaders(options);
+
+	const response = await fetch(url, { ...options, headers });
+
+	if (response.status === 401 && !isAuthPath(path)) {
 		const newTokens = await getRefreshedToken();
 
 		if (newTokens) {
-			// Retry the original request with the new token
-			const retryHeaders: Record<string, string> = {
-				'Content-Type': 'application/json',
-				...((options.headers as Record<string, string>) || {})
-			};
-			retryHeaders['Authorization'] = `Bearer ${newTokens.access_token}`;
+			// At this point authStore.setTokens was already called by refreshAccessToken,
+			// so buildHeaders() reads the fresh token from authStore.
+			const retryHeaders = buildHeaders(options);
 
-			const retryResponse = await fetch(url, {
-				...options,
-				headers: retryHeaders
-			});
+			const retryResponse = await fetch(url, { ...options, headers: retryHeaders });
 
 			if (!retryResponse.ok) {
 				let error: ApiError = { status: retryResponse.status };
@@ -103,14 +114,10 @@ async function request<T>(
 		}
 
 		// Refresh failed — clear tokens and redirect to login
-		localStorage.removeItem('access_token');
-		localStorage.removeItem('refresh_token');
-		// Sync with reactive auth store
 		authStore.clearTokens();
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';
 		}
-
 		let error: ApiError = { status: 401 };
 		try {
 			error = await response.json();
@@ -136,50 +143,43 @@ async function request<T>(
 	return response.json();
 }
 
+/**
+ * Make an authenticated blob request with automatic token refresh on 401.
+ *
+ * Returns the raw Response for non-auth cases (caller handles HTTP status).
+ * On auth failure (401 + refresh failed), throws and redirects to login.
+ *
+ * Why not throw on all non-ok? The caller (export.ts) needs to check
+ * response.ok and handle specific error statuses (e.g., 422 for invalid format).
+ */
 async function requestBlob(
 	path: string,
 	options: RequestInit = {}
 ): Promise<Response> {
 	const url = `${API_BASE}${path}`;
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json',
-		...((options.headers as Record<string, string>) || {})
-	};
+	const headers = buildHeaders(options);
 
-	const token = localStorage.getItem('access_token');
-	if (token) {
-		headers['Authorization'] = `Bearer ${token}`;
-	}
+	const response = await fetch(url, { ...options, headers });
 
-	const response = await fetch(url, {
-		...options,
-		headers
-	});
-
-	if (response.status === 401 && path !== '/auth/refresh' && path !== '/auth/login' && path !== '/auth/register') {
+	if (response.status === 401 && !isAuthPath(path)) {
 		const newTokens = await getRefreshedToken();
 
 		if (newTokens) {
-			const retryHeaders: Record<string, string> = {
-				'Content-Type': 'application/json',
-				...((options.headers as Record<string, string>) || {})
-			};
-			retryHeaders['Authorization'] = `Bearer ${newTokens.access_token}`;
-			return fetch(url, {
-				...options,
-				headers: retryHeaders
-			});
+			const retryHeaders = buildHeaders(options);
+			const retryResponse = await fetch(url, { ...options, headers: retryHeaders });
+			if (retryResponse.ok) return retryResponse;
+			// Retry failed — fall through to auth failure handling
 		}
 
-		// Refresh failed — clear tokens and redirect to login
-		localStorage.removeItem('access_token');
-		localStorage.removeItem('refresh_token');
+		// Refresh failed or retry still 401 — redirect to login
 		authStore.clearTokens();
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';
 		}
+		throw new Error('Authentication failed — session expired');
 	}
 
+	// Return raw response — caller handles non-2xx (export.ts checks response.ok)
 	return response;
 }
 
@@ -208,8 +208,7 @@ export const api = {
 		return request<T>(path, { ...options, method: 'DELETE' });
 	},
 
-	/** Fetch a binary endpoint; returns the raw Response for blob/stream handling.
-	 *  Token refresh is handled transparently. */
+	/** Fetch a binary endpoint. Returns raw Response for non-auth cases. Throws on auth failure. */
 	blob(path: string, options?: RequestInit): Promise<Response> {
 		return requestBlob(path, { ...options, method: 'GET' });
 	}
