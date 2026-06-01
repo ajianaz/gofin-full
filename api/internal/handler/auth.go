@@ -155,6 +155,9 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		_ = h.refreshRepo.Store(c.Context(), identity.ID, tokenHash, expiresAt)
 	}
 
+	// Set httpOnly cookies (tokens still returned in body for backward compat)
+	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
+
 	return c.JSON(tokens)
 }
 
@@ -375,6 +378,9 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		_ = h.userRepo.SetVerified(c.Context(), user.ID)
 	}
 
+	// Set httpOnly cookies (tokens still returned in body for backward compat)
+	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
+
 	return c.Status(201).JSON(tokens)
 }
 
@@ -423,6 +429,9 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		auth.InvalidateTokenCache(c, user.ID)
 	}
 
+	// Clear httpOnly cookies
+	auth.ClearTokenCookies(c)
+
 	return c.JSON(fiber.Map{
 		"message": "Logged out successfully.",
 	})
@@ -432,24 +441,33 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 // Requires a valid access token (for authentication) and a refresh_token in the body.
 // The refresh token is validated cryptographically and rotated (old token is revoked).
 func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
+	// Read refresh token: try request body first, then httpOnly cookie (migration support)
+	var refreshToken string
+
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
 	}
-	if err := c.BodyParser(&req); err != nil || req.RefreshToken == "" {
+	if err := c.BodyParser(&req); err == nil && req.RefreshToken != "" {
+		refreshToken = req.RefreshToken
+	}
+	if refreshToken == "" {
+		refreshToken = c.Cookies(auth.RefreshTokenCookieName)
+	}
+	if refreshToken == "" {
 		return apperrors.NewValidationError(map[string][]string{
-			"refresh_token": {"Refresh token is required."},
+			"refresh_token": {"Refresh token is required (in body or httpOnly cookie)."},
 		})
 	}
 
 	// Validate the refresh token cryptographically (checks signature + expiry)
-	claims, err := h.jwtMgr.ValidateRefreshToken(req.RefreshToken)
+	claims, err := h.jwtMgr.ValidateRefreshToken(refreshToken)
 	if err != nil {
 		return apperrors.NewWithDetail(401, "Unauthenticated", "Invalid or expired refresh token.")
 	}
 
 	// Verify the token exists in the database (guards against replay of rotated tokens)
 	if h.refreshRepo != nil {
-		oldHash := auth.HashRefreshToken(req.RefreshToken)
+		oldHash := auth.HashRefreshToken(refreshToken)
 		if _, _, dbErr := h.refreshRepo.GetByHash(c.Context(), oldHash); dbErr != nil {
 			return apperrors.NewWithDetail(401, "Unauthenticated", "Refresh token has been revoked or does not exist.")
 		}
@@ -475,6 +493,9 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		newExpiresAt := time.Now().UTC().Add(time.Duration(h.cfg.AuthRefreshExpiry) * 24 * time.Hour)
 		_ = h.refreshRepo.Store(c.Context(), claims.UserID, newHash, newExpiresAt)
 	}
+
+	// Set httpOnly cookies (tokens still returned in body for backward compat)
+	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
 
 	return c.JSON(tokens)
 }
@@ -577,9 +598,13 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 		_ = h.refreshRepo.Store(c.Context(), user.ID, tokenHash, expiresAt)
 	}
 
-	// If redirect URL is set, validate against APP_URL allowlist and use fragment (not query)
+	// Set httpOnly cookies (tokens still returned in body for backward compat)
+	auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
+
+	// If redirect URL is set, validate against APP_URL allowlist and redirect.
+	// Tokens are no longer included in the URL fragment — httpOnly cookies are set above.
 	if redirect != "" && isAllowedRedirect(redirect, h.cfg.AppURL) {
-		return c.Redirect(redirect + "#access_token=" + tokens.AccessToken + "&refresh_token=" + tokens.RefreshToken)
+		return c.Redirect(redirect)
 	}
 
 	return c.JSON(tokens)

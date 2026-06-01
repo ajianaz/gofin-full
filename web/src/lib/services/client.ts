@@ -15,14 +15,20 @@ function isAuthPath(path: string): boolean {
 }
 
 async function refreshAccessToken(): Promise<TokenResponse | null> {
+	// Try in-memory refresh token first (available right after login/register).
+	// If null (page reload), send request anyway — server reads httpOnly cookie.
 	const refreshToken = authStore.refreshToken;
-	if (!refreshToken) return null;
+
+	const body = refreshToken
+		? JSON.stringify({ refresh_token: refreshToken })
+		: '{}';
 
 	try {
 		const response = await fetch(`${API_BASE}/auth/refresh`, {
 			method: 'POST',
+			credentials: 'same-origin', // ensure httpOnly cookies are sent
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ refresh_token: refreshToken })
+			body
 		});
 
 		if (!response.ok) {
@@ -61,12 +67,10 @@ function buildHeaders(options: RequestInit): Record<string, string> {
 		'Content-Type': 'application/json',
 		...((options.headers as Record<string, string>) || {})
 	};
-
 	const token = authStore.accessToken;
 	if (token) {
 		headers['Authorization'] = `Bearer ${token}`;
 	}
-
 	return headers;
 }
 
@@ -87,17 +91,22 @@ async function request<T>(
 	const url = `${API_BASE}${path}`;
 	const headers = buildHeaders(options);
 
-	const response = await fetch(url, { ...options, headers });
+	const response = await fetch(url, {
+		...options,
+		credentials: 'same-origin', // ensure httpOnly cookies are sent
+		headers
+	});
 
 	if (response.status === 401 && !isAuthPath(path)) {
 		const newTokens = await getRefreshedToken();
 
 		if (newTokens) {
-			// At this point authStore.setTokens was already called by refreshAccessToken,
-			// so buildHeaders() reads the fresh token from authStore.
 			const retryHeaders = buildHeaders(options);
-
-			const retryResponse = await fetch(url, { ...options, headers: retryHeaders });
+			const retryResponse = await fetch(url, {
+				...options,
+				credentials: 'same-origin',
+				headers: retryHeaders
+			});
 
 			if (!retryResponse.ok) {
 				let error: ApiError = { status: retryResponse.status };
@@ -148,9 +157,6 @@ async function request<T>(
  *
  * Returns the raw Response for non-auth cases (caller handles HTTP status).
  * On auth failure (401 + refresh failed), throws and redirects to login.
- *
- * Why not throw on all non-ok? The caller (export.ts) needs to check
- * response.ok and handle specific error statuses (e.g., 422 for invalid format).
  */
 async function requestBlob(
 	path: string,
@@ -159,19 +165,26 @@ async function requestBlob(
 	const url = `${API_BASE}${path}`;
 	const headers = buildHeaders(options);
 
-	const response = await fetch(url, { ...options, headers });
+	const response = await fetch(url, {
+		...options,
+		credentials: 'same-origin', // ensure httpOnly cookies are sent
+		headers
+	});
 
 	if (response.status === 401 && !isAuthPath(path)) {
 		const newTokens = await getRefreshedToken();
 
 		if (newTokens) {
 			const retryHeaders = buildHeaders(options);
-			const retryResponse = await fetch(url, { ...options, headers: retryHeaders });
+			const retryResponse = await fetch(url, {
+				...options,
+				credentials: 'same-origin',
+				headers: retryHeaders
+			});
 			if (retryResponse.ok) return retryResponse;
-			// Retry failed — fall through to auth failure handling
 		}
 
-		// Refresh failed or retry still 401 — redirect to login
+		// Refresh failed — clear tokens and redirect to login
 		authStore.clearTokens();
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';

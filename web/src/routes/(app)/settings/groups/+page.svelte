@@ -52,10 +52,7 @@
 		try {
 			const tokens = await groupService.switch(groupId);
 			if (tokens) {
-				localStorage.setItem('access_token', tokens.access_token);
-				if (tokens.refresh_token) {
-					localStorage.setItem('refresh_token', tokens.refresh_token);
-				}
+				authStore.setTokens(tokens);
 				await authStore.fetchUser();
 				await loadGroups();
 			}

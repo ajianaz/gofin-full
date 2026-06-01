@@ -245,6 +245,8 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 		}
 		tokens, err := h.jwtMgr.GenerateTokenPair(identity, &parsedUUID)
 		if err == nil {
+			// Set httpOnly cookies (tokens still in response body for backward compat)
+			auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
 			return c.JSON(fiber.Map{
 				"data": fiber.Map{
 					"type": "user_groups",

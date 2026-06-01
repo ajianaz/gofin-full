@@ -10,84 +10,23 @@
 	let error = $state<string | null>(null);
 
 	onMount(async () => {
-		const hash = window.location.hash;
+		// Clear any residual URL fragment/params from old OAuth flow
+		window.history.replaceState(null, '', window.location.pathname);
 
-		// Immediately strip tokens from the URL fragment to prevent them from
-		// persisting in browser history.  Use replaceState so the token-bearing
-		// URL is never recorded.
-		if (hash) {
-			window.history.replaceState(null, '', window.location.pathname + window.location.search);
-		}
-
-		if (!hash) {
-			// No tokens in hash — try reading from URL params as fallback
-			// (in case BE returns JSON and we need to fetch manually)
-			const params = new URLSearchParams(window.location.search);
-			const code = params.get('code');
-			const state = params.get('state');
-
-			if (code && state) {
-				// Strip query params immediately too
-				window.history.replaceState(null, '', window.location.pathname);
-
-				// Fetch provider info to know which provider to call
-				try {
-					const providerRes = await fetch('/api/v1/auth/provider');
-					if (providerRes.ok) {
-						const providerData = await providerRes.json();
-						const provider = providerData.provider;
-						if (provider && provider.toLowerCase() !== 'local' && provider.toLowerCase() !== 'disabled') {
-							const cbRes = await fetch(`/api/v1/auth/${provider.toLowerCase()}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`);
-							if (cbRes.ok) {
-								const tokens = await cbRes.json();
-								authStore.setTokens(tokens);
-								await authStore.fetchUser();
-								await authStore.setupGroup();
-								goto('/dashboard');
-								return;
-							}
-						}
-					}
-				} catch (err) {
-					console.error('OAuth callback failed:', err);
-				}
-				error = t('auth.oauth.callbackError');
+		// With httpOnly cookies, tokens are set server-side on OAuth callback.
+		// restoreSession() calls getMe() directly, bypassing the accessToken guard.
+		// It also handles group setup internally.
+		try {
+			const user = await authStore.restoreSession();
+			if (user) {
+				goto('/dashboard');
 				return;
 			}
-
-			// Nothing to process — shouldn't happen normally
-			error = t('auth.oauth.callbackError');
-			return;
-		}
-
-		// Parse tokens from URL fragment: #access_token=...&refresh_token=...
-		const fragmentParams = new URLSearchParams(hash.slice(1));
-		const accessToken = fragmentParams.get('access_token');
-		const refreshToken = fragmentParams.get('refresh_token');
-
-		if (!accessToken || !refreshToken) {
-			error = t('auth.oauth.callbackError');
-			return;
-		}
-
-		// Store tokens using the auth store
-		authStore.setTokens({
-			access_token: accessToken,
-			refresh_token: refreshToken,
-			expires_in: 0,
-			token_type: 'Bearer'
-		});
-
-		// Fetch user info and setup group
-		try {
-			await authStore.fetchUser();
-			await authStore.setupGroup();
 		} catch (err) {
-			console.error('Failed to fetch user after OAuth:', err);
+			console.error('Failed to verify OAuth session:', err);
 		}
 
-		// Redirect to dashboard (fragment already cleared above)
-		goto('/dashboard');
+		error = t('auth.oauth.callbackError');
 	});
 </script>
 

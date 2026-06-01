@@ -115,10 +115,6 @@ const menuNav = $derived([
 
 	async function handleLogout() {
 		await authStore.logout();
-		if (typeof localStorage !== 'undefined') {
-			localStorage.removeItem('access_token');
-			localStorage.removeItem('refresh_token');
-		}
 		goto('/login');
 	}
 </script>
