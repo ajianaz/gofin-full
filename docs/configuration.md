@@ -131,7 +131,6 @@ Used for email verification, forgot/reset password, and other email notification
 | `MAX_REQUEST_BODY_BYTES` | `10485760` | Max request body (10 MB) |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated allowed origins |
 | `DISABLE_PROMETHEUS` | `true` | Disable `/metrics` endpoint |
-| `ALLOW_2FA_BYPASS` | `false` | Allow skipping 2FA (not recommended) |
 
 ## Logging
 

@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - SMTP + email verification config to .env.example and configuration docs
 - Rate limiting vars (RATE_LIMIT_ENABLED, LOGIN_RATE_LIMIT_ENABLED, etc.) to configuration docs
 
+### Removed
+- Remove 2FA dead code: unused TwoFAService, config field, preference schema entry, and otp dependency (#142)
+
 ### Fixed
 - Dropdown SelectValue shows translated label instead of raw value — added `items` prop to all 32 Select components for bits-ui label resolution without DOM mount
 - Select dropdown trigger text has proper gap from chevron icon and text truncation

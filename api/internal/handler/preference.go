@@ -25,7 +25,6 @@ var allowedPreferenceKeys = map[string]bool{
 	"show_news":                true,
 	"fiscal_year_start":        true,
 	"transaction_count_per_page": true,
-	"two_factor_enabled":       true,
 	"email_digest":             true,
 }
 
