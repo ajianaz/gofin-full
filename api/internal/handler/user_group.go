@@ -20,11 +20,12 @@ type UserGroupHandler struct {
 	userRepo  *repository.UserRepository
 	db        *pgxpool.Pool
 	jwtMgr    *auth.JWTManager
+	secureCookies bool
 }
 
 // NewUserGroupHandler creates a new user group handler.
-func NewUserGroupHandler(groupRepo *repository.UserGroupRepository, userRepo *repository.UserRepository, db *pgxpool.Pool, jwtMgr *auth.JWTManager) *UserGroupHandler {
-	return &UserGroupHandler{groupRepo: groupRepo, userRepo: userRepo, db: db, jwtMgr: jwtMgr}
+func NewUserGroupHandler(groupRepo *repository.UserGroupRepository, userRepo *repository.UserRepository, db *pgxpool.Pool, jwtMgr *auth.JWTManager, secureCookies bool) *UserGroupHandler {
+	return &UserGroupHandler{groupRepo: groupRepo, userRepo: userRepo, db: db, jwtMgr: jwtMgr, secureCookies: secureCookies}
 }
 
 // Index handles GET /api/v1/groups.
@@ -244,9 +245,10 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 			TokenVersion: claims.TokenVersion,
 		}
 		tokens, err := h.jwtMgr.GenerateTokenPair(identity, &parsedUUID)
-		if err == nil {
-			// Set httpOnly cookies (tokens still in response body for backward compat)
-			auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken)
+		if err != nil {
+			log.Error().Err(err).Str("group_id", parsedUUID.String()).Msg("failed to generate token pair on group switch")
+		} else {
+			auth.SetTokenCookies(c, tokens.AccessToken, tokens.RefreshToken, h.secureCookies)
 			return c.JSON(fiber.Map{
 				"data": fiber.Map{
 					"type": "user_groups",
@@ -255,7 +257,7 @@ func (h *UserGroupHandler) Switch(c *fiber.Ctx) error {
 				"meta": fiber.Map{
 					"message": "Active group switched successfully.",
 				},
-				"tokens": tokens,
+				"tokens": tokens.PublicResponse(),
 			})
 		}
 	}

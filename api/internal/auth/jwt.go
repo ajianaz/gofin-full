@@ -18,6 +18,24 @@ type TokenPair struct {
 	TokenType    string `json:"token_type"`
 }
 
+// PublicTokenResponse is the response returned to clients after login/register.
+// Refresh token is excluded from the response body — it's stored in an httpOnly cookie.
+// Access token is kept in the body for backward compatibility with API clients.
+type PublicTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int64  `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+}
+
+// PublicResponse converts TokenPair to a public-safe response (no refresh token in body).
+func (tp TokenPair) PublicResponse() PublicTokenResponse {
+	return PublicTokenResponse{
+		AccessToken: tp.AccessToken,
+		ExpiresIn:   tp.ExpiresIn,
+		TokenType:   tp.TokenType,
+	}
+}
+
 // Claims represents the JWT claims for access tokens.
 type Claims struct {
 	jwt.RegisteredClaims

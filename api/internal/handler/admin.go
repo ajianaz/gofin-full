@@ -34,11 +34,7 @@ func (h *AdminHandler) requireAdmin(c *fiber.Ctx) error {
 
 	// JWT-level role check: the claims should carry admin role info
 	// Also verify against DB for defense in depth
-	hasRole, err := h.userRepo.HasGlobalRole(c.Context(), claims.UserID, "owner")
-	if err == nil && hasRole {
-		return nil
-	}
-	hasRole, err = h.userRepo.HasGlobalRole(c.Context(), claims.UserID, "admin")
+	hasRole, err := h.userRepo.HasAnyGlobalRole(c.Context(), claims.UserID, "owner", "admin")
 	if err == nil && hasRole {
 		return nil
 	}
@@ -81,7 +77,7 @@ func (h *AdminHandler) ListUsers(c *fiber.Ctx) error {
 			"id":   u.ID,
 			"attributes": fiber.Map{
 				"email":      u.Email,
-				"name":       u.Email,
+				"name":       u.Name,
 				"role":       uwr.Role,
 				"is_active":  !u.Blocked,
 				"created_at": u.CreatedAt.Format("2006-01-02T15:04:05Z"),
