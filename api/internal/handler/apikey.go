@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 )
 
@@ -29,31 +30,23 @@ func (h *APIKeyHandler) Create(c *fiber.Ctx) error {
 
 	// Reject API key auth — only JWT can manage API keys
 	if c.Locals("auth_method") == "api_key" {
-		return c.Status(403).JSON(fiber.Map{
-			"message": "API key management requires full authentication.",
-		})
+		return response.SendError(c, 403, "API key management requires full authentication.")
 	}
 
 	var req struct {
 		Name string `json:"name"`
 	}
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(422).JSON(fiber.Map{
-			"message": "Invalid request body.",
-		})
+		return response.SendError(c, 422, "Invalid request body.")
 	}
 
 	if req.Name == "" {
-		return c.Status(422).JSON(fiber.Map{
-			"message": "Name is required.",
-		})
+		return response.SendError(c, 422, "Name is required.")
 	}
 
 	apiKey, rawKey, err := h.keyRepo.Create(c.Context(), user.ID, req.Name)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"message": "Failed to create API key.",
-		})
+		return response.SendError(c, 500, "Failed to create API key.")
 	}
 
 	return c.Status(201).JSON(fiber.Map{
@@ -78,9 +71,7 @@ func (h *APIKeyHandler) List(c *fiber.Ctx) error {
 
 	keys, err := h.keyRepo.ListByUser(c.Context(), user.ID)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"message": "Failed to list API keys.",
-		})
+		return response.SendError(c, 500, "Failed to list API keys.")
 	}
 
 	var data []fiber.Map
@@ -114,22 +105,16 @@ func (h *APIKeyHandler) Delete(c *fiber.Ctx) error {
 
 	// Reject API key auth — only JWT can manage API keys
 	if c.Locals("auth_method") == "api_key" {
-		return c.Status(403).JSON(fiber.Map{
-			"message": "API key management requires full authentication.",
-		})
+		return response.SendError(c, 403, "API key management requires full authentication.")
 	}
 
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
-		return c.Status(422).JSON(fiber.Map{
-			"message": "Invalid key ID.",
-		})
+		return response.SendError(c, 422, "Invalid key ID.")
 	}
 
 	if err := h.keyRepo.Delete(c.Context(), id, user.ID); err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"message": "Failed to delete API key.",
-		})
+		return response.SendError(c, 500, "Failed to delete API key.")
 	}
 
 	return c.JSON(fiber.Map{
