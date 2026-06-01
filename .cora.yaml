@@ -6,6 +6,10 @@ provider:
   base_url: http://litellm:4000
 
 severity: major
+llm:
+  temperature: 0
+  timeout: 120
+  cache_ttl: 1440
 hook:
   mode: block
 
@@ -17,3 +21,4 @@ ignore:
     - "**/go.sum"
     - "**/.svelte-kit/**"
     - "**/node_modules/**"
+    - "**/docs/plans/**"
