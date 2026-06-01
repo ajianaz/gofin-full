@@ -66,8 +66,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build API image
-        if: matrix.target == api
+        if: matrix.target == 'api'
         run: docker build -f deployments/docker/Dockerfile.api -t gofin-api ./api
       - name: Build Web image
-        if: matrix.target == web
+        if: matrix.target == 'web'
         run: docker build -f deployments/docker/Dockerfile.web -t gofin-web ./web
