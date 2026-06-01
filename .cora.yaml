@@ -1,0 +1,19 @@
+# cora-cli configuration
+# See: https://github.com/ajianaz/cora-cli
+provider:
+  provider: openai
+  model: glm-5.1
+  base_url: http://litellm:4000
+
+severity: major
+hook:
+  mode: block
+
+ignore:
+  files:
+    - "**/CHANGELOG.md"
+    - "**/package-lock.json"
+    - "**/bun.lockb"
+    - "**/go.sum"
+    - "**/.svelte-kit/**"
+    - "**/node_modules/**"
