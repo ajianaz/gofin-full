@@ -17,6 +17,7 @@ import (
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/config"
+	"github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
@@ -112,9 +113,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	// Check if account is temporarily locked due to too many failed attempts
 	if h.cfg.LoginRateLimitEnabled {
 		if locked, retryMinutes := h.isAccountLocked(c.Context(), req.Email, clientIP); locked {
-			return c.Status(429).JSON(fiber.Map{
-				"message": fmt.Sprintf("Too many failed login attempts. Try again in %d minutes.", retryMinutes),
-			})
+			return response.SendError(c, 429, fmt.Sprintf("Too many failed login attempts. Try again in %d minutes.", retryMinutes))
 		}
 	}
 
@@ -135,10 +134,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	// Check email verification if required
 	if h.cfg.AuthRequireVerification && !identity.Verified {
-		return c.Status(403).JSON(fiber.Map{
-			"message":  "Please verify your email address.",
-			"verified": false,
-		})
+		return response.SendError(c, 403, "Please verify your email address.")
 	}
 
 	// Successful login — clear failed attempt counter
@@ -310,9 +306,7 @@ func (h *AuthHandler) clearFailedLogins(ctx context.Context, email, clientIP str
 // Only works when AUTH_ALLOW_REGISTRATION=true.
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	if !h.cfg.AuthAllowRegistration {
-		return c.Status(403).JSON(fiber.Map{
-			"message": "Self-registration is disabled. Contact an administrator to create an account.",
-		})
+		return response.SendError(c, 403, "Self-registration is disabled. Contact an administrator to create an account.")
 	}
 
 	var req struct {
@@ -349,9 +343,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	user, err := h.userRepo.Create(c.Context(), req.Email, hash)
 	if err != nil {
 		if isDuplicateKey(err) {
-			return c.Status(409).JSON(fiber.Map{
-				"message": "A user with this email already exists.",
-			})
+			return response.SendError(c, 409, "A user with this email already exists.")
 		}
 		return apperrors.ErrInternal
 	}
@@ -497,16 +489,12 @@ func (h *AuthHandler) OAuthURL(c *fiber.Ctx) error {
 
 	// Only OAuth providers support this
 	if providerName == "local" || providerName == "disabled" {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "This provider does not support OAuth.",
-		})
+		return response.SendError(c, 400, "This provider does not support OAuth.")
 	}
 
 	// Validate that the requested provider matches the configured provider
 	if providerName != h.provider.Name() {
-		return c.Status(400).JSON(fiber.Map{
-			"message": fmt.Sprintf("Provider '%s' is not configured. Active provider: '%s'.", providerName, h.provider.Name()),
-		})
+		return response.SendError(c, 400, fmt.Sprintf("Provider '%s' is not configured. Active provider: '%s'.", providerName, h.provider.Name()))
 	}
 
 	// Generate CSRF state
@@ -519,9 +507,7 @@ func (h *AuthHandler) OAuthURL(c *fiber.Ctx) error {
 	// Get auth URL from provider
 	authURL := h.provider.AuthURL(state)
 	if authURL == "" {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Current provider does not support OAuth.",
-		})
+		return response.SendError(c, 400, "Current provider does not support OAuth.")
 	}
 
 	return c.JSON(fiber.Map{
@@ -537,17 +523,13 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 	state := c.Query("state")
 
 	if code == "" || state == "" {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Missing code or state parameter.",
-		})
+		return response.SendError(c, 400, "Missing code or state parameter.")
 	}
 
 	// Validate state
 	_, redirect, err := h.oauthState.Validate(c.Context(), state)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Invalid or expired OAuth state.",
-		})
+		return response.SendError(c, 400, "Invalid or expired OAuth state.")
 	}
 
 	// Authenticate with the provider
@@ -558,9 +540,7 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 	}
 
 	if identity.Blocked {
-		return c.Status(403).JSON(fiber.Map{
-			"message": "User account is blocked.",
-		})
+		return response.SendError(c, 403, "User account is blocked.")
 	}
 
 	// Find or create user (auto-provision for OAuth)
@@ -712,16 +692,12 @@ func generateResetToken() (string, error) {
 func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	// Check if SMTP is configured
 	if h.mail == nil || !h.mail.Configured() {
-		return c.Status(503).JSON(fiber.Map{
-			"message": "Password reset is not configured.",
-		})
+		return response.SendError(c, 503, "Password reset is not configured.")
 	}
 
 	// Check if Redis is available
 	if h.rdb == nil {
-		return c.Status(503).JSON(fiber.Map{
-			"message": "Password reset is not available.",
-		})
+		return response.SendError(c, 503, "Password reset is not available.")
 	}
 
 	var req struct {
@@ -796,9 +772,7 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	// Check if Redis is available
 	if h.rdb == nil {
-		return c.Status(503).JSON(fiber.Map{
-			"message": "Password reset is not available.",
-		})
+		return response.SendError(c, 503, "Password reset is not available.")
 	}
 
 	var req struct {
@@ -840,17 +814,13 @@ func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	key := passwordResetKeyPrefix + req.Token
 	email, err := h.rdb.Get(c.Context(), key).Result()
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Invalid or expired reset link.",
-		})
+		return response.SendError(c, 400, "Invalid or expired reset link.")
 	}
 
 	// Find user by email
 	user, err := h.userRepo.FindByEmail(c.Context(), email)
 	if err != nil || user == nil {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Invalid or expired reset link.",
-		})
+		return response.SendError(c, 400, "Invalid or expired reset link.")
 	}
 
 	// Hash new password
@@ -879,9 +849,7 @@ func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 // VerifyEmail handles POST /api/v1/auth/verify-email.
 func (h *AuthHandler) VerifyEmail(c *fiber.Ctx) error {
 	if h.rdb == nil {
-		return c.Status(503).JSON(fiber.Map{
-			"message": "Email verification is not available.",
-		})
+		return response.SendError(c, 503, "Email verification is not available.")
 	}
 
 	var req struct {
@@ -903,17 +871,13 @@ func (h *AuthHandler) VerifyEmail(c *fiber.Ctx) error {
 	key := emailVerifyKeyPrefix + req.Token
 	email, err := h.rdb.Get(c.Context(), key).Result()
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Invalid or expired verification link.",
-		})
+		return response.SendError(c, 400, "Invalid or expired verification link.")
 	}
 
 	// Find user by email
 	user, err := h.userRepo.FindByEmail(c.Context(), email)
 	if err != nil || user == nil {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Invalid or expired verification link.",
-		})
+		return response.SendError(c, 400, "Invalid or expired verification link.")
 	}
 
 	// Set verified = true
@@ -944,15 +908,11 @@ func (h *AuthHandler) ResendVerification(c *fiber.Ctx) error {
 		return apperrors.ErrInternal
 	}
 	if dbUser.Verified {
-		return c.Status(400).JSON(fiber.Map{
-			"message": "Email is already verified.",
-		})
+		return response.SendError(c, 400, "Email is already verified.")
 	}
 
 	if h.mail == nil || !h.mail.Configured() || h.rdb == nil {
-		return c.Status(503).JSON(fiber.Map{
-			"message": "Email verification is not configured.",
-		})
+		return response.SendError(c, 503, "Email verification is not configured.")
 	}
 
 	if err := h.sendVerificationEmail(c.Context(), user.Email); err != nil {

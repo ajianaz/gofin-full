@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
+	"github.com/ajianaz/gofin-full/api/internal/dto/response"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
@@ -132,9 +133,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		// Check for duplicate email
 		existing, err := h.repo.FindByEmail(c.Context(), req.Email)
 		if err == nil && existing != nil && existing.ID != user.ID {
-			return c.Status(409).JSON(fiber.Map{
-				"message": "A user with this email already exists.",
-			})
+			return response.SendError(c, 409, "A user with this email already exists.")
 		}
 	}
 

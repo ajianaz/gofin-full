@@ -1,5 +1,30 @@
 package response
 
+import "github.com/gofiber/fiber/v2"
+
+// SendError sends a standardized error response.
+func SendError(c *fiber.Ctx, status int, message string) error {
+	return c.Status(status).JSON(ErrorEnvelope{
+		Message: message,
+	})
+}
+
+// SendErrorWithDetails sends a standardized error response with exception details.
+func SendErrorWithDetails(c *fiber.Ctx, status int, message, exception string) error {
+	return c.Status(status).JSON(ErrorEnvelope{
+		Message:   message,
+		Exception: exception,
+	})
+}
+
+// SendValidationErrors sends validation error response.
+func SendValidationErrors(c *fiber.Ctx, errors map[string][]string) error {
+	return c.Status(422).JSON(ErrorEnvelope{
+		Message: "The given data was invalid.",
+		Errors:  errors,
+	})
+}
+
 // Envelope is the standard API response wrapper.
 type Envelope struct {
 	Data  interface{} `json:"data,omitempty"`
