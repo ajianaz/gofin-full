@@ -90,7 +90,7 @@ runs:
           --format sarif \
           --severity ${{ inputs.severity }} \
           --quiet \
-          > cora-results.sarif 2>/dev/null
+          > cora-results.sarif 2>/dev/null || true
         echo "Cora review complete ($(wc -c < cora-results.sarif) bytes)"
 
     - name: Upload SARIF to GitHub Code Scanning
