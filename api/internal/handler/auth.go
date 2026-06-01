@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog"
 	"net/mail"
 	"net/url"
 	"strconv"
@@ -53,6 +53,7 @@ const emailVerifyKeyPrefix = "email_verify:"
 
 // AuthHandler handles authentication endpoints.
 type AuthHandler struct {
+	log         zerolog.Logger
 	jwtMgr      *auth.JWTManager
 	provider    auth.AuthProvider
 	cfg         *config.Config
@@ -70,8 +71,8 @@ type MailSender interface {
 }
 
 // NewAuthHandler creates a new auth handler.
-func NewAuthHandler(jwtMgr *auth.JWTManager, provider auth.AuthProvider, cfg *config.Config, userRepo *repository.UserRepository, oauthStateRepo *repository.OAuthStateRepository, refreshRepo *repository.RefreshTokenRepository) *AuthHandler {
-	return &AuthHandler{jwtMgr: jwtMgr, provider: provider, cfg: cfg, userRepo: userRepo, oauthState: oauthStateRepo, refreshRepo: refreshRepo}
+func NewAuthHandler(log zerolog.Logger, jwtMgr *auth.JWTManager, provider auth.AuthProvider, cfg *config.Config, userRepo *repository.UserRepository, oauthStateRepo *repository.OAuthStateRepository, refreshRepo *repository.RefreshTokenRepository) *AuthHandler {
+	return &AuthHandler{log: log, jwtMgr: jwtMgr, provider: provider, cfg: cfg, userRepo: userRepo, oauthState: oauthStateRepo, refreshRepo: refreshRepo}
 }
 
 // SetRedis injects an optional Redis client for login attempt tracking.
@@ -284,7 +285,7 @@ func (h *AuthHandler) recordFailedLogin(ctx context.Context, email, clientIP str
 	pipe.Incr(ctx, key)
 	pipe.Expire(ctx, key, h.loginLockoutDuration())
 	if _, err := pipe.Exec(ctx); err != nil {
-		log.Printf("login attempt tracking: redis error: %v", err)
+		h.log.Error().Err(err).Msg("login attempt tracking: redis error")
 	}
 }
 
@@ -298,7 +299,7 @@ func (h *AuthHandler) clearFailedLogins(ctx context.Context, email, clientIP str
 	}
 
 	if err := h.rdb.Del(ctx, key).Err(); err != nil {
-		log.Printf("login attempt tracking: redis error on clear: %v", err)
+		h.log.Error().Err(err).Msg("login attempt tracking: redis error on clear")
 	}
 }
 
@@ -366,7 +367,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	// otherwise auto-verify the user.
 	if h.mail != nil && h.mail.Configured() && h.rdb != nil {
 		if err := h.sendVerificationEmail(c.Context(), user.Email); err != nil {
-			log.Printf("failed to send verification email: %v", err)
+			h.log.Error().Err(err).Msg("failed to send verification email")
 			// Non-fatal: still return tokens, user can verify later
 		}
 	} else {
@@ -535,7 +536,7 @@ func (h *AuthHandler) OAuthCallback(c *fiber.Ctx) error {
 	// Authenticate with the provider
 	identity, err := h.provider.Authenticate(c.Context(), auth.Credentials{Code: code})
 	if err != nil {
-		log.Printf("OAuth callback authentication failed: %v", err)
+		h.log.Error().Err(err).Msg("OAuth callback authentication failed")
 		return apperrors.New(401, "Authentication failed.")
 	}
 
@@ -733,14 +734,14 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	// Generate reset token
 	token, err := generateResetToken()
 	if err != nil {
-		log.Printf("failed to generate reset token: %v", err)
+		h.log.Error().Err(err).Msg("failed to generate reset token")
 		return apperrors.ErrInternal
 	}
 
 	// Store token in Redis with 1 hour TTL
 	key := passwordResetKeyPrefix + token
 	if err := h.rdb.Set(c.Context(), key, req.Email, 1*time.Hour).Err(); err != nil {
-		log.Printf("failed to store reset token in redis: %v", err)
+		h.log.Error().Err(err).Msg("failed to store reset token in redis")
 		return apperrors.ErrInternal
 	}
 
@@ -759,7 +760,7 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	)
 
 	if err := h.mail.SendEmail(req.Email, subject, body); err != nil {
-		log.Printf("failed to send reset email: %v", err)
+		h.log.Error().Err(err).Msg("failed to send reset email")
 		// Still return success to prevent enumeration
 	}
 
@@ -831,7 +832,7 @@ func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 
 	// Update user password in DB
 	if err := h.userRepo.UpdatePassword(c.Context(), user.ID, hash); err != nil {
-		log.Printf("failed to update password: %v", err)
+		h.log.Error().Err(err).Msg("failed to update password")
 		return apperrors.ErrInternal
 	}
 
@@ -882,7 +883,7 @@ func (h *AuthHandler) VerifyEmail(c *fiber.Ctx) error {
 
 	// Set verified = true
 	if err := h.userRepo.SetVerified(c.Context(), user.ID); err != nil {
-		log.Printf("failed to set user verified: %v", err)
+		h.log.Error().Err(err).Msg("failed to set user verified")
 		return apperrors.ErrInternal
 	}
 
@@ -916,7 +917,7 @@ func (h *AuthHandler) ResendVerification(c *fiber.Ctx) error {
 	}
 
 	if err := h.sendVerificationEmail(c.Context(), user.Email); err != nil {
-		log.Printf("failed to resend verification email: %v", err)
+		h.log.Error().Err(err).Msg("failed to resend verification email")
 		return apperrors.ErrInternal
 	}
 

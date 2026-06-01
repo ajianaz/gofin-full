@@ -110,7 +110,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 
 	// Handlers
 	healthHandler := handler.NewHealthHandler(db, nil) // nil Redis is fine for tests
-	authHandler := handler.NewAuthHandler(jwtMgr, authProvider, prodCfg, userRepo, oauthStateRepo, refreshRepo)
+	authHandler := handler.NewAuthHandler(zerolog.Nop(), jwtMgr, authProvider, prodCfg, userRepo, oauthStateRepo, refreshRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr)
 	walletHandler := handler.NewWalletHandler(walletRepo, handler.NewCurrencyResolver(db))
@@ -129,7 +129,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 	attachmentHandler := handler.NewAttachmentHandler(attachmentRepo)
 	notificationHandler := handler.NewNotificationHandler(notificationRepo)
 	preferenceHandler := handler.NewPreferenceHandler(preferenceRepo)
-	configurationHandler := handler.NewConfigurationHandler(configurationRepo)
+	configurationHandler := handler.NewConfigurationHandler(zerolog.Nop(), configurationRepo)
 	objectGroupHandler := handler.NewObjectGroupHandler(objectGroupRepo)
 	noteHandler := handler.NewNoteHandler(noteRepo)
 	locationHandler := handler.NewLocationHandler(locationRepo)
@@ -138,7 +138,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 	exportHandler := handler.NewExportHandler(exportService)
 	analyticsHandler := handler.NewAnalyticsHandler(analyticsRepo)
 	auditHandler := handler.NewAuditHandler(auditRepo)
-	adminHandler := handler.NewAdminHandler(userRepo, configurationRepo)
+	adminHandler := handler.NewAdminHandler(zerolog.Nop(), prodCfg, userRepo, configurationRepo)
 	apiKeyHandler := handler.NewAPIKeyHandler(apiKeyRepo)
 	apiDocHandler := handler.NewAPIDocHandler()
 	metricsHandler := handler.NewMetricsHandler()
