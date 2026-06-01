@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/rs/zerolog/log"
 	"context"
 
 	"github.com/google/uuid"

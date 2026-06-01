@@ -11,6 +11,7 @@ import (
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	"github.com/ajianaz/gofin-full/api/internal/service"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type TransactionHandler struct {

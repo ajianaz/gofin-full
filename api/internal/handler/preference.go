@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/rs/zerolog/log"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
