@@ -1,18 +1,10 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
 	import { authStore } from '$lib/stores/auth.svelte.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
 	import { LanguageSwitcher } from '$lib/components/shared/index.js';
 
 	let { children } = $props();
 	const t = localeStore.t;
-
-	onMount(async () => {
-		if (authStore.isAuthenticated) {
-			goto('/dashboard');
-		}
-	});
 </script>
 
 <svelte:head>

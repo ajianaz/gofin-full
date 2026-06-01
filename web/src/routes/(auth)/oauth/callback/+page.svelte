@@ -12,6 +12,13 @@
 	onMount(async () => {
 		const hash = window.location.hash;
 
+		// Immediately strip tokens from the URL fragment to prevent them from
+		// persisting in browser history.  Use replaceState so the token-bearing
+		// URL is never recorded.
+		if (hash) {
+			window.history.replaceState(null, '', window.location.pathname + window.location.search);
+		}
+
 		if (!hash) {
 			// No tokens in hash — try reading from URL params as fallback
 			// (in case BE returns JSON and we need to fetch manually)
@@ -20,6 +27,9 @@
 			const state = params.get('state');
 
 			if (code && state) {
+				// Strip query params immediately too
+				window.history.replaceState(null, '', window.location.pathname);
+
 				// Fetch provider info to know which provider to call
 				try {
 					const providerRes = await fetch('/api/v1/auth/provider');
@@ -76,8 +86,7 @@
 			console.error('Failed to fetch user after OAuth:', err);
 		}
 
-		// Clean up the URL fragment and redirect to dashboard
-		window.location.hash = '';
+		// Redirect to dashboard (fragment already cleared above)
 		goto('/dashboard');
 	});
 </script>

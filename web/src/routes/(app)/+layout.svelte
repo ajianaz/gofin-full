@@ -109,14 +109,8 @@ const menuNav = $derived([
 			.slice(0, 2) ?? 'U'
 	);
 
-	onMount(async () => {
+	onMount(() => {
 		mounted = true;
-		if (authStore.accessToken) {
-			await authStore.restore();
-		}
-		if (!authStore.isAuthenticated || !authStore.user) {
-			goto('/login');
-		}
 	});
 
 	async function handleLogout() {
