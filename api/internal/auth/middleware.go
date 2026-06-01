@@ -61,17 +61,14 @@ func extractToken(c *fiber.Ctx) string {
 
 // SetTokenCookies sets httpOnly, Secure, SameSite=Lax cookies for both access and refresh tokens.
 // The response body still includes the tokens for backward compatibility.
-// The refresh token cookie is set for future use if the refresh endpoint is
-// updated to read from cookies. Currently the refresh endpoint reads from
-// the request body (existing API contract). The access token cookie is the
-// primary mechanism — sent automatically by the browser on every request.
-func SetTokenCookies(c *fiber.Ctx, accessToken, refreshToken string) {
+// secure parameter controls the Secure flag — set to false for local HTTP development.
+func SetTokenCookies(c *fiber.Ctx, accessToken, refreshToken string, secure bool) {
 	c.Cookie(&fiber.Cookie{
 		Name:     AccessTokenCookieName,
 		Value:    accessToken,
 		MaxAge:   AccessTokenMaxAge,
 		Path:     "/",
-		Secure:   true,
+		Secure:   secure,
 		HTTPOnly: true,
 		SameSite: "Lax",
 	})
@@ -80,20 +77,20 @@ func SetTokenCookies(c *fiber.Ctx, accessToken, refreshToken string) {
 		Value:    refreshToken,
 		MaxAge:   RefreshTokenMaxAge,
 		Path:     "/",
-		Secure:   true,
+		Secure:   secure,
 		HTTPOnly: true,
 		SameSite: "Lax",
 	})
 }
 
 // ClearTokenCookies removes the httpOnly token cookies (used on logout).
-func ClearTokenCookies(c *fiber.Ctx) {
+func ClearTokenCookies(c *fiber.Ctx, secure bool) {
 	c.Cookie(&fiber.Cookie{
 		Name:     AccessTokenCookieName,
 		Value:    "",
 		MaxAge:   -1, // delete immediately
 		Path:     "/",
-		Secure:   true,
+		Secure:   secure,
 		HTTPOnly: true,
 		SameSite: "Lax",
 	})
@@ -102,7 +99,7 @@ func ClearTokenCookies(c *fiber.Ctx) {
 		Value:    "",
 		MaxAge:   -1, // delete immediately
 		Path:     "/",
-		Secure:   true,
+		Secure:   secure,
 		HTTPOnly: true,
 		SameSite: "Lax",
 	})
