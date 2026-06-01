@@ -140,6 +140,10 @@ authGroup.Post("/verify-email", cfg.AuthHandler.VerifyEmail)
 	if cfg.TokenVersionLookup != nil {
 		protected.Use(func(c *fiber.Ctx) error {
 			c.Locals("token_version_lookup", cfg.TokenVersionLookup)
+			// Also inject invalidator if the lookup supports it
+			if inv, ok := cfg.TokenVersionLookup.(auth.TokenInvalidator); ok {
+				c.Locals("token_invalidator", inv)
+			}
 			return c.Next()
 		})
 	}

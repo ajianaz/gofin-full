@@ -44,34 +44,58 @@ func (h *AdminHandler) requireAdmin(c *fiber.Ctx) error {
 	return apperrors.New(403, "Insufficient permissions. Admin access required.")
 }
 
-// ListUsers returns all users (admin only).
+// ListUsers returns all users (admin only) with pagination.
 func (h *AdminHandler) ListUsers(c *fiber.Ctx) error {
 	if err := h.requireAdmin(c); err != nil {
 		return err
 	}
 
-	users, err := h.userRepo.ListAll(c.Context())
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("per_page", 20)
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+	offset := (page - 1) * limit
+
+	users, total, err := h.userRepo.ListAllWithRolesPaginated(c.Context(), limit, offset)
 	if err != nil {
-		h.log.Error().Err(err).Msg("handler/requireAdmin: failed to list users")
+		h.log.Error().Err(err).Msg("handler/ListUsers: failed to list users")
 		return apperrors.ErrInternal
 	}
 
-	var data []fiber.Map
-	for _, u := range users {
-		role := h.userRepo.GetGlobalRole(c.Context(), u.ID)
+	totalPages := 0
+	if total > 0 {
+		totalPages = (total + limit - 1) / limit
+	}
+
+	data := make([]fiber.Map, 0, len(users))
+	for _, uwr := range users {
+		u := uwr.User
 		data = append(data, fiber.Map{
 			"type": "users",
 			"id":   u.ID,
 			"attributes": fiber.Map{
 				"email":      u.Email,
 				"name":       u.Email,
-				"role":       role,
+				"role":       uwr.Role,
 				"is_active":  !u.Blocked,
 				"created_at": u.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			},
 		})
 	}
-	return c.JSON(fiber.Map{"data": data})
+
+	return c.JSON(fiber.Map{
+		"data": data,
+		"meta": fiber.Map{
+			"current_page": page,
+			"per_page":     limit,
+			"total":        total,
+			"total_pages":  totalPages,
+		},
+	})
 }
 
 // CreateUser handles POST /api/v1/admin/users.

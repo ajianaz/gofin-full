@@ -286,6 +286,74 @@ func (r *UserRepository) ListAll(ctx context.Context) ([]domain.User, error) {
 	return users, rows.Err()
 }
 
+// UserWithRole pairs a user with their global role title.
+type UserWithRole struct {
+	User domain.User
+	Role string
+}
+
+// ListAllWithRoles returns all users with their global role in a single query (no N+1).
+func (r *UserRepository) ListAllWithRoles(ctx context.Context) ([]UserWithRole, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT u.id, u.email, u.name, u.blocked, u.user_group_id, u.created_at, u.updated_at,
+		        COALESCE(r.title, 'member') AS role
+		 FROM users u
+		 LEFT JOIN role_user ru ON ru.user_id = u.id
+		 LEFT JOIN roles r ON r.id = ru.role_id
+		 WHERE u.deleted_at IS NULL
+		 ORDER BY u.created_at DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list users with roles: %w", err)
+	}
+	defer rows.Close()
+
+	var result []UserWithRole
+	for rows.Next() {
+		var uwr UserWithRole
+		if err := rows.Scan(&uwr.User.ID, &uwr.User.Email, &uwr.User.Name, &uwr.User.Blocked,
+			&uwr.User.UserGroupID, &uwr.User.CreatedAt, &uwr.User.UpdatedAt, &uwr.Role); err != nil {
+			return nil, err
+		}
+		result = append(result, uwr)
+	}
+	return result, rows.Err()
+}
+
+// ListAllWithRolesPaginated returns a paginated list of users with their global role.
+func (r *UserRepository) ListAllWithRolesPaginated(ctx context.Context, limit, offset int) ([]UserWithRole, int, error) {
+	// Count total
+	var total int
+	if err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM users WHERE deleted_at IS NULL`).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("failed to count users: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx,
+		`SELECT u.id, u.email, u.name, u.blocked, u.user_group_id, u.created_at, u.updated_at,
+		        COALESCE(r.title, 'member') AS role
+		 FROM users u
+		 LEFT JOIN role_user ru ON ru.user_id = u.id
+		 LEFT JOIN roles r ON r.id = ru.role_id
+		 WHERE u.deleted_at IS NULL
+		 ORDER BY u.created_at DESC
+		 LIMIT $1 OFFSET $2`, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list users with roles (paginated): %w", err)
+	}
+	defer rows.Close()
+
+	var result []UserWithRole
+	for rows.Next() {
+		var uwr UserWithRole
+		if err := rows.Scan(&uwr.User.ID, &uwr.User.Email, &uwr.User.Name, &uwr.User.Blocked,
+			&uwr.User.UserGroupID, &uwr.User.CreatedAt, &uwr.User.UpdatedAt, &uwr.Role); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, uwr)
+	}
+	return result, total, rows.Err()
+}
+
 // GetTokenVersion returns the user's current token_version.
 func (r *UserRepository) GetTokenVersion(ctx context.Context, userID uuid.UUID) (int, error) {
 	var version int

@@ -75,6 +75,7 @@ func (h *UserHandler) ChangePassword(c *fiber.Ctx) error {
 
 	// Invalidate all existing tokens after password change
 	_ = h.repo.IncrementTokenVersion(c.Context(), user.ID)
+	auth.InvalidateTokenCache(c, user.ID)
 
 	return c.JSON(fiber.Map{"data": fiber.Map{"type": "users", "id": user.ID}})
 }

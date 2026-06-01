@@ -94,7 +94,7 @@ func RBACMiddleware(requiredRole GroupRole) fiber.Handler {
 	}
 }
 
-// AdminMiddleware checks for global owner role.
+// AdminMiddleware checks for global owner or admin role.
 func AdminMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		isAdminVal := c.Locals("is_admin")
