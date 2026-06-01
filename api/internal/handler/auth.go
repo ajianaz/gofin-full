@@ -410,15 +410,11 @@ func (h *AuthHandler) Provider(c *fiber.Ctx) error {
 }
 
 // Logout handles POST /api/v1/auth/logout.
+// No request body is required — the user is identified from the JWT in httpOnly cookies.
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
-	var req struct {
-		RefreshToken string `json:"refresh_token"`
-	}
-	_ = c.BodyParser(&req)
-
-	// Revoke the specific refresh token if provided
-	if req.RefreshToken != "" && h.refreshRepo != nil {
-		tokenHash := auth.HashRefreshToken(req.RefreshToken)
+	// Revoke the refresh token from cookie if present
+	if refreshToken := c.Cookies(auth.RefreshTokenCookieName); refreshToken != "" && h.refreshRepo != nil {
+		tokenHash := auth.HashRefreshToken(refreshToken)
 		_ = h.refreshRepo.RevokeByHash(c.Context(), tokenHash)
 	}
 
