@@ -212,6 +212,28 @@ func (r *UserRepository) HasGlobalRole(ctx context.Context, userID uuid.UUID, ro
 	return count > 0, err
 }
 
+// HasAnyGlobalRole checks if a user has any of the specified global roles.
+func (r *UserRepository) HasAnyGlobalRole(ctx context.Context, userID uuid.UUID, roleTitles ...string) (bool, error) {
+	if len(roleTitles) == 0 {
+		return false, nil
+	}
+	placeholders := make([]string, len(roleTitles))
+	args := make([]interface{}, len(roleTitles)+1)
+	args[0] = userID
+	for i, t := range roleTitles {
+		placeholders[i] = fmt.Sprintf("$%d", i+2)
+		args[i+1] = t
+	}
+	var count int
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM role_user ru
+		 JOIN roles r ON r.id = ru.role_id
+		 WHERE ru.user_id = $1 AND r.title IN (`+strings.Join(placeholders, ",")+`)`,
+		args...,
+	).Scan(&count)
+	return count > 0, err
+}
+
 // GetGlobalRole returns the user's highest-priority global role title.
 func (r *UserRepository) GetGlobalRole(ctx context.Context, userID uuid.UUID) string {
 	var title string
