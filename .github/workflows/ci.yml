@@ -9,9 +9,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  pull-requests: write
-  id-token: write
 
 jobs:
   api-build:
@@ -69,29 +66,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build API image
-        if: matrix.target == 'api'
+        if: matrix.target == api
         run: docker build -f deployments/docker/Dockerfile.api -t gofin-api ./api
       - name: Build Web image
-        if: matrix.target == 'web'
+        if: matrix.target == web
         run: docker build -f deployments/docker/Dockerfile.web -t gofin-web ./web
-
-  cora-review:
-    name: Cora Review
-    runs-on: ubuntu-latest
-    needs: [api-build, api-unit-tests, web-check]
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      security-events: write
-      pull-requests: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: ./.github/actions/cora-review
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          infisical-identity-id: ${{ secrets.INFISICAL_IDENTITY_ID }}
-          upload-sarif: 'true'
