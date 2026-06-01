@@ -77,18 +77,24 @@
 		}
 
 		try {
-			await authStore.register(email, password);
-			// Auto-login after registration to ensure a valid authenticated session.
-			// The register endpoint may not return tokens, so we login explicitly.
-			// If login fails (e.g. email verification required), fall through to dashboard
-			// redirect anyway — the session will be restored via httpOnly cookies if available.
+		await authStore.register(email, password);
+		// Auto-login after registration to ensure a valid authenticated session.
+		// The register endpoint returns tokens, but we login explicitly to be safe.
+		if (!authStore.isAuthenticated) {
 			try {
 				await authStore.login(email, password);
 			} catch {
-				// Registration succeeded but auto-login failed — attempt session restore
+				// Login failed (e.g. email verification required) —
+				// attempt session restore via httpOnly cookies
+				console.warn('Auto-login after registration failed, attempting session restore');
 				await authStore.restoreSession();
 			}
+		}
+		if (authStore.isAuthenticated) {
 			goto('/dashboard');
+		} else {
+			error = t('auth.register.errorAutoLogin');
+		}
 		} catch (err) {
 			const apiErr = err as ApiError;
 			error = apiErr.detail || apiErr.message || t('auth.register.errorFailed');
