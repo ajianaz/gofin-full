@@ -1,11 +1,22 @@
 import { browser } from '$app/environment';
 
 type Theme = 'light' | 'dark' | 'system';
+type ThemePreset = 'blue' | 'violet' | 'emerald' | 'rose' | 'orange' | 'default';
+
+const THEME_PRESETS: ThemePreset[] = ['blue', 'violet', 'emerald', 'rose', 'orange'];
 
 class ThemeStore {
 	theme = $state<Theme>(
 		browser ? (localStorage.getItem('gofin_theme') as Theme) ?? 'system' : 'system'
 	);
+
+	preset = $state<ThemePreset>(
+		browser ? ((localStorage.getItem('gofin_theme_preset') as ThemePreset) ?? 'default') : 'default'
+	);
+
+	get presets(): ThemePreset[] {
+		return THEME_PRESETS;
+	}
 
 	constructor() {
 		if (browser && !localStorage.getItem('gofin_theme')) {
@@ -35,6 +46,14 @@ class ThemeStore {
 		}
 	};
 
+	setPreset = (p: ThemePreset) => {
+		this.preset = p;
+		if (browser) {
+			localStorage.setItem('gofin_theme_preset', p);
+			this.applyPreset();
+		}
+	};
+
 	toggle = () => {
 		this.setTheme(this.resolved === 'dark' ? 'light' : 'dark');
 	};
@@ -48,6 +67,16 @@ class ThemeStore {
 			el.classList.remove('dark');
 		}
 	};
+
+	applyPreset = () => {
+		if (!browser) return;
+		const el = document.documentElement;
+		if (this.preset && this.preset !== 'default') {
+			el.setAttribute('data-theme-preset', this.preset);
+		} else {
+			el.removeAttribute('data-theme-preset');
+		}
+	};
 }
 
 export const themeStore = new ThemeStore();
@@ -55,6 +84,7 @@ export const themeStore = new ThemeStore();
 // Auto-apply on load
 if (browser) {
 	themeStore.apply();
+	themeStore.applyPreset();
 	// Listen for system preference changes
 	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
 		if (themeStore.theme === 'system') themeStore.apply();

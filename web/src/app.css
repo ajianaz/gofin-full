@@ -74,6 +74,47 @@
 	--sidebar-ring: oklch(0.439 0 0);
 }
 
+/* ──────────────────────────────────────────────────────────────
+   Theme Presets — runtime color switching via data-theme-preset.
+   Inspired by fatmuh/mocci-admin-template.
+   Default (no preset) uses the blue primary above.
+   ────────────────────────────────────────────────────────────── */
+:root[data-theme-preset='violet'] {
+	--primary: oklch(0.541 0.281 293.009);
+	--primary-foreground: oklch(0.985 0 0);
+}
+.dark[data-theme-preset='violet'] {
+	--primary: oklch(0.702 0.183 293.541);
+	--primary-foreground: oklch(0.205 0 0);
+}
+
+:root[data-theme-preset='emerald'] {
+	--primary: oklch(0.596 0.145 163.225);
+	--primary-foreground: oklch(0.985 0 0);
+}
+.dark[data-theme-preset='emerald'] {
+	--primary: oklch(0.723 0.158 162.48);
+	--primary-foreground: oklch(0.205 0 0);
+}
+
+:root[data-theme-preset='rose'] {
+	--primary: oklch(0.594 0.227 17.585);
+	--primary-foreground: oklch(0.985 0 0);
+}
+.dark[data-theme-preset='rose'] {
+	--primary: oklch(0.704 0.205 16.439);
+	--primary-foreground: oklch(0.205 0 0);
+}
+
+:root[data-theme-preset='orange'] {
+	--primary: oklch(0.646 0.222 41.116);
+	--primary-foreground: oklch(0.985 0 0);
+}
+.dark[data-theme-preset='orange'] {
+	--primary: oklch(0.769 0.188 70.08);
+	--primary-foreground: oklch(0.205 0 0);
+}
+
 @theme inline {
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
@@ -120,6 +161,72 @@
 	}
 	body {
 		@apply bg-background text-foreground;
+	}
+
+	/* ── Typography scale (from mocci) ── */
+	.heading-xl {
+		font-size: 3.75rem;
+		line-height: 1;
+		font-weight: 500;
+		letter-spacing: -0.025em;
+		text-wrap: pretty;
+	}
+	.heading-lg {
+		font-size: 3rem;
+		line-height: 1;
+		font-weight: 500;
+		letter-spacing: -0.025em;
+		text-wrap: pretty;
+	}
+	.heading-md {
+		font-size: 2.25rem;
+		line-height: 2.5rem;
+		font-weight: 600;
+		letter-spacing: -0.025em;
+		text-wrap: pretty;
+	}
+	.heading-sm {
+		font-size: 1.5rem;
+		line-height: 2rem;
+		font-weight: 600;
+		letter-spacing: -0.025em;
+		text-wrap: pretty;
+	}
+
+	/* ── Layout utilities (from mocci) ── */
+	.container-padding-x {
+		padding-inline: 1.5rem;
+	}
+	.section-padding-y {
+		padding-block: 6rem;
+	}
+
+	/* ── Interactive cursor rules (from mocci) ── */
+	button:not(:disabled),
+	[role="button"]:not([aria-disabled="true"]),
+	[role="menuitem"]:not([aria-disabled="true"]),
+	[role="option"]:not([aria-disabled="true"]),
+	[role="tab"]:not([aria-disabled="true"]),
+	[role="switch"]:not([aria-disabled="true"]),
+	[role="checkbox"]:not([aria-disabled="true"]),
+	[role="radio"]:not([aria-disabled="true"]),
+	a[href],
+	summary,
+	label[for],
+	[data-slot="select-trigger"]:not(:disabled),
+	[data-slot="dropdown-menu-trigger"]:not(:disabled),
+	[data-slot="dropdown-menu-item"]:not([data-disabled]),
+	[data-slot="dropdown-menu-checkbox-item"]:not([data-disabled]),
+	[data-slot="dropdown-menu-radio-item"]:not([data-disabled]),
+	[data-slot="dropdown-menu-sub-trigger"]:not([data-disabled]),
+	[data-slot="select-item"]:not([data-disabled]),
+	[data-slot="context-menu-item"]:not([data-disabled]),
+	[data-slot="menubar-item"]:not([data-disabled]),
+	[data-slot="command-item"]:not([data-disabled]),
+	[data-slot="sidebar-menu-button"]:not(:disabled),
+	[data-slot="sidebar-menu-sub-button"]:not(:disabled),
+	[data-slot="pagination-link"]:not([aria-disabled="true"]) {
+		cursor: pointer;
 	}
 }
 
@@ -1346,4 +1453,75 @@
 	.hover-lift:hover {
 		transform: translateY(-1px);
 	}
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Responsive typography overrides (from mocci)
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 40rem) {
+	.heading-xl {
+		font-size: 3rem;
+	}
+	.heading-lg {
+		font-size: 2.25rem;
+		line-height: 2.5rem;
+	}
+	.heading-md {
+		font-size: 1.875rem;
+		line-height: 2.25rem;
+	}
+	.heading-sm {
+		font-size: 1.25rem;
+		line-height: 1.75rem;
+	}
+	.container-padding-x {
+		padding-inline: 1rem;
+	}
+	.section-padding-y {
+		padding-block: 4rem;
+	}
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Custom thin scrollbar — from fatmuh/mocci-admin-template.
+   Kept UNLAYERED for max priority (beats @layer base).
+   Hidden arrow steppers, transparent track, subtle thumb.
+   ────────────────────────────────────────────────────────────── */
+/* Firefox ONLY — scoped away from Chromium which uses ::-webkit-scrollbar */
+@supports not selector(::-webkit-scrollbar) {
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: var(--border) transparent;
+	}
+}
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+*::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button:start,
+*::-webkit-scrollbar-button:end,
+*::-webkit-scrollbar-button:vertical:start,
+*::-webkit-scrollbar-button:vertical:end,
+*::-webkit-scrollbar-button:horizontal:start,
+*::-webkit-scrollbar-button:horizontal:end,
+*::-webkit-scrollbar-button:single-button,
+*::-webkit-scrollbar-button:double-button {
+	display: none;
+	width: 0;
+	height: 0;
+	background: transparent;
+}
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+	background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+	background-color: var(--border);
+	border-radius: 9999px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+	background-color: var(--muted-foreground);
 }
