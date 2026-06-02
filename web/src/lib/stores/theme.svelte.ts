@@ -1,9 +1,15 @@
 import { browser } from '$app/environment';
 
 type Theme = 'light' | 'dark' | 'system';
-type ThemePreset = 'blue' | 'violet' | 'emerald' | 'rose' | 'orange' | 'default';
+type ThemePreset = 'violet' | 'emerald' | 'rose' | 'orange' | 'default';
 
-const THEME_PRESETS: ThemePreset[] = ['blue', 'violet', 'emerald', 'rose', 'orange'];
+const THEME_PRESETS: ThemePreset[] = ['violet', 'emerald', 'rose', 'orange'];
+
+const VALID_PRESETS: readonly ThemePreset[] = ['violet', 'emerald', 'rose', 'orange', 'default'] as const;
+
+function isValidPreset(value: string | null): value is ThemePreset {
+	return value !== null && (VALID_PRESETS as readonly string[]).includes(value);
+}
 
 class ThemeStore {
 	theme = $state<Theme>(
@@ -11,7 +17,11 @@ class ThemeStore {
 	);
 
 	preset = $state<ThemePreset>(
-		browser ? ((localStorage.getItem('gofin_theme_preset') as ThemePreset) ?? 'default') : 'default'
+		(() => {
+			if (!browser) return 'default';
+			const stored = localStorage.getItem('gofin_theme_preset');
+			return isValidPreset(stored) ? stored : 'default';
+		})()
 	);
 
 	get presets(): ThemePreset[] {
