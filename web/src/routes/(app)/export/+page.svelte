@@ -7,6 +7,7 @@
 	import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '$lib/components/ui/select/index.js';
 	import { exportService, walletService } from '$lib/services/index.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
+	import { handleApiError, showSuccessToast } from '$lib/stores/toast.js';
 	const t = localeStore.t;
 
 	let format = $state('csv');
@@ -41,8 +42,9 @@
 			} else {
 				await exportService.downloadOFX(startDate || undefined, endDate || undefined, walletId || undefined);
 			}
+			showSuccessToast(format === 'csv' ? t('export.csvDownloaded') : t('export.ofxDownloaded'));
 		} catch (e: any) {
-			error = e.message || t('common.error');
+			handleApiError(e);
 		} finally {
 			isExporting = false;
 		}

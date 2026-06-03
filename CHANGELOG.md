@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-06-04
+
+### Backend
+- **Pagination added** to all list endpoints — GET /wallets, /bills, /budgets, /categories, /tags, /webhooks, /notifications, /rules, /rule-groups, /piggy-banks now accept `page` (default 1) and `per_page` (default 20, max 100) query params and return `meta.pagination` with total, count, per_page, current_page, total_pages (closes #196)
+
+### Frontend
+- **Dashboard error state** — shows error message with retry button instead of empty page when data loading fails; fires error toast automatically (closes #202)
+- **Export toast feedback** — shows success toast (CSV/OFX downloaded) and error toast (via global toast system) instead of inline error text (closes #203)
+
+### i18n
+- Added `common.errorLoading`, `common.errorLoadingDescription`, `common.retry` keys (en + id)
+- Added `export.csvDownloaded`, `export.ofxDownloaded` keys (en + id)
+
 ## [0.1.8] - 2026-06-01
 
 ### Security

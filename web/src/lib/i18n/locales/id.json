@@ -20,7 +20,7 @@
   "common.selectCategory": "Pilih kategori",
   "common.noData": "Belum ada data",
   "common.noDataDesc": "Data belum tersedia.",
-  "common.forbidden": "Anda tidak memiliki izin untuk mengakses halaman ini.",
+  "common.forbidden": "Dilarang",
   "app.name": "Gofin",
   "app.tagline": "Keuangan Pribadi",
   "auth.layout.tagline": "Personal Finance Manager",
@@ -621,5 +621,13 @@
   "common.overdue": "Jatuh Tempo",
   "common.completed": "Selesai",
   "common.cancelled": "Dibatalkan",
-  "common.forbidden": "Dilarang"
+  "common": {
+    "errorLoading": "Gagal memuat dashboard",
+    "errorLoadingDescription": "Terjadi kesalahan saat memuat data Anda. Silakan coba lagi.",
+    "retry": "Coba Lagi"
+  },
+  "export": {
+    "csvDownloaded": "File CSV berhasil diunduh",
+    "ofxDownloaded": "File OFX berhasil diunduh"
+  }
 }

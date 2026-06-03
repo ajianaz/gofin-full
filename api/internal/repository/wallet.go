@@ -165,6 +165,55 @@ func (r *WalletRepository) List(ctx context.Context, groupID uuid.UUID, walletTy
 	return scanWallets(rows)
 }
 
+// ListPaginated returns a paginated list of wallets in a group, optionally filtered by type and active status.
+func (r *WalletRepository) ListPaginated(ctx context.Context, groupID uuid.UUID, walletType string, activeOnly bool, page, perPage int) ([]domain.Wallet, int64, error) {
+	whereClause := `user_group_id = $1 AND deleted_at IS NULL`
+	args := []interface{}{groupID}
+	argN := 2
+
+	if walletType != "" {
+		whereClause += fmt.Sprintf(" AND account_type = $%d", argN)
+		args = append(args, walletType)
+		argN++
+	}
+	if activeOnly {
+		whereClause += " AND active = true"
+	}
+
+	// Count
+	var total int64
+	countSQL := fmt.Sprintf(`SELECT COUNT(*) FROM wallets WHERE %s`, whereClause)
+	err := r.db.QueryRow(ctx, countSQL, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count wallets: %w", err)
+	}
+
+	// Data query with LIMIT/OFFSET
+	offset := (page - 1) * perPage
+	dataSQL := fmt.Sprintf(`SELECT id, user_id, user_group_id, name, account_type,
+		  COALESCE(iban, ''), COALESCE(bic, ''), COALESCE(currency_id, ''),
+		  active, virtual_balance, include_net_worth,
+		  latitude, longitude,
+		  COALESCE(liability_type::text, ''), COALESCE(liability_direction::text, ''),
+		  interest_rate, COALESCE(interest_period::text, ''), current_debt,
+		  COALESCE(credit_card_type::text, ''), monthly_payment_date, monthly_payment_amount,
+		  COALESCE(notes, ''), created_at, updated_at
+		  FROM wallets WHERE %s ORDER BY name LIMIT $%d OFFSET $%d`, whereClause, argN, argN+1)
+	args = append(args, perPage, offset)
+
+	rows, err := r.db.Query(ctx, dataSQL, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list wallets: %w", err)
+	}
+	defer rows.Close()
+
+	wallets, err := scanWallets(rows)
+	if err != nil {
+		return nil, 0, err
+	}
+	return wallets, total, nil
+}
+
 // Update updates wallet fields.
 func (r *WalletRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, active, includeNetWorth *bool, currencyID *string, notes *string) error {
 	_, err := r.db.Exec(ctx,

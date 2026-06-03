@@ -20,7 +20,7 @@
   "common.selectCategory": "Select category",
   "common.noData": "No data yet",
   "common.noDataDesc": "No data available.",
-  "common.forbidden": "You do not have permission to access this page.",
+  "common.forbidden": "Forbidden",
   "app.name": "Gofin",
   "app.tagline": "Personal Finance",
   "auth.layout.tagline": "Personal Finance Manager",
@@ -621,5 +621,13 @@
   "common.overdue": "Overdue",
   "common.completed": "Completed",
   "common.cancelled": "Cancelled",
-  "common.forbidden": "Forbidden"
+  "common": {
+    "errorLoading": "Failed to load dashboard",
+    "errorLoadingDescription": "Something went wrong while loading your data. Please try again.",
+    "retry": "Retry"
+  },
+  "export": {
+    "csvDownloaded": "CSV file downloaded successfully",
+    "ofxDownloaded": "OFX file downloaded successfully"
+  }
 }

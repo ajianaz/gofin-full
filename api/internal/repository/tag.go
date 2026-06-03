@@ -69,6 +69,36 @@ func (r *TagRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.T
 	return tags, rows.Err()
 }
 
+func (r *TagRepository) ListPaginated(ctx context.Context, groupID uuid.UUID, page, perPage int) ([]domain.Tag, int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM tags WHERE user_group_id = $1 AND deleted_at IS NULL`, groupID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count tags: %w", err)
+	}
+
+	offset := (page - 1) * perPage
+	rows, err := r.db.Query(ctx,
+		`SELECT id, user_id, user_group_id, tag, date, created_at, updated_at
+		 FROM tags WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY tag LIMIT $2 OFFSET $3`,
+		groupID, perPage, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list tags: %w", err)
+	}
+	defer rows.Close()
+
+	var tags []domain.Tag
+	for rows.Next() {
+		var t domain.Tag
+		if err := rows.Scan(&t.ID, &t.UserID, &t.UserGroupID, &t.Tag, &t.Date, &t.CreatedAt, &t.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		tags = append(tags, t)
+	}
+	return tags, total, rows.Err()
+}
+
 func (r *TagRepository) Update(ctx context.Context, id, groupID uuid.UUID, tag string, date *time.Time) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE tags SET tag = $1, date = $2, updated_at = $3

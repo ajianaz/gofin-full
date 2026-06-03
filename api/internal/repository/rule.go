@@ -75,6 +75,36 @@ func (r *RuleRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.
 	return rules, rows.Err()
 }
 
+func (r *RuleRepository) ListPaginated(ctx context.Context, groupID uuid.UUID, page, perPage int) ([]domain.Rule, int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM rules WHERE user_group_id = $1 AND deleted_at IS NULL`, groupID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count rules: %w", err)
+	}
+
+	offset := (page - 1) * perPage
+	rows, err := r.db.Query(ctx,
+		`SELECT id, user_id, user_group_id, rule_group_id, title, priority, active, strict, stop_processing, created_at, updated_at
+		 FROM rules WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY priority, title LIMIT $2 OFFSET $3`,
+		groupID, perPage, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list rules: %w", err)
+	}
+	defer rows.Close()
+
+	var rules []domain.Rule
+	for rows.Next() {
+		var rule domain.Rule
+		if err := rows.Scan(&rule.ID, &rule.UserID, &rule.UserGroupID, &rule.RuleGroupID, &rule.Title, &rule.Priority, &rule.Active, &rule.Strict, &rule.StopProcessing, &rule.CreatedAt, &rule.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		rules = append(rules, rule)
+	}
+	return rules, total, rows.Err()
+}
+
 func (r *RuleRepository) Update(ctx context.Context, id, groupID uuid.UUID, title string, active *bool, strict *bool, stopProcessing *bool) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE rules SET

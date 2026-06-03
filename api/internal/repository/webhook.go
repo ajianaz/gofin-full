@@ -70,6 +70,36 @@ func (r *WebhookRepository) List(ctx context.Context, groupID uuid.UUID) ([]doma
 	return webhooks, rows.Err()
 }
 
+func (r *WebhookRepository) ListPaginated(ctx context.Context, groupID uuid.UUID, page, perPage int) ([]domain.Webhook, int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM webhooks WHERE user_group_id = $1 AND deleted_at IS NULL`, groupID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count webhooks: %w", err)
+	}
+
+	offset := (page - 1) * perPage
+	rows, err := r.db.Query(ctx,
+		`SELECT id, user_id, user_group_id, title, url, active, created_at, updated_at
+		 FROM webhooks WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+		groupID, perPage, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list webhooks: %w", err)
+	}
+	defer rows.Close()
+
+	var webhooks []domain.Webhook
+	for rows.Next() {
+		var w domain.Webhook
+		if err := rows.Scan(&w.ID, &w.UserID, &w.UserGroupID, &w.Title, &w.URL, &w.Active, &w.CreatedAt, &w.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		webhooks = append(webhooks, w)
+	}
+	return webhooks, total, rows.Err()
+}
+
 func (r *WebhookRepository) Update(ctx context.Context, id, groupID uuid.UUID, title, url string, active *bool) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE webhooks SET title = COALESCE(NULLIF($1, ''), title), url = COALESCE(NULLIF($2, ''), url), active = COALESCE($3, active), updated_at = $4
