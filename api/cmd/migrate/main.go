@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -66,10 +67,20 @@ func main() {
 		}
 	}
 	sort.Strings(migrations)
+	// Down migrations must run in reverse order to respect FK dependencies
+	if *direction == "down" {
+		slices.Reverse(migrations)
+	}
 
 	for _, m := range migrations {
 		base := filepath.Base(m)
-		applied := isMigrationApplied(ctx, pool, base)
+
+		// For down migrations, check if the corresponding UP was applied
+		trackingName := base
+		if *direction == "down" {
+			trackingName = strings.Replace(base, ".down.sql", ".up.sql", 1)
+		}
+		applied := isMigrationApplied(ctx, pool, trackingName)
 
 		if *direction == "up" && applied {
 			fmt.Printf("skip   %s (already applied)\n", base)
@@ -98,9 +109,10 @@ func main() {
 		if *direction == "up" {
 			recordMigration(ctx, pool, base)
 			fmt.Printf("apply  %s\n", base)
-		} else {
-			removeMigration(ctx, pool, base)
-			fmt.Printf("revert %s\n", base)
+	} else {
+		// Remove the UP entry (not the down filename)
+		removeMigration(ctx, pool, strings.Replace(base, ".down.sql", ".up.sql", 1))
+		fmt.Printf("revert %s\n", base)
 		}
 	}
 

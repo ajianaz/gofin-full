@@ -23,7 +23,7 @@ func newTestRouter(healthHandler *handler.HealthHandler) *router.RouterConfig {
 }
 
 func TestRouter_HealthEndpoint(t *testing.T) {
-	healthHandler := handler.NewHealthHandler(nil, nil)
+	healthHandler := handler.NewHealthHandler(nil, nil, "test")
 	cfg := newTestRouter(healthHandler)
 	app := router.New(*cfg)
 
@@ -34,7 +34,7 @@ func TestRouter_HealthEndpoint(t *testing.T) {
 }
 
 func TestRouter_APIv1Endpoint(t *testing.T) {
-	healthHandler := handler.NewHealthHandler(nil, nil)
+	healthHandler := handler.NewHealthHandler(nil, nil, "test")
 	cfg := newTestRouter(healthHandler)
 	app := router.New(*cfg)
 
@@ -50,7 +50,7 @@ func TestRouter_APIv1Endpoint(t *testing.T) {
 }
 
 func TestRouter_NotFound(t *testing.T) {
-	healthHandler := handler.NewHealthHandler(nil, nil)
+	healthHandler := handler.NewHealthHandler(nil, nil, "test")
 	cfg := newTestRouter(healthHandler)
 	app := router.New(*cfg)
 
@@ -61,7 +61,7 @@ func TestRouter_NotFound(t *testing.T) {
 }
 
 func TestRouter_CORSHeaders(t *testing.T) {
-	healthHandler := handler.NewHealthHandler(nil, nil)
+	healthHandler := handler.NewHealthHandler(nil, nil, "test")
 	cfg := newTestRouter(healthHandler)
 	app := router.New(*cfg)
 
@@ -75,7 +75,7 @@ func TestRouter_CORSHeaders(t *testing.T) {
 }
 
 func TestRouter_RequestIDHeader(t *testing.T) {
-	healthHandler := handler.NewHealthHandler(nil, nil)
+	healthHandler := handler.NewHealthHandler(nil, nil, "test")
 	cfg := newTestRouter(healthHandler)
 	app := router.New(*cfg)
 
@@ -88,7 +88,7 @@ func TestRouter_RequestIDHeader(t *testing.T) {
 }
 
 func TestRouter_XTraceIDPassthrough(t *testing.T) {
-	healthHandler := handler.NewHealthHandler(nil, nil)
+	healthHandler := handler.NewHealthHandler(nil, nil, "test")
 	cfg := newTestRouter(healthHandler)
 	app := router.New(*cfg)
 
@@ -102,7 +102,7 @@ func TestRouter_XTraceIDPassthrough(t *testing.T) {
 }
 
 func TestRouter_AuthProviderEndpoint(t *testing.T) {
-	healthHandler := handler.NewHealthHandler(nil, nil)
+	healthHandler := handler.NewHealthHandler(nil, nil, "test")
 	jwtMgr := auth.NewJWTManager("test-secret", 60, 30)
 	provider := auth.NewDisabledProvider()
 
@@ -124,7 +124,7 @@ func TestRouter_AuthProviderEndpoint(t *testing.T) {
 }
 
 func TestRouter_ProtectedRouteUnauthorized(t *testing.T) {
-	healthHandler := handler.NewHealthHandler(nil, nil)
+	healthHandler := handler.NewHealthHandler(nil, nil, "test")
 	jwtMgr := auth.NewJWTManager("test-secret", 60, 30)
 
 	cfg := &router.RouterConfig{

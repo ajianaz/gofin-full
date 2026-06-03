@@ -14,13 +14,15 @@ import (
 
 // HealthHandler handles health check requests.
 type HealthHandler struct {
-	db    *pgxpool.Pool
-	redis redis.Cmdable
+	db        *pgxpool.Pool
+	redis     redis.Cmdable
+	startedAt time.Time
+	version   string
 }
 
 // NewHealthHandler creates a new health handler.
-func NewHealthHandler(db *pgxpool.Pool, rdb redis.Cmdable) *HealthHandler {
-	return &HealthHandler{db: db, redis: rdb}
+func NewHealthHandler(db *pgxpool.Pool, rdb redis.Cmdable, version string) *HealthHandler {
+	return &HealthHandler{db: db, redis: rdb, startedAt: time.Now(), version: version}
 }
 
 // Check returns the health status of all services.
@@ -29,8 +31,10 @@ func (h *HealthHandler) Check(c *fiber.Ctx) error {
 	defer cancel()
 
 	health := response.HealthResponse{
-		Status:   "ok",
-		Services: []response.ServiceHealth{},
+		Status:        "ok",
+		Version:       h.version,
+		UptimeSeconds: int64(time.Since(h.startedAt).Seconds()),
+		Services:      []response.ServiceHealth{},
 	}
 
 	// Check PostgreSQL

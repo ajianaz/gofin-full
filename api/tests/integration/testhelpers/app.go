@@ -109,7 +109,7 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 	_ = service.NewExchangeRateService(exchangeRateRepo)
 
 	// Handlers
-	healthHandler := handler.NewHealthHandler(db, nil) // nil Redis is fine for tests
+	healthHandler := handler.NewHealthHandler(db, nil, "test") // nil Redis is fine for tests
 	authHandler := handler.NewAuthHandler(zerolog.Nop(), jwtMgr, authProvider, prodCfg, userRepo, oauthStateRepo, refreshRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr, false)

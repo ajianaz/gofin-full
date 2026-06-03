@@ -14,7 +14,7 @@ import (
 )
 
 func TestHealthCheck_NoDependencies(t *testing.T) {
-	h := handler.NewHealthHandler(nil, nil)
+	h := handler.NewHealthHandler(nil, nil, "test")
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middleware.ErrorHandler,
@@ -47,7 +47,7 @@ func TestHealthCheck_NoDependencies(t *testing.T) {
 }
 
 func TestHealthCheck_ResponseFormat(t *testing.T) {
-	h := handler.NewHealthHandler(nil, nil)
+	h := handler.NewHealthHandler(nil, nil, "test")
 
 	app := fiber.New()
 	app.Get("/health", h.Check)
@@ -70,7 +70,7 @@ func TestHealthCheck_ResponseFormat(t *testing.T) {
 }
 
 func TestHealthCheck_ServicesOrder(t *testing.T) {
-	h := handler.NewHealthHandler(nil, nil)
+	h := handler.NewHealthHandler(nil, nil, "test")
 
 	app := fiber.New()
 	app.Get("/health", h.Check)
@@ -89,7 +89,7 @@ func TestHealthCheck_ServicesOrder(t *testing.T) {
 }
 
 func TestHealthCheck_ContentLength(t *testing.T) {
-	h := handler.NewHealthHandler(nil, nil)
+	h := handler.NewHealthHandler(nil, nil, "test")
 
 	app := fiber.New()
 	app.Get("/health", h.Check)
