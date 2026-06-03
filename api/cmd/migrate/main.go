@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/pkg/pgxuuid"
 )
@@ -78,7 +78,7 @@ func main() {
 		// For down migrations, check if the corresponding UP was applied
 		trackingName := base
 		if *direction == "down" {
-			trackingName = strings.Replace(base, ".down.sql", ".up.sql", 1)
+			trackingName = strings.TrimSuffix(base, ".down.sql") + ".up.sql"
 		}
 		applied := isMigrationApplied(ctx, pool, trackingName)
 
@@ -107,12 +107,12 @@ func main() {
 		}
 
 		if *direction == "up" {
-		recordMigration(ctx, pool, base)
-		fmt.Printf("apply  %s\n", base)
-	} else {
-		// Remove the UP entry (not the down filename)
-		removeMigration(ctx, pool, strings.Replace(base, ".down.sql", ".up.sql", 1))
-		fmt.Printf("revert %s\n", base)
+			recordMigration(ctx, pool, base)
+			fmt.Printf("apply  %s\n", base)
+		} else {
+			// Remove the UP entry (not the down filename)
+			removeMigration(ctx, pool, strings.TrimSuffix(base, ".down.sql")+".up.sql")
+			fmt.Printf("revert %s\n", base)
 		}
 	}
 
