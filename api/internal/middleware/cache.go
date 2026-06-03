@@ -31,7 +31,10 @@ func evictStaleRateLimitEntries() {
 	for range ticker.C {
 		now := time.Now().UnixMilli()
 		memRateLimiter.Range(func(key, val interface{}) bool {
-			entry := val.(*memRateEntry)
+			entry, ok := val.(*memRateEntry)
+			if !ok {
+				return true
+			}
 			entry.mu.Lock()
 			stale := now-entry.lastAccess > 10*60*1000 // 10 minutes
 			entry.mu.Unlock()

@@ -100,7 +100,7 @@ func (r *RuleRepository) SetTriggers(ctx context.Context, ruleID uuid.UUID, trig
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck
 
 	_, err = tx.Exec(ctx, `DELETE FROM rule_triggers WHERE rule_id = $1`, ruleID)
 	if err != nil {
@@ -123,7 +123,7 @@ func (r *RuleRepository) SetActions(ctx context.Context, ruleID uuid.UUID, actio
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck
 
 	_, err = tx.Exec(ctx, `DELETE FROM rule_actions WHERE rule_id = $1`, ruleID)
 	if err != nil {

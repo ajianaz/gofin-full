@@ -112,6 +112,9 @@ func TestLogout_RevokesRefreshToken(t *testing.T) {
 }
 
 func TestLogout_WithoutToken(t *testing.T) {
+	if os.Getenv("AUTH_PROVIDER") == "disabled" {
+		t.Skip("Skipping: disabled auth provider does not support token lifecycle")
+	}
 	app := testApp.App
 
 	resp := testhelpers.MakeRequest(t, app, "POST", "/api/v1/auth/logout", `{}`, "")
@@ -122,6 +125,9 @@ func TestLogout_WithoutToken(t *testing.T) {
 // --- Refresh Token Rotation Chain ---
 
 func TestRefreshToken_MultipleRotations(t *testing.T) {
+	if os.Getenv("AUTH_PROVIDER") == "disabled" {
+		t.Skip("Skipping: disabled auth provider does not support refresh token rotation")
+	}
 	app := testApp.App
 
 	// Login
