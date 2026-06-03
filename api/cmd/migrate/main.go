@@ -107,8 +107,8 @@ func main() {
 		}
 
 		if *direction == "up" {
-			recordMigration(ctx, pool, base)
-			fmt.Printf("apply  %s\n", base)
+		recordMigration(ctx, pool, base)
+		fmt.Printf("apply  %s\n", base)
 	} else {
 		// Remove the UP entry (not the down filename)
 		removeMigration(ctx, pool, strings.Replace(base, ".down.sql", ".up.sql", 1))
