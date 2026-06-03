@@ -181,7 +181,10 @@ func init() {
 			now := time.Now().UnixMilli()
 			windowStart := now - int64(defaultLoginLockoutMinutes)*60*1000
 			loginAttemptStore.Range(func(key, val interface{}) bool {
-				entry := val.(*loginAttemptEntry)
+				entry, ok := val.(*loginAttemptEntry)
+				if !ok {
+					return true
+				}
 				entry.mu.Lock()
 				valid := entry.timestamps[:0]
 				for _, ts := range entry.timestamps {
@@ -208,7 +211,10 @@ func memLoginAttemptCheck(key string) (bool, int) {
 	windowStart := now - int64(defaultLoginLockoutMinutes)*60*1000
 
 	val, _ := loginAttemptStore.LoadOrStore(key, &loginAttemptEntry{})
-	entry := val.(*loginAttemptEntry)
+	entry, ok := val.(*loginAttemptEntry)
+	if !ok {
+		return false, 0
+	}
 
 	entry.mu.Lock()
 	defer entry.mu.Unlock()

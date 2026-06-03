@@ -53,7 +53,10 @@ func memRateLimitCheck(key string, limit int, window time.Duration) bool {
 	windowStart := now - window.Milliseconds()
 
 	val, _ := memRateLimiter.LoadOrStore(key, &memRateEntry{})
-	entry := val.(*memRateEntry)
+	entry, ok := val.(*memRateEntry)
+	if !ok {
+		return false
+	}
 
 	entry.mu.Lock()
 	defer entry.mu.Unlock()
