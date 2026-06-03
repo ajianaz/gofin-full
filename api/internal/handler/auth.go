@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"os"
 	"github.com/rs/zerolog"
 	"net/mail"
 	"net/url"
@@ -213,6 +214,7 @@ func memLoginAttemptCheck(key string) (bool, int) {
 	val, _ := loginAttemptStore.LoadOrStore(key, &loginAttemptEntry{})
 	entry, ok := val.(*loginAttemptEntry)
 	if !ok {
+		fmt.Fprintf(os.Stderr, "warning: unexpected type in loginAttemptStore for key %s: %T\n", key, val)
 		return false, 0
 	}
 
