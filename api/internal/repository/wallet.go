@@ -198,7 +198,7 @@ func (r *WalletRepository) ListPaginated(ctx context.Context, groupID uuid.UUID,
 		  interest_rate, COALESCE(interest_period::text, ''), current_debt,
 		  COALESCE(credit_card_type::text, ''), monthly_payment_date, monthly_payment_amount,
 		  COALESCE(notes, ''), created_at, updated_at
-		  FROM wallets WHERE %s ORDER BY name LIMIT $%d OFFSET $%d`, whereClause, argN, argN+1)
+		  FROM wallets WHERE %s ORDER BY name, id LIMIT $%d OFFSET $%d`, whereClause, argN, argN+1)
 	args = append(args, perPage, offset)
 
 	rows, err := r.db.Query(ctx, dataSQL, args...)

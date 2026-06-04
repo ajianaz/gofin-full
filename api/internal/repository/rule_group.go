@@ -66,7 +66,7 @@ func (r *RuleGroupRepository) ListPaginated(ctx context.Context, groupID uuid.UU
 	offset := (page - 1) * perPage
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, title, active, "order", created_at, updated_at
-		 FROM rule_groups WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", title LIMIT $2 OFFSET $3`,
+		 FROM rule_groups WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", title, id LIMIT $2 OFFSET $3`,
 		groupID, perPage, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list rule groups: %w", err)
