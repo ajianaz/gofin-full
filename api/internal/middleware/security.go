@@ -33,7 +33,19 @@ func SecurityHeaders(cfg SecurityHeadersConfig) fiber.Handler {
 		if cfg.IsDebug {
 			c.Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline' 'unsafe-eval'")
 		} else if cfg.IsProd {
-			c.Set("Content-Security-Policy", "default-src 'self'")
+			// Production CSP: specific directives to allow Svelte/Tailwind resources
+			// while blocking inline scripts and eval. style-src allows 'unsafe-inline'
+			// because Tailwind generates inline styles at runtime.
+			c.Set("Content-Security-Policy",
+				"default-src 'self'; "+
+					"script-src 'self'; "+
+					"style-src 'self' 'unsafe-inline'; "+
+					"img-src 'self' data: blob:; "+
+					"font-src 'self' data:; "+
+					"connect-src 'self'; "+
+					"frame-ancestors 'none'; "+
+					"base-uri 'self'; "+
+					"form-action 'self'")
 		}
 
 		return err

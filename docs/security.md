@@ -8,8 +8,8 @@ Security features, hardening measures, and best practices in Gofin.
 
 - **Access token:** Short-lived (configurable, default 60 minutes)
 - **Refresh token:** Long-lived (configurable, default 30 days)
-- **Library:** `golang-jwt/v5` with RS256 signing
-- **Storage:** Access token in localStorage, refresh token as httpOnly cookie
+- **Library:** `golang-jwt/v5` with HS256 signing (HMAC-SHA256)
+- **Storage:** Access and refresh tokens in httpOnly cookies (Secure in production, SameSite=Lax)
 
 ### Password Policy
 
@@ -101,7 +101,7 @@ The self-hosted Docker configuration uses secure defaults:
 | `APP_ENV` | `production` | Enables all security features |
 | `APP_DEBUG` | `false` | Hides error details |
 | `AUTH_ALLOW_REGISTRATION` | `false` | Prevents open registration |
-| `DISABLE_PROMETHEUS` | `true` | Disables metrics endpoint |
+| `DISABLE_PROMETHEUS` | `false` | Metrics enabled by default |
 | `RATE_LIMIT_MAX` | `20` | Conservative rate limiting |
 | `CORS_ALLOWED_ORIGINS` | Domain only | No wildcard CORS |
 
