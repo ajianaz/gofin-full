@@ -13,8 +13,10 @@ func (f *PageFilter) Defaults() {
 	if f.Page < 1 {
 		f.Page = 1
 	}
-	if f.PerPage < 1 || f.PerPage > 100 {
+	if f.PerPage < 1 {
 		f.PerPage = 20
+	} else if f.PerPage > 100 {
+		f.PerPage = 100
 	}
 }
 

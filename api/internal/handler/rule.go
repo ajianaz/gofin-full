@@ -30,8 +30,10 @@ func (h *RuleGroupHandler) Index(c *fiber.Ctx) error {
 	if page < 1 {
 		page = 1
 	}
-	if perPage < 1 || perPage > 100 {
+	if perPage < 1 {
 		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
 	}
 
 	groups, total, err := h.repo.ListPaginated(c.Context(), *groupID, page, perPage)
@@ -189,8 +191,10 @@ func (h *RuleHandler) Index(c *fiber.Ctx) error {
 	if page < 1 {
 		page = 1
 	}
-	if perPage < 1 || perPage > 100 {
+	if perPage < 1 {
 		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
 	}
 
 	rules, total, err := h.repo.ListPaginated(c.Context(), *groupID, page, perPage)

@@ -31,8 +31,10 @@ func (h *CategoryHandler) Index(c *fiber.Ctx) error {
 	if page < 1 {
 		page = 1
 	}
-	if perPage < 1 || perPage > 100 {
+	if perPage < 1 {
 		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
 	}
 
 	categories, total, err := h.repo.ListPaginated(c.Context(), *groupID, page, perPage)
