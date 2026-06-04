@@ -1,21 +1,22 @@
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ cookies }) => {
-	// Server-side auth check: detect if httpOnly session cookies exist.
-	// This gives SSR a hint about authentication state, preventing the
-	// flash-of-login-page that occurs when the client-side store defaults
-	// to unauthenticated before hydration.
+	// Server-side hint for SSR routing decisions.
+	// We check if httpOnly session cookies are present to avoid the
+	// flash-of-login-page on authenticated routes.
 	//
-	// The actual auth validation happens in the Go API via the httpOnly cookie.
-	// Here we just check cookie presence for SSR routing decisions.
+	// IMPORTANT: This is NOT an auth check — the Go API validates the actual
+	// httpOnly cookie on every request. This merely provides a SSR hint so
+	// the (app) layout doesn't redirect to /login when the user has a valid
+	// server-side session. Even if spoofed, the worst case is a brief flash
+	// of the app layout before the API returns 401 and the client redirects.
 	const hasAccessToken = !!cookies.get('access_token');
 	const hasRefreshToken = !!cookies.get('refresh_token');
 
 	return {
 		session: {
-			// On the server, we can't validate the token without calling the API,
-			// but we can check if cookies exist. If refresh token exists, assume
-			// the user might be authenticated (API will validate on actual requests).
+			// Only treat as potentially authenticated if access_token cookie exists.
+			// Refresh-only means session expired — let client handle refresh flow.
 			isAuthenticated: hasAccessToken || hasRefreshToken
 		}
 	};

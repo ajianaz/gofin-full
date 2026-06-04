@@ -4,9 +4,11 @@
 
 	let { status, message } = $props();
 
-	// Use page error info if available, fallback to props
-	const errorStatus = status || $page.status;
-	const errorMessage = message || $page.error?.message || 'An unexpected error occurred';
+	// Use props (provided by SvelteKit error loader) as primary source,
+	// fallback to page state. In +error.svelte, SvelteKit passes status
+	// and message as props automatically.
+	const errorStatus = $derived(status || page.status);
+	const errorMessage = $derived(message || page.error?.message || 'An unexpected error occurred');
 
 	const titles: Record<number, string> = {
 		400: 'Bad Request',
@@ -20,7 +22,7 @@
 		503: 'Service Unavailable'
 	};
 
-	const title = titles[errorStatus] || 'Something went wrong';
+	const title = $derived(titles[errorStatus] || 'Something went wrong');
 </script>
 
 <div class="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
