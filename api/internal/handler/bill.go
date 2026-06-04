@@ -1,16 +1,17 @@
 package handler
 
 import (
-	"github.com/rs/zerolog/log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/domain"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
+	"github.com/ajianaz/gofin-full/api/internal/validation"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
 
@@ -124,22 +125,33 @@ func (h *BillHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"name": {"name is required"}})
 	}
 
-	amountMin, err := decimal.NewFromString(req.AmountMin)
-	if err != nil {
+	errs := make(validation.FieldErrors)
+	validation.NonNegative("amount_min", req.AmountMin, errs)
+	validation.NonNegative("amount_max", req.AmountMax, errs)
+	validation.MinGreaterThanMax("amount_min", "amount_max", req.AmountMin, req.AmountMax, errs)
+	if req.RepeatFreq != "" {
+		validation.OneOf("repeat_freq", req.RepeatFreq, []string{"weekly", "monthly", "quarterly", "half-yearly", "yearly"}, errs)
+	}
+	if req.Date != "" {
+		validation.OptionalDateString("date", req.Date, errs)
+	}
+	if errs.Has() {
+		return errs.ToAppError()
+	}
+
+	amountMin, _ := decimal.NewFromString(req.AmountMin)
+	if amountMin.IsZero() && req.AmountMin == "" {
 		amountMin = decimal.Zero
 	}
-	amountMax, err := decimal.NewFromString(req.AmountMax)
-	if err != nil {
+	amountMax, _ := decimal.NewFromString(req.AmountMax)
+	if amountMax.IsZero() && req.AmountMax == "" {
 		amountMax = decimal.Zero
 	}
-
-	date, err := time.Parse(time.RFC3339, req.Date)
+	date, err := time.Parse("2006-01-02", req.Date)
 	if err != nil {
-		date = time.Now().UTC()
-	}
-
-	if req.RepeatFreq == "" {
-		req.RepeatFreq = "monthly"
+		dateErrs := make(validation.FieldErrors)
+		validation.OptionalDateString("date", req.Date, dateErrs)
+		return dateErrs.ToAppError()
 	}
 
 	b, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Name), amountMin, amountMax, date, req.RepeatFreq, req.CurrencyID, req.Order)

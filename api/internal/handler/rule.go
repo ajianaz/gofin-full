@@ -1,14 +1,26 @@
 package handler
 
 import (
-	"github.com/rs/zerolog/log"
-"github.com/gofiber/fiber/v2"
+	"fmt"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/domain"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
+
+var validTriggerTypes = []string{
+	"title_contains", "description_contains", "amount_is",
+	"amount_less_than", "amount_greater_than", "category_is", "account_is",
+}
+
+var validActionTypes = []string{
+	"set_category", "set_account", "add_tag", "remove_tag", "set_description",
+}
 
 type RuleGroupHandler struct {
 	repo *repository.RuleGroupRepository
@@ -273,6 +285,36 @@ func (h *RuleHandler) Store(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"title": {"title is required"}})
 	}
 
+	// Validate triggers and actions
+	fieldErrors := make(map[string][]string)
+	for i, t := range req.Triggers {
+		valid := false
+		for _, vt := range validTriggerTypes {
+			if t.TriggerType == vt {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			fieldErrors[fmt.Sprintf("triggers.%d.trigger_type", i)] = append(fieldErrors[fmt.Sprintf("triggers.%d.trigger_type", i)], "must be one of: "+fmt.Sprintf("%v", validTriggerTypes))
+		}
+	}
+	for i, a := range req.Actions {
+		valid := false
+		for _, va := range validActionTypes {
+			if a.ActionType == va {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			fieldErrors[fmt.Sprintf("actions.%d.action_type", i)] = append(fieldErrors[fmt.Sprintf("actions.%d.action_type", i)], "must be one of: "+fmt.Sprintf("%v", validActionTypes))
+		}
+	}
+	if len(fieldErrors) > 0 {
+		return apperrors.NewValidationError(fieldErrors)
+	}
+
 	rule, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Title), req.Priority, req.RuleGroupID)
 	if err != nil {
 		log.Error().Err(err).Msg("handler/Index: failed to create rule")
@@ -314,6 +356,36 @@ func (h *RuleHandler) Update(c *fiber.Ctx) error {
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return apperrors.NewValidationError(map[string][]string{"body": {"invalid JSON"}})
+	}
+
+	// Validate triggers and actions
+	fieldErrors := make(map[string][]string)
+	for i, t := range req.Triggers {
+		valid := false
+		for _, vt := range validTriggerTypes {
+			if t.TriggerType == vt {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			fieldErrors[fmt.Sprintf("triggers.%d.trigger_type", i)] = append(fieldErrors[fmt.Sprintf("triggers.%d.trigger_type", i)], "must be one of: "+fmt.Sprintf("%v", validTriggerTypes))
+		}
+	}
+	for i, a := range req.Actions {
+		valid := false
+		for _, va := range validActionTypes {
+			if a.ActionType == va {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			fieldErrors[fmt.Sprintf("actions.%d.action_type", i)] = append(fieldErrors[fmt.Sprintf("actions.%d.action_type", i)], "must be one of: "+fmt.Sprintf("%v", validActionTypes))
+		}
+	}
+	if len(fieldErrors) > 0 {
+		return apperrors.NewValidationError(fieldErrors)
 	}
 
 	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Title), req.Active, req.Strict, req.StopProcessing); err != nil {

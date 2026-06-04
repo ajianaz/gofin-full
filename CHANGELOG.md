@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Backend
+- **Input validation** — added comprehensive validation across 6 handlers:
+  - Tag: duplicate name → 409, max length 100 chars (#230 #232)
+  - Transaction: invalid/missing date → 422, negative amount → 422 (#235 #236)
+  - Bill: negative amounts → 422, inverted min/max range → 422, invalid repeat_freq → 422, invalid date → 422 (#238)
+  - Wallet: invalid currency_id → 422, empty name on update → 422 (#233 #234)
+  - Rule: invalid trigger_type/action_type → 422 (#240)
+- **Validation framework** — added 5 new helpers: MaxLengthUTF8, NonNegative, DateString, OptionalDateString, MinGreaterThanMax
 - **Pagination deterministic ordering** — added `id` tiebreaker to all ListPaginated ORDER BY clauses to prevent row shuffling across pages
 - **Pagination added** to all list endpoints — GET /wallets, /bills, /budgets, /categories, /tags, /webhooks, /notifications, /rules, /rule-groups, /piggy-banks now accept `page` (default 1) and `per_page` (default 20, max 100) query params and return `meta.pagination` with total, count, per_page, current_page, total_pages (closes #196)
 

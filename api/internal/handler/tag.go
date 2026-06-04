@@ -1,15 +1,17 @@
 package handler
 
 import (
-	"github.com/rs/zerolog/log"
-"time"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
-	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors")
+	"github.com/ajianaz/gofin-full/api/internal/validation"
+	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
+)
 
 type TagHandler struct {
 	repo *repository.TagRepository
@@ -111,9 +113,17 @@ func (h *TagHandler) Store(c *fiber.Ctx) error {
 	if req.Tag == "" {
 		return apperrors.NewValidationError(map[string][]string{"tag": {"tag is required"}})
 	}
+	errs := make(validation.FieldErrors)
+	validation.MaxLengthUTF8("tag", req.Tag, 100, errs)
+	if errs.Has() {
+		return errs.ToAppError()
+	}
 
 	t, err := h.repo.Create(c.Context(), user.ID, *groupID, sanitizeStr(req.Tag), req.Date)
 	if err != nil {
+		if isDuplicateKey(err) {
+			return apperrors.NewValidationError(map[string][]string{"tag": {"tag already exists"}})
+		}
 		log.Error().Err(err).Msg("handler/Index: failed to create tag")
 		return apperrors.ErrInternal
 	}
@@ -147,12 +157,20 @@ func (h *TagHandler) Update(c *fiber.Ctx) error {
 	if req.Tag == "" {
 		return apperrors.NewValidationError(map[string][]string{"tag": {"tag is required"}})
 	}
+	errs := make(validation.FieldErrors)
+	validation.MaxLengthUTF8("tag", req.Tag, 100, errs)
+	if errs.Has() {
+		return errs.ToAppError()
+	}
 
 	// Verify tag exists before update
 	if _, err := h.repo.FindByID(c.Context(), id, *groupID); err != nil {
 		return apperrors.NotFoundResource("tag", id)
 	}
 	if err := h.repo.Update(c.Context(), id, *groupID, sanitizeStr(req.Tag), req.Date); err != nil {
+		if isDuplicateKey(err) {
+			return apperrors.NewValidationError(map[string][]string{"tag": {"tag already exists"}})
+		}
 		return apperrors.NotFoundResource("tag", id)
 	}
 
