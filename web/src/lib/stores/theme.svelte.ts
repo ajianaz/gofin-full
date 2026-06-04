@@ -1,11 +1,32 @@
 import { browser } from '$app/environment';
 
 type Theme = 'light' | 'dark' | 'system';
+type ThemePreset = 'violet' | 'emerald' | 'rose' | 'orange' | 'default';
+
+const THEME_PRESETS: ThemePreset[] = ['violet', 'emerald', 'rose', 'orange'];
+
+const VALID_PRESETS: readonly ThemePreset[] = ['violet', 'emerald', 'rose', 'orange', 'default'] as const;
+
+function isValidPreset(value: string | null): value is ThemePreset {
+	return value !== null && (VALID_PRESETS as readonly string[]).includes(value);
+}
 
 class ThemeStore {
 	theme = $state<Theme>(
 		browser ? (localStorage.getItem('gofin_theme') as Theme) ?? 'system' : 'system'
 	);
+
+	preset = $state<ThemePreset>(
+		(() => {
+			if (!browser) return 'default';
+			const stored = localStorage.getItem('gofin_theme_preset');
+			return isValidPreset(stored) ? stored : 'default';
+		})()
+	);
+
+	get presets(): ThemePreset[] {
+		return THEME_PRESETS;
+	}
 
 	constructor() {
 		if (browser && !localStorage.getItem('gofin_theme')) {
@@ -35,6 +56,14 @@ class ThemeStore {
 		}
 	};
 
+	setPreset = (p: ThemePreset) => {
+		this.preset = p;
+		if (browser) {
+			localStorage.setItem('gofin_theme_preset', p);
+			this.applyPreset();
+		}
+	};
+
 	toggle = () => {
 		this.setTheme(this.resolved === 'dark' ? 'light' : 'dark');
 	};
@@ -48,6 +77,16 @@ class ThemeStore {
 			el.classList.remove('dark');
 		}
 	};
+
+	applyPreset = () => {
+		if (!browser) return;
+		const el = document.documentElement;
+		if (this.preset && this.preset !== 'default') {
+			el.setAttribute('data-theme-preset', this.preset);
+		} else {
+			el.removeAttribute('data-theme-preset');
+		}
+	};
 }
 
 export const themeStore = new ThemeStore();
@@ -55,6 +94,7 @@ export const themeStore = new ThemeStore();
 // Auto-apply on load
 if (browser) {
 	themeStore.apply();
+	themeStore.applyPreset();
 	// Listen for system preference changes
 	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
 		if (themeStore.theme === 'system') themeStore.apply();
