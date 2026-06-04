@@ -121,7 +121,7 @@ func (r *PiggyBankRepository) ListPaginated(ctx context.Context, walletID, group
 		 FROM piggy_banks pb
 		 JOIN wallets w ON w.id = pb.account_id
 		 WHERE pb.account_id = $1 AND w.user_group_id = $2 AND pb.deleted_at IS NULL
-		 ORDER BY pb."order", pb.name LIMIT $3 OFFSET $4`,
+		 ORDER BY pb."order", pb.name, pb.id LIMIT $3 OFFSET $4`,
 		walletID, groupID, perPage, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list piggy banks: %w", err)

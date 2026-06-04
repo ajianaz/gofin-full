@@ -86,7 +86,7 @@ func (r *BudgetRepository) ListPaginated(ctx context.Context, groupID uuid.UUID,
 	offset := (page - 1) * perPage
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, user_group_id, name, active, "order", created_at, updated_at
-		 FROM budgets WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", name LIMIT $2 OFFSET $3`,
+		 FROM budgets WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", name, id LIMIT $2 OFFSET $3`,
 		groupID, perPage, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list budgets: %w", err)

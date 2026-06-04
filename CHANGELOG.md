@@ -6,9 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-## [0.1.9] - 2026-06-04
-
 ### Backend
+- **Pagination deterministic ordering** — added `id` tiebreaker to all ListPaginated ORDER BY clauses to prevent row shuffling across pages
 - **Pagination added** to all list endpoints — GET /wallets, /bills, /budgets, /categories, /tags, /webhooks, /notifications, /rules, /rule-groups, /piggy-banks now accept `page` (default 1) and `per_page` (default 20, max 100) query params and return `meta.pagination` with total, count, per_page, current_page, total_pages (closes #196)
 
 ### Frontend

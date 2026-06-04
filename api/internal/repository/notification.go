@@ -66,7 +66,7 @@ func (r *NotificationRepository) ListPaginated(ctx context.Context, userID uuid.
 	offset := (page - 1) * perPage
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, channel, type, title, message, "read", created_at, updated_at
-		 FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+		 FROM notifications WHERE user_id = $1 ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $3`,
 		userID, perPage, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list notifications: %w", err)
