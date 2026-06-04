@@ -3,16 +3,20 @@ import { authStore } from '$lib/stores/auth.svelte.js';
 import type { LayoutLoad } from './$types';
 
 export const load: LayoutLoad = async ({ data }) => {
-	// Prefer server-provided session state (from +layout.server.ts cookie check)
-	// over the client-only default. On the client, once hydrated, the auth store
-	// takes over reactivity via httpOnly cookie-based API calls.
-	const isServerAuthenticated = data?.session?.isAuthenticated ?? false;
+	// On the server: use the cookie-based hint from +layout.server.ts.
+	// On the client: prefer the live auth store (reactive to actual API state).
+	// Once the client hydrates, authStore.isAuthenticated reflects real auth
+	// state from API calls (httpOnly cookies). The SSR hint is only used for
+	// the initial SSR render to prevent flash-of-login-page.
+	const serverData = data as { session?: { isAuthenticated?: boolean } } | undefined;
+	const isServerAuthenticated = serverData?.session?.isAuthenticated ?? false;
 
 	return {
 		session: {
-			isAuthenticated: browser
-				? authStore.isAuthenticated || isServerAuthenticated
-				: isServerAuthenticated
+			// Client: always trust the live auth store after hydration.
+			// It tracks actual API responses (401 → false, valid session → true).
+			// Server: use the cookie-presence hint for SSR routing only.
+			isAuthenticated: browser ? authStore.isAuthenticated : isServerAuthenticated
 		}
 	};
 };
