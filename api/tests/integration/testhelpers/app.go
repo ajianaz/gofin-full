@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
@@ -108,8 +109,18 @@ func NewTestApp(cfg *TestConfig) (*TestApp, error) {
 	_ = service.NewNotificationService(notificationRepo, sseHub)
 	_ = service.NewExchangeRateService(exchangeRateRepo)
 
+	// Redis client (connect if REDIS_HOST is set, e.g. in CI)
+	redisHost := envOr("REDIS_HOST", "")
+	redisPort := envOr("REDIS_PORT", "6379")
+	var rdb redis.Cmdable
+	if redisHost != "" {
+		rdb = redis.NewClient(&redis.Options{
+			Addr: fmt.Sprintf("%s:%s", redisHost, redisPort),
+		})
+	}
+
 	// Handlers
-	healthHandler := handler.NewHealthHandler(db, nil) // nil Redis is fine for tests
+	healthHandler := handler.NewHealthHandler(db, rdb, "test")
 	authHandler := handler.NewAuthHandler(zerolog.Nop(), jwtMgr, authProvider, prodCfg, userRepo, oauthStateRepo, refreshRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 	groupHandler := handler.NewUserGroupHandler(groupRepo, userRepo, db, jwtMgr, false)

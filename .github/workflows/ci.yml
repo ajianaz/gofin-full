@@ -40,6 +40,78 @@ jobs:
         working-directory: api
         run: go test ./tests/unit/... -count=1 -v
 
+  api-lint:
+    name: API Lint (golangci-lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: api
+          version: v1.64.8
+          install-mode: goinstall
+          only-new-issues: true
+
+  api-integration-tests:
+    name: API Integration Tests
+    runs-on: ubuntu-latest
+    needs: [api-build]
+    defaults:
+      run:
+        working-directory: api
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: gofin_test
+          POSTGRES_USER: gofin
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5433
+      DB_DATABASE: gofin_test
+      DB_USERNAME: gofin
+      DB_PASSWORD: testpass
+      DB_SSL_MODE: disable
+      REDIS_HOST: localhost
+      REDIS_PORT: 6380
+      AUTH_PROVIDER: disabled
+      AUTH_JWT_SECRET: test-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
+      - name: Run integration tests
+        run: go test ./tests/integration/... -v -timeout 60s
+
   web-check:
     name: Web Type Check & Lint
     runs-on: ubuntu-latest
@@ -59,7 +131,7 @@ jobs:
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: [api-build, web-check]
+    needs: [api-build, api-unit-tests, api-lint, web-check]
     strategy:
       matrix:
         target: [api, web]

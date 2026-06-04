@@ -39,12 +39,7 @@ func (c *CachedTokenVersionLookup) GetTokenVersion(ctx context.Context, userID u
 	if err == nil {
 		return val, nil // cache hit
 	}
-	if err != redis.Nil {
-		// Redis error (connection issue, etc.) — fall back to DB silently
-		// Log handled by caller if needed
-	}
-
-	// Cache miss or Redis unavailable — query DB
+	// Cache miss (redis.Nil) or Redis error — fall back to DB
 	version, dbErr := c.db.GetTokenVersion(ctx, userID)
 	if dbErr != nil {
 		return 0, dbErr

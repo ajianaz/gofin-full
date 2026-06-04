@@ -30,7 +30,7 @@ func Recovery(logger zerolog.Logger) fiber.Handler {
 					response["exception"] = fmt.Sprintf("%v", r)
 				}
 
-				c.Status(500).JSON(response)
+				_ = c.Status(500).JSON(response)
 			}
 		}()
 		return c.Next()

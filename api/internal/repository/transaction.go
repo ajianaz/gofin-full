@@ -326,11 +326,18 @@ func (r *TransactionRepository) UpdateJournal(ctx context.Context, id, groupID u
 	return err
 }
 
-// DeleteGroup soft-deletes a transaction group and all its journals.
+// DeleteGroup soft-deletes a transaction group and all its journals
+// within a single database transaction for consistency.
 func (r *TransactionRepository) DeleteGroup(ctx context.Context, id, groupID uuid.UUID) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
 	now := time.Now().UTC()
 	// Soft-delete journals first
-	_, err := r.db.Exec(ctx,
+	_, err = tx.Exec(ctx,
 		`UPDATE transaction_journals SET deleted_at = $1
 		 WHERE transaction_group_id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		now, id, groupID)
@@ -338,14 +345,14 @@ func (r *TransactionRepository) DeleteGroup(ctx context.Context, id, groupID uui
 		return fmt.Errorf("failed to delete transaction journals: %w", err)
 	}
 	// Soft-delete group
-	_, err = r.db.Exec(ctx,
+	_, err = tx.Exec(ctx,
 		`UPDATE transaction_groups SET deleted_at = $1
 		 WHERE id = $2 AND user_group_id = $3 AND deleted_at IS NULL`,
 		now, id, groupID)
 	if err != nil {
 		return fmt.Errorf("failed to delete transaction group: %w", err)
 	}
-	return nil
+	return tx.Commit(ctx)
 }
 
 // GetTransactionTypeID resolves a transaction type string to its DB ID.
@@ -365,7 +372,7 @@ func (r *TransactionRepository) SetJournalCategories(ctx context.Context, journa
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck
 
 	_, err = tx.Exec(ctx, `DELETE FROM category_transaction WHERE transaction_journal_id = $1`, journalID)
 	if err != nil {
@@ -388,7 +395,7 @@ func (r *TransactionRepository) SetJournalTags(ctx context.Context, journalID uu
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck
 
 	_, err = tx.Exec(ctx, `DELETE FROM journal_tag WHERE transaction_journal_id = $1`, journalID)
 	if err != nil {
@@ -555,7 +562,7 @@ func (r *TransactionRepository) CreateFullTransaction(ctx context.Context, in Cr
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck
 
 	group, err := createGroupTx(ctx, tx, in.UserID, in.GroupID, in.GroupTitle)
 	if err != nil {
@@ -633,7 +640,7 @@ func (r *TransactionRepository) CreateSplitTransactionInTx(ctx context.Context, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck
 
 	group, err := createGroupTx(ctx, tx, in.UserID, in.GroupID, in.GroupTitle)
 	if err != nil {
@@ -700,7 +707,7 @@ func (r *TransactionRepository) DeleteFullTransaction(ctx context.Context, group
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck
 
 	now := time.Now().UTC()
 

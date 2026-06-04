@@ -27,6 +27,8 @@ import (
 )
 
 func main() {
+	// version is injected at build time via -ldflags "-X main.version=v0.1.9"
+	version := "dev"
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -111,7 +113,7 @@ func main() {
 	mailService := service.NewMailService(cfg)
 
 	// Create handlers
-	healthHandler := handler.NewHealthHandler(db, rdb)
+	healthHandler := handler.NewHealthHandler(db, rdb, version)
 	authHandler := handler.NewAuthHandler(log, jwtMgr, authProvider, cfg, userRepo, oauthStateRepo, refreshRepo)
 	if rdb != nil {
 		authHandler.SetRedis(rdb)

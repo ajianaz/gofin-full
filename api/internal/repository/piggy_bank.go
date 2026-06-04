@@ -171,7 +171,7 @@ func (r *PiggyBankRepository) AddMoney(ctx context.Context, piggyBankID, groupID
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback(ctx) //nolint:errcheck
 
 	// Verify piggy bank belongs to group
 	var accountID uuid.UUID

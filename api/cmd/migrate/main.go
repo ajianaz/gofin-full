@@ -7,13 +7,14 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/ajianaz/gofin-full/api/pkg/pgxuuid"
 )
@@ -66,10 +67,20 @@ func main() {
 		}
 	}
 	sort.Strings(migrations)
+	// Down migrations must run in reverse order to respect FK dependencies
+	if *direction == "down" {
+		slices.Reverse(migrations)
+	}
 
 	for _, m := range migrations {
 		base := filepath.Base(m)
-		applied := isMigrationApplied(ctx, pool, base)
+
+		// For down migrations, check if the corresponding UP was applied
+		trackingName := base
+		if *direction == "down" {
+			trackingName = strings.TrimSuffix(base, ".down.sql") + ".up.sql"
+		}
+		applied := isMigrationApplied(ctx, pool, trackingName)
 
 		if *direction == "up" && applied {
 			fmt.Printf("skip   %s (already applied)\n", base)
@@ -99,7 +110,8 @@ func main() {
 			recordMigration(ctx, pool, base)
 			fmt.Printf("apply  %s\n", base)
 		} else {
-			removeMigration(ctx, pool, base)
+			// Remove the UP entry (not the down filename)
+			removeMigration(ctx, pool, strings.TrimSuffix(base, ".down.sql")+".up.sql")
 			fmt.Printf("revert %s\n", base)
 		}
 	}

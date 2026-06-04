@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,9 @@ import (
 // --- Refresh Token Rotation ---
 
 func TestRefreshToken_Rotation(t *testing.T) {
+	if os.Getenv("AUTH_PROVIDER") == "disabled" {
+		t.Skip("Skipping: disabled auth provider does not support refresh token rotation")
+	}
 	app := testApp.App
 
 	// Step 1: Login to get fresh token pair
@@ -81,6 +85,9 @@ func TestRefreshToken_EmptyField(t *testing.T) {
 // --- Logout Revocation ---
 
 func TestLogout_RevokesRefreshToken(t *testing.T) {
+	if os.Getenv("AUTH_PROVIDER") == "disabled" {
+		t.Skip("Skipping: disabled auth provider does not support refresh token revocation")
+	}
 	app := testApp.App
 
 	// Login to get tokens
@@ -105,6 +112,9 @@ func TestLogout_RevokesRefreshToken(t *testing.T) {
 }
 
 func TestLogout_WithoutToken(t *testing.T) {
+	if os.Getenv("AUTH_PROVIDER") == "disabled" {
+		t.Skip("Skipping: disabled auth provider does not support token lifecycle")
+	}
 	app := testApp.App
 
 	resp := testhelpers.MakeRequest(t, app, "POST", "/api/v1/auth/logout", `{}`, "")
@@ -115,6 +125,9 @@ func TestLogout_WithoutToken(t *testing.T) {
 // --- Refresh Token Rotation Chain ---
 
 func TestRefreshToken_MultipleRotations(t *testing.T) {
+	if os.Getenv("AUTH_PROVIDER") == "disabled" {
+		t.Skip("Skipping: disabled auth provider does not support refresh token rotation")
+	}
 	app := testApp.App
 
 	// Login

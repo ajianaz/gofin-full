@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -117,7 +118,7 @@ func TestAuthProvider_LocalDefault(t *testing.T) {
 
 func TestAuthProvider_DisabledAuth(t *testing.T) {
 	provider := auth.NewDisabledProvider()
-	identity, err := provider.Authenticate(nil, auth.Credentials{})
+	identity, err := provider.Authenticate(context.TODO(), auth.Credentials{})
 	require.NoError(t, err)
 	assert.Equal(t, uuid.MustParse("00000000-0000-0000-0000-000000000001"), identity.ID)
 	assert.Equal(t, "admin@local", identity.Email)
