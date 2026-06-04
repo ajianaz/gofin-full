@@ -21,11 +21,6 @@ permissions:
   packages: write
   security-events: write
 
-# develop → GHCR only (no rate limit)
-# main/tags → GHCR + Docker Hub
-env:
-  IS_PRODUCTION: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
-
 jobs:
   # Stage 1: Build per-arch on native runners (parallel)
   build:
@@ -71,14 +66,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Docker Hub login: only for production (main/tags)
-      - name: Login to Docker Hub
-        if: ${{ env.IS_PRODUCTION == 'true' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -122,21 +109,11 @@ jobs:
       matrix:
         include:
           - target: api
-            dockerhub: ajianaz/gofin-api
             ghcr: ghcr.io/ajianaz/gofin-api
           - target: web
-            dockerhub: ajianaz/gofin-web
             ghcr: ghcr.io/ajianaz/gofin-web
 
     steps:
-      # Docker Hub login: only for production
-      - name: Login to Docker Hub
-        if: ${{ env.IS_PRODUCTION == 'true' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -165,8 +142,7 @@ jobs:
           echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
           echo "sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
 
-      # Always create GHCR manifest
-      - name: Create multi-arch manifest (GHCR)
+      - name: Create multi-arch manifest
         run: |
           TAGS="-t ${{ matrix.ghcr }}:${{ steps.tag.outputs.branch }} \
                  -t ${{ matrix.ghcr }}:${{ steps.tag.outputs.sha }}"
@@ -179,27 +155,8 @@ jobs:
             ${{ matrix.ghcr }}:${{ steps.tag.outputs.branch }}-amd64 \
             ${{ matrix.ghcr }}:${{ steps.tag.outputs.branch }}-arm64
 
-      # Docker Hub manifest: only for production
-      - name: Create multi-arch manifest (Docker Hub)
-        if: ${{ env.IS_PRODUCTION == 'true' }}
-        run: |
-          TAGS="-t ${{ matrix.dockerhub }}:${{ steps.tag.outputs.branch }} \
-                 -t ${{ matrix.dockerhub }}:${{ steps.tag.outputs.sha }}"
-          if [ -n "${{ steps.tag.outputs.extra_tags }}" ]; then
-            for t in $(echo "${{ steps.tag.outputs.extra_tags }}" | tr ',' ' '); do
-              TAGS="$TAGS -t ${{ matrix.dockerhub }}:${t}"
-            done
-          fi
-          docker buildx imagetools create ${TAGS} \
-            ${{ matrix.dockerhub }}:${{ steps.tag.outputs.branch }}-amd64 \
-            ${{ matrix.dockerhub }}:${{ steps.tag.outputs.branch }}-arm64
-
-      # Verify: GHCR for develop, Docker Hub for production
       - name: Verify manifest
         run: |
-          if [ "${{ env.IS_PRODUCTION }}" = "true" ]; then
-            docker buildx imagetools inspect ${{ matrix.dockerhub }}:${{ steps.tag.outputs.branch }}
-          fi
           docker buildx imagetools inspect ${{ matrix.ghcr }}:${{ steps.tag.outputs.branch }}
 
   # Stage 3: Security scanning with Trivy
@@ -212,10 +169,8 @@ jobs:
         include:
           - target: api
             ghcr: ghcr.io/ajianaz/gofin-api
-            dockerhub: ajianaz/gofin-api
           - target: web
             ghcr: ghcr.io/ajianaz/gofin-web
-            dockerhub: ajianaz/gofin-web
 
     steps:
       - name: Resolve image tag
@@ -229,12 +184,7 @@ jobs:
             BRANCH="${{ github.ref_name }}"
           fi
           echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
-          # Use GHCR for develop, Docker Hub for production
-          if [ "${{ env.IS_PRODUCTION }}" = "true" ]; then
-            echo "image=${{ matrix.dockerhub }}:${BRANCH}" >> $GITHUB_OUTPUT
-          else
-            echo "image=${{ matrix.ghcr }}:${BRANCH}" >> $GITHUB_OUTPUT
-          fi
+          echo "image=${{ matrix.ghcr }}:${BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Run Trivy vulnerability scanner (SARIF)
         uses: aquasecurity/trivy-action@v0.33.0
