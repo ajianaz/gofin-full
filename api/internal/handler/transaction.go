@@ -5,13 +5,14 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
 	"github.com/ajianaz/gofin-full/api/internal/auth"
 	"github.com/ajianaz/gofin-full/api/internal/domain"
 	"github.com/ajianaz/gofin-full/api/internal/repository"
 	"github.com/ajianaz/gofin-full/api/internal/service"
+	"github.com/ajianaz/gofin-full/api/internal/validation"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 type TransactionHandler struct {
@@ -160,7 +161,10 @@ func (h *TransactionHandler) Store(c *fiber.Ctx) error {
 		}
 	}
 	if input.ParsedDate.IsZero() {
-		input.ParsedDate = time.Now().UTC()
+		fieldErrors["date"] = append(fieldErrors["date"], "date is required and must be a valid date")
+	}
+	if input.Amount != "" {
+		validation.NonNegative("amount", input.Amount, validation.FieldErrors(fieldErrors))
 	}
 	if len(fieldErrors) > 0 {
 		return apperrors.NewValidationError(fieldErrors)
@@ -226,7 +230,7 @@ func (h *TransactionHandler) StoreSplit(c *fiber.Ctx) error {
 		}
 	}
 	if reqDate.IsZero() {
-		reqDate = time.Now().UTC()
+		fieldErrors["date"] = append(fieldErrors["date"], "date is required and must be a valid date")
 	}
 	if len(fieldErrors) > 0 {
 		return apperrors.NewValidationError(fieldErrors)

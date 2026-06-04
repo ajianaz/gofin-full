@@ -204,6 +204,10 @@ func (h *WalletHandler) Store(c *fiber.Ctx) error {
 		wallet.BIC = &bic
 	}
 	if req.CurrencyID != "" {
+		info := h.curry.ResolveSingle(c.Context(), req.CurrencyID)
+		if info.Code == "" {
+			return apperrors.NewValidationError(map[string][]string{"currency_id": {"currency not found"}})
+		}
 		wallet.CurrencyID = &req.CurrencyID
 	}
 	if req.Notes != "" {
@@ -251,6 +255,11 @@ func (h *WalletHandler) Update(c *fiber.Ctx) error {
 		})
 	}
 
+	if strings.TrimSpace(req.Name) == "" {
+		return apperrors.NewValidationError(map[string][]string{
+			"name": {"name is required"},
+		})
+	}
 	if len(req.Name) > 255 {
 		return apperrors.NewValidationError(map[string][]string{
 			"name": {"Name must be 255 characters or less."},

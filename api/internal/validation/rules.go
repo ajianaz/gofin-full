@@ -3,7 +3,11 @@ package validation
 import (
 	"fmt"
 	"strings"
+	"time"
 	"unicode"
+	"unicode/utf8"
+
+	"github.com/shopspring/decimal"
 
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
 )
@@ -117,5 +121,65 @@ func PasswordStrength(field, value string, errs FieldErrors) {
 func IntRange(field string, value, min, max int, errs FieldErrors) {
 	if value < min || value > max {
 		errs.Add(field, fmt.Sprintf("%s must be between %d and %d.", field, min, max))
+	}
+}
+
+// MaxLengthUTF8 checks maximum string length in UTF-8 characters (not bytes).
+func MaxLengthUTF8(field, value string, max int, errs FieldErrors) {
+	if utf8.RuneCountInString(value) > max {
+		errs.Add(field, fmt.Sprintf("%s must be at most %d characters.", field, max))
+	}
+}
+
+// NonNegative checks that a string-represented decimal is zero or positive.
+func NonNegative(field, value string, errs FieldErrors) {
+	if value == "" {
+		return
+	}
+	d, err := decimal.NewFromString(value)
+	if err != nil {
+		errs.Add(field, fmt.Sprintf("%s must be a valid number.", field))
+		return
+	}
+	if d.IsNegative() {
+		errs.Add(field, fmt.Sprintf("%s must be zero or positive.", field))
+	}
+}
+
+// DateString validates that a value is a valid YYYY-MM-DD date.
+func DateString(field, value string, errs FieldErrors) {
+	if value == "" {
+		errs.Add(field, fmt.Sprintf("%s is required.", field))
+		return
+	}
+	_, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		errs.Add(field, fmt.Sprintf("%s must be a valid date in YYYY-MM-DD format.", field))
+	}
+}
+
+// OptionalDateString validates format if value is non-empty. Does nothing for empty.
+func OptionalDateString(field, value string, errs FieldErrors) {
+	if value == "" {
+		return
+	}
+	_, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		errs.Add(field, fmt.Sprintf("%s must be a valid date in YYYY-MM-DD format.", field))
+	}
+}
+
+// MinGreaterThanMax checks that a string-decimal min <= max.
+func MinGreaterThanMax(minField, maxField, minVal, maxVal string, errs FieldErrors) {
+	if minVal == "" || maxVal == "" {
+		return
+	}
+	minD, minErr := decimal.NewFromString(minVal)
+	maxD, maxErr := decimal.NewFromString(maxVal)
+	if minErr != nil || maxErr != nil {
+		return // let NonNegative handle parse errors
+	}
+	if minD.GreaterThan(maxD) {
+		errs.Add(minField, fmt.Sprintf("%s must not exceed %s.", minField, maxField))
 	}
 }
