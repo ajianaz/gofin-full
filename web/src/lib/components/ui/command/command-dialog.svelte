@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import type { Snippet } from "svelte";
-	import { Command as CommandPrimitive } from "bits-ui";
+	import { Dialog as DialogPrimitive } from "bits-ui";
 
 	let {
-		ref = $bindable(null),
 		class: className,
 		open = $bindable(false),
 		children,
 		...restProps
-	}: CommandPrimitive.DialogProps & {
+	}: DialogPrimitive.RootProps & {
+		class?: string;
 		children: Snippet;
 	} = $props();
 </script>
 
-<CommandPrimitive.Dialog bind:open>
+<DialogPrimitive.Root bind:open {...restProps}>
 	{@render children?.()}
-</CommandPrimitive.Dialog>
+</DialogPrimitive.Root>

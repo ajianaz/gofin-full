@@ -3,24 +3,24 @@
 	import DrawerPortal from "./drawer-portal.svelte";
 	import DrawerOverlay from "./drawer-overlay.svelte";
 	import { cn } from "$lib/utils.js";
+	import type { Snippet } from "svelte";
 	import type { ComponentProps } from "svelte";
 	import type { WithoutChildrenOrChild } from "$lib/utils.js";
 
 	let {
-		ref = $bindable(null),
 		class: className,
 		portalProps,
 		children,
 		...restProps
-	}: DrawerPrimitive.ContentProps & {
+}: Omit<DrawerPrimitive.ContentProps, "children"> & {
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DrawerPortal>>;
-	} = $props();
+		children: Snippet;
+} = $props();
 </script>
 
 <DrawerPortal {...portalProps}>
 	<DrawerOverlay />
 	<DrawerPrimitive.Content
-		bind:ref
 		data-slot="drawer-content"
 		class={cn("cn-drawer-content group/drawer-content fixed z-50", className)}
 		{...restProps}
