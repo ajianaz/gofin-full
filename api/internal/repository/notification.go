@@ -54,6 +54,36 @@ func (r *NotificationRepository) List(ctx context.Context, userID uuid.UUID) ([]
 	return notifications, rows.Err()
 }
 
+func (r *NotificationRepository) ListPaginated(ctx context.Context, userID uuid.UUID, page, perPage int) ([]domain.Notification, int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM notifications WHERE user_id = $1`, userID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count notifications: %w", err)
+	}
+
+	offset := (page - 1) * perPage
+	rows, err := r.db.Query(ctx,
+		`SELECT id, user_id, channel, type, title, message, "read", created_at, updated_at
+		 FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+		userID, perPage, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list notifications: %w", err)
+	}
+	defer rows.Close()
+
+	var notifications []domain.Notification
+	for rows.Next() {
+		var n domain.Notification
+		if err := rows.Scan(&n.ID, &n.UserID, &n.Channel, &n.Type, &n.Title, &n.Message, &n.Read, &n.CreatedAt, &n.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		notifications = append(notifications, n)
+	}
+	return notifications, total, rows.Err()
+}
+
 func (r *NotificationRepository) ListUnread(ctx context.Context, userID uuid.UUID) ([]domain.Notification, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, user_id, channel, type, title, message, "read", created_at, updated_at

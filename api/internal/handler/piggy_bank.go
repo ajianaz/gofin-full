@@ -57,7 +57,18 @@ func (h *PiggyBankHandler) Index(c *fiber.Ctx) error {
 		return apperrors.NewValidationError(map[string][]string{"wallet_id": {"invalid wallet_id"}})
 	}
 
-	pbs, err := h.repo.List(c.Context(), accountID, groupID)
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 20)
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
+	}
+
+	pbs, total, err := h.repo.ListPaginated(c.Context(), accountID, groupID, page, perPage)
 	if err != nil {
 		log.Error().Err(err).Msg("handler/Index: failed to list piggy banks")
 		return apperrors.ErrInternal
@@ -79,7 +90,23 @@ func (h *PiggyBankHandler) Index(c *fiber.Ctx) error {
 			},
 		})
 	}
-	return c.JSON(fiber.Map{"data": data})
+
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+	return c.JSON(fiber.Map{
+		"data": data,
+		"meta": fiber.Map{
+			"pagination": fiber.Map{
+				"total":        total,
+				"count":        len(data),
+				"per_page":     perPage,
+				"current_page": page,
+				"total_pages":  totalPages,
+			},
+		},
+	})
 }
 
 func (h *PiggyBankHandler) Show(c *fiber.Ctx) error {

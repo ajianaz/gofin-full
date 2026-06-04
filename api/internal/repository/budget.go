@@ -74,6 +74,36 @@ func (r *BudgetRepository) List(ctx context.Context, groupID uuid.UUID) ([]domai
 	return budgets, rows.Err()
 }
 
+func (r *BudgetRepository) ListPaginated(ctx context.Context, groupID uuid.UUID, page, perPage int) ([]domain.Budget, int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM budgets WHERE user_group_id = $1 AND deleted_at IS NULL`, groupID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count budgets: %w", err)
+	}
+
+	offset := (page - 1) * perPage
+	rows, err := r.db.Query(ctx,
+		`SELECT id, user_id, user_group_id, name, active, "order", created_at, updated_at
+		 FROM budgets WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", name LIMIT $2 OFFSET $3`,
+		groupID, perPage, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list budgets: %w", err)
+	}
+	defer rows.Close()
+
+	var budgets []domain.Budget
+	for rows.Next() {
+		var b domain.Budget
+		if err := rows.Scan(&b.ID, &b.UserID, &b.UserGroupID, &b.Name, &b.Active, &b.Order, &b.CreatedAt, &b.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		budgets = append(budgets, b)
+	}
+	return budgets, total, rows.Err()
+}
+
 func (r *BudgetRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, active *bool) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE budgets SET

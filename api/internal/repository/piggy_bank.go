@@ -103,6 +103,42 @@ func (r *PiggyBankRepository) List(ctx context.Context, walletID, groupID uuid.U
 	return piggyBanks, rows.Err()
 }
 
+func (r *PiggyBankRepository) ListPaginated(ctx context.Context, walletID, groupID uuid.UUID, page, perPage int) ([]domain.PiggyBank, int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM piggy_banks pb
+		 JOIN wallets w ON w.id = pb.account_id
+		 WHERE pb.account_id = $1 AND w.user_group_id = $2 AND pb.deleted_at IS NULL`,
+		walletID, groupID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count piggy banks: %w", err)
+	}
+
+	offset := (page - 1) * perPage
+	rows, err := r.db.Query(ctx,
+		`SELECT pb.id, pb.account_id, pb.name, pb.target_amount, pb.start_date, pb.target_date, pb."order", pb.notes, pb.created_at, pb.updated_at
+		 FROM piggy_banks pb
+		 JOIN wallets w ON w.id = pb.account_id
+		 WHERE pb.account_id = $1 AND w.user_group_id = $2 AND pb.deleted_at IS NULL
+		 ORDER BY pb."order", pb.name LIMIT $3 OFFSET $4`,
+		walletID, groupID, perPage, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list piggy banks: %w", err)
+	}
+	defer rows.Close()
+
+	var piggyBanks []domain.PiggyBank
+	for rows.Next() {
+		var pb domain.PiggyBank
+		if err := rows.Scan(&pb.ID, &pb.AccountID, &pb.Name, &pb.TargetAmount, &pb.StartDate, &pb.TargetDate, &pb.Order, &pb.Notes, &pb.CreatedAt, &pb.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		piggyBanks = append(piggyBanks, pb)
+	}
+	return piggyBanks, total, rows.Err()
+}
+
 func (r *PiggyBankRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, targetAmount *decimal.Decimal, startDate, targetDate *time.Time, notes *string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE piggy_banks SET

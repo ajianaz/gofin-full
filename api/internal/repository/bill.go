@@ -74,6 +74,37 @@ func (r *BillRepository) List(ctx context.Context, groupID uuid.UUID) ([]domain.
 	return bills, rows.Err()
 }
 
+func (r *BillRepository) ListPaginated(ctx context.Context, groupID uuid.UUID, page, perPage int) ([]domain.Bill, int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM bills WHERE user_group_id = $1 AND deleted_at IS NULL`, groupID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count bills: %w", err)
+	}
+
+	offset := (page - 1) * perPage
+	rows, err := r.db.Query(ctx,
+		`SELECT id, user_id, user_group_id, name, amount_min, amount_max, date, end_date, repeat_freq, skip, active, notes, currency_id, created_at, updated_at
+		 FROM bills WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY "order", name LIMIT $2 OFFSET $3`,
+		groupID, perPage, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list bills: %w", err)
+	}
+	defer rows.Close()
+
+	var bills []domain.Bill
+	for rows.Next() {
+		var b domain.Bill
+		if err := rows.Scan(&b.ID, &b.UserID, &b.UserGroupID, &b.Name, &b.AmountMin, &b.AmountMax, &b.Date, &b.EndDate,
+			&b.RepeatFreq, &b.Skip, &b.Active, &b.Notes, &b.CurrencyID, &b.CreatedAt, &b.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		bills = append(bills, b)
+	}
+	return bills, total, rows.Err()
+}
+
 func (r *BillRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string, active *bool, notes *string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE bills SET name = COALESCE(NULLIF($1, ''), name), active = COALESCE($2, active), notes = $3, updated_at = $4

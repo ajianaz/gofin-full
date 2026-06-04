@@ -69,6 +69,36 @@ func (r *CategoryRepository) List(ctx context.Context, groupID uuid.UUID) ([]dom
 	return categories, rows.Err()
 }
 
+func (r *CategoryRepository) ListPaginated(ctx context.Context, groupID uuid.UUID, page, perPage int) ([]domain.Category, int64, error) {
+	var total int64
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM categories WHERE user_group_id = $1 AND deleted_at IS NULL`, groupID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count categories: %w", err)
+	}
+
+	offset := (page - 1) * perPage
+	rows, err := r.db.Query(ctx,
+		`SELECT id, user_id, user_group_id, name, created_at, updated_at
+		 FROM categories WHERE user_group_id = $1 AND deleted_at IS NULL ORDER BY name LIMIT $2 OFFSET $3`,
+		groupID, perPage, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list categories: %w", err)
+	}
+	defer rows.Close()
+
+	var categories []domain.Category
+	for rows.Next() {
+		var c domain.Category
+		if err := rows.Scan(&c.ID, &c.UserID, &c.UserGroupID, &c.Name, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		categories = append(categories, c)
+	}
+	return categories, total, rows.Err()
+}
+
 func (r *CategoryRepository) Update(ctx context.Context, id, groupID uuid.UUID, name string) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE categories SET name = $1, updated_at = $2

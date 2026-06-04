@@ -20,7 +20,18 @@ func NewNotificationHandler(repo *repository.NotificationRepository) *Notificati
 func (h *NotificationHandler) Index(c *fiber.Ctx) error {
 	user := auth.GetUser(c)
 
-	notifications, err := h.repo.List(c.Context(), user.ID)
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 20)
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
+	}
+
+	notifications, total, err := h.repo.ListPaginated(c.Context(), user.ID, page, perPage)
 	if err != nil {
 		log.Error().Err(err).Msg("handler/Index: failed to list notifications")
 		return apperrors.ErrInternal
@@ -40,7 +51,23 @@ func (h *NotificationHandler) Index(c *fiber.Ctx) error {
 			},
 		})
 	}
-	return c.JSON(fiber.Map{"data": data})
+
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+	return c.JSON(fiber.Map{
+		"data": data,
+		"meta": fiber.Map{
+			"pagination": fiber.Map{
+				"total":        total,
+				"count":        len(data),
+				"per_page":     perPage,
+				"current_page": page,
+				"total_pages":  totalPages,
+			},
+		},
+	})
 }
 
 func (h *NotificationHandler) Unread(c *fiber.Ctx) error {

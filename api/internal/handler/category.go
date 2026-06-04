@@ -26,7 +26,18 @@ func (h *CategoryHandler) Index(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	categories, err := h.repo.List(c.Context(), *groupID)
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 20)
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
+	}
+
+	categories, total, err := h.repo.ListPaginated(c.Context(), *groupID, page, perPage)
 	if err != nil {
 		log.Error().Err(err).Msg("handler/Index: failed to list categories")
 		return apperrors.ErrInternal
@@ -40,7 +51,23 @@ func (h *CategoryHandler) Index(c *fiber.Ctx) error {
 			"attributes": fiber.Map{"name": cat.Name, "created_at": cat.CreatedAt, "updated_at": cat.UpdatedAt},
 		})
 	}
-	return c.JSON(fiber.Map{"data": data})
+
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+	return c.JSON(fiber.Map{
+		"data": data,
+		"meta": fiber.Map{
+			"pagination": fiber.Map{
+				"total":        total,
+				"count":        len(data),
+				"per_page":     perPage,
+				"current_page": page,
+				"total_pages":  totalPages,
+			},
+		},
+	})
 }
 
 func (h *CategoryHandler) Show(c *fiber.Ctx) error {

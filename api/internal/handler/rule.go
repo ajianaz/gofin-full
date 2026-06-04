@@ -25,7 +25,18 @@ func (h *RuleGroupHandler) Index(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	groups, err := h.repo.List(c.Context(), *groupID)
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 20)
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
+	}
+
+	groups, total, err := h.repo.ListPaginated(c.Context(), *groupID, page, perPage)
 	if err != nil {
 		log.Error().Err(err).Msg("handler/Index: failed to list rule groups")
 		return apperrors.ErrInternal
@@ -38,7 +49,23 @@ func (h *RuleGroupHandler) Index(c *fiber.Ctx) error {
 			"attributes": fiber.Map{"title": g.Title, "active": g.Active, "order": g.Order},
 		})
 	}
-	return c.JSON(fiber.Map{"data": data})
+
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+	return c.JSON(fiber.Map{
+		"data": data,
+		"meta": fiber.Map{
+			"pagination": fiber.Map{
+				"total":        total,
+				"count":        len(data),
+				"per_page":     perPage,
+				"current_page": page,
+				"total_pages":  totalPages,
+			},
+		},
+	})
 }
 
 func (h *RuleGroupHandler) Store(c *fiber.Ctx) error {
@@ -159,7 +186,18 @@ func (h *RuleHandler) Index(c *fiber.Ctx) error {
 		return apperrors.New(400, "no active group")
 	}
 
-	rules, err := h.repo.List(c.Context(), *groupID)
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 20)
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
+	}
+
+	rules, total, err := h.repo.ListPaginated(c.Context(), *groupID, page, perPage)
 	if err != nil {
 		log.Error().Err(err).Msg("handler/Index: failed to list rules")
 		return apperrors.ErrInternal
@@ -175,7 +213,23 @@ func (h *RuleHandler) Index(c *fiber.Ctx) error {
 			},
 		})
 	}
-	return c.JSON(fiber.Map{"data": data})
+
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+	return c.JSON(fiber.Map{
+		"data": data,
+		"meta": fiber.Map{
+			"pagination": fiber.Map{
+				"total":        total,
+				"count":        len(data),
+				"per_page":     perPage,
+				"current_page": page,
+				"total_pages":  totalPages,
+			},
+		},
+	})
 }
 
 func (h *RuleHandler) Show(c *fiber.Ctx) error {

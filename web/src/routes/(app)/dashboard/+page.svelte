@@ -3,7 +3,7 @@
 	import { PageHeader, StatCard, AmountDisplay } from '$lib/components/shared/index.js';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 	import { Progress } from '$lib/components/ui/progress/index.js';
-	import { Wallet, TrendingUp, TrendingDown, PiggyBank, Plus, ArrowRight, AlertTriangle } from '@lucide/svelte';
+	import { Wallet, TrendingUp, TrendingDown, PiggyBank, Plus, ArrowRight, AlertTriangle, RefreshCw } from '@lucide/svelte';
 	import { walletService, transactionService, budgetService } from '$lib/services/index.js';
 	import { formatCurrency, formatDate, getDefaultSymbol } from '$lib/utils/format.js';
 	import { localeStore } from '$lib/stores/i18n.svelte.js';
@@ -11,12 +11,14 @@
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import EmptyState from '$lib/components/shared/EmptyState.svelte';
+	import { handleApiError, showSuccessToast } from '$lib/stores/toast.js';
 	const t = localeStore.t;
 
 	let wallets = $state<Account[]>([]);
 	let transactions = $state<Transaction[]>([]);
 	let budgets = $state<Budget[]>([]);
 	let isLoading = $state(true);
+	let loadError = $state(false);
 
 	const isEmpty = $derived(wallets.length === 0);
 
@@ -87,7 +89,9 @@
 	const budget = $derived(budgets[0] || null);
 	const budgetPercent = $derived(budget ? (parseFloat(budget.spend_amount || '0') / parseFloat(budget.budget_amount || '1')) * 100 : 0);
 
-	onMount(async () => {
+	async function loadDashboard() {
+		isLoading = true;
+		loadError = false;
 		try {
 			const [wRes, tRes, bRes] = await Promise.all([
 				walletService.list(),
@@ -98,10 +102,15 @@
 			transactions = tRes.data;
 			budgets = bRes;
 		} catch (e) {
-			console.error('Failed to load dashboard data:', e);
+			loadError = true;
+			handleApiError(e);
 		} finally {
 			isLoading = false;
 		}
+	}
+
+	onMount(() => {
+		loadDashboard();
 	});
 </script>
 
@@ -129,6 +138,18 @@
 				{/each}
 		</CardContent>
 	</Card>
+{:else if loadError}
+	<div class="flex flex-col items-center justify-center py-16 text-center">
+		<div class="flex size-20 items-center justify-center rounded-full bg-destructive/10 mb-4">
+			<AlertTriangle class="size-10 text-destructive" />
+		</div>
+		<h3 class="text-xl font-semibold text-foreground mb-2">{t('common.errorLoading')}</h3>
+		<p class="text-sm text-muted-foreground max-w-md mb-6">{t('common.errorLoadingDescription')}</p>
+		<Button onclick={loadDashboard}>
+			<RefreshCw class="size-4 mr-2" />
+			{t('common.retry')}
+		</Button>
+	</div>
 {:else if isEmpty}
 	<div class="flex flex-col items-center justify-center py-16 text-center">
 		<div class="flex size-20 items-center justify-center rounded-full bg-muted mb-4">

@@ -39,7 +39,18 @@ func (h *WalletHandler) Index(c *fiber.Ctx) error {
 	walletType := c.Query("type")
 	activeOnly := c.QueryBool("active", true)
 
-	wallets, err := h.repo.List(c.Context(), *groupID, walletType, activeOnly)
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 20)
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 20
+	} else if perPage > 100 {
+		perPage = 100
+	}
+
+	wallets, total, err := h.repo.ListPaginated(c.Context(), *groupID, walletType, activeOnly, page, perPage)
 	if err != nil {
 		return apperrors.ErrInternal
 	}
@@ -58,7 +69,22 @@ func (h *WalletHandler) Index(c *fiber.Ctx) error {
 		data = append(data, walletToMap(&w, cMap))
 	}
 
-	return c.JSON(fiber.Map{"data": data})
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+	return c.JSON(fiber.Map{
+		"data": data,
+		"meta": fiber.Map{
+			"pagination": fiber.Map{
+				"total":        total,
+				"count":        len(data),
+				"per_page":     perPage,
+				"current_page": page,
+				"total_pages":  totalPages,
+			},
+		},
+	})
 }
 
 // Show handles GET /api/v1/wallets/:id.
