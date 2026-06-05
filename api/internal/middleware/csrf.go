@@ -9,8 +9,9 @@ import (
 
 // CSRFConfig holds configuration for the CSRF middleware wrapper.
 type CSRFConfig struct {
-	Secret string
-	IsProd bool
+	Secret  string
+	IsProd  bool
+	IsDebug bool
 }
 
 // CSRF returns a Fiber CSRF middleware configured for the double-submit cookie pattern.
@@ -19,29 +20,54 @@ type CSRFConfig struct {
 // Header: "X-CSRF-Token".
 //
 // API-key authenticated requests are exempt (c.Locals("auth_method") == "api_key").
-// Safe methods (GET, HEAD, OPTIONS) are exempt by Fiber's CSRF middleware automatically.
+// Note: The CSRF middleware runs BEFORE auth middleware, so auth_method is set by a
+// lightweight pre-check that inspects the Authorization header for API key patterns.
 func CSRF(cfg CSRFConfig) fiber.Handler {
-	return csrf.New(csrf.Config{
-		KeyLookup:      "header:X-CSRF-Token",
-		CookieName:     "gofin_csrf",
+	h := csrf.New(csrf.Config{
+		KeyLookup:   "header:X-CSRF-Token",
+		CookieName:  "gofin_csrf",
 		CookieSameSite: "Lax",
 		CookieSecure:   cfg.IsProd,
 		CookieHTTPOnly: false,
 		CookiePath:     "/",
 		Expiration:     1 * time.Hour,
 		ContextKey:     "csrf_token",
-		// Skip CSRF for API-key requests — they use Bearer token / X-API-Key auth
-		// and are not vulnerable to browser-based CSRF attacks.
-		Next: func(c *fiber.Ctx) bool {
-			if method := c.Method(); method == fiber.MethodGet || method == fiber.MethodHead || method == fiber.MethodOptions {
-				return true
+		// Use the configured secret for deterministic key generation.
+		// This ensures CSRF cookies survive server restarts.
+		KeyGenerator: func() []byte {
+			if cfg.Secret != "" {
+				return []byte(cfg.Secret)
 			}
-			if authMethod, ok := c.Locals("auth_method").(string); ok && authMethod == "api_key" {
-				return true
+			// Fallback: random key (cookies invalidate on restart)
+			return csrf.GenerateKey(32)
+		},
+		// Skip CSRF for API-key requests — detect via Authorization header
+		// pattern BEFORE auth middleware runs. API keys use "gofin_" prefix
+		// in the Authorization header or X-API-Key header.
+		Next: func(c *fiber.Ctx) bool {
+			// Check for API key in Authorization header (format: "Bearer gofin_..." or "gofin_...")
+			if authHeader := c.Get("Authorization"); authHeader != "" {
+				// Strip "Bearer " prefix if present
+				token := authHeader
+				if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+					token = authHeader[7:]
+				}
+				if len(token) > 6 && token[:6] == "gofin_" {
+					c.Locals("auth_method", "api_key")
+					return true
+				}
+			}
+			// Check X-API-Key header
+			if apiKey := c.Get("X-API-Key"); apiKey != "" {
+				if len(apiKey) > 6 && apiKey[:6] == "gofin_" {
+					c.Locals("auth_method", "api_key")
+					return true
+				}
 			}
 			return false
 		},
 	})
+	return h
 }
 
 // CSRFTokenHandler returns a handler that responds with the current CSRF token.
@@ -50,8 +76,6 @@ func CSRFTokenHandler() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		token, ok := c.Locals("csrf_token").(string)
 		if !ok || token == "" {
-			// The CSRF middleware should have already set the token in locals.
-			// This should not happen if the middleware is properly chained.
 			return c.Status(500).JSON(fiber.Map{
 				"error": "CSRF token not available",
 			})

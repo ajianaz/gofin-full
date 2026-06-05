@@ -115,10 +115,12 @@ func New(cfg RouterConfig) *fiber.App {
 	// CSRF protection (double-submit cookie pattern).
 	// Only enabled when CSRFSecret is configured. Integration tests and local
 	// development without CSRF_SECRET set will skip CSRF entirely.
+	// Production deployments MUST set CSRF_SECRET for defense-in-depth.
 	if cfg.CSRFSecret != "" {
 		v1.Use(middleware.CSRF(middleware.CSRFConfig{
-			Secret: cfg.CSRFSecret,
-			IsProd: cfg.AppEnv == "production",
+			Secret:  cfg.CSRFSecret,
+			IsProd:  cfg.AppEnv == "production",
+			IsDebug: cfg.AppEnv == "local",
 		}))
 		// CSRF token endpoint — frontend calls this to obtain an initial CSRF cookie.
 		v1.Get("/csrf", middleware.CSRFTokenHandler())
