@@ -10,7 +10,7 @@ import (
 func CORS(appURL, appEnv, corsAllowedOrigins string) fiber.Handler {
 	cfg := cors.Config{
 		AllowMethods:  "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders:  "Origin,Content-Type,Accept,Authorization,X-Trace-Id,X-Request-ID,X-API-Key",
+		AllowHeaders:  "Origin,Content-Type,Accept,Authorization,X-Trace-Id,X-Request-ID,X-API-Key,X-CSRF-Token",
 		ExposeHeaders: "X-Request-ID,X-Trace-Id",
 		MaxAge:        86400,
 	}

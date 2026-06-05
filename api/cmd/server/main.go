@@ -208,6 +208,7 @@ func main() {
 		DisableMetrics:       cfg.DisablePrometheus,
 		RedisClient:          rdb,
 		MaxRequestBodyBytes:  cfg.MaxRequestBodyBytes,
+		CSRFSecret:           cfg.CSRFSecret,
 		CustomMiddleware: []fiber.Handler{
 			middleware.Logger(log),
 			middleware.Recovery(log),

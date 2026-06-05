@@ -75,6 +75,7 @@ type Config struct {
 	LoginLockoutMinutes     int    `mapstructure:"LOGIN_LOCKOUT_MINUTES"`
 	MaxRequestBodyBytes     int64  `mapstructure:"MAX_REQUEST_BODY_BYTES"`
 	CORSAllowedOrigins     string `mapstructure:"CORS_ALLOWED_ORIGINS"`
+	CSRFSecret             string `mapstructure:"CSRF_SECRET"`
 	DisablePrometheus      bool   `mapstructure:"DISABLE_PROMETHEUS"`
 
 	// Features
@@ -215,6 +216,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("LOGIN_LOCKOUT_MINUTES", 15)
 	v.SetDefault("MAX_REQUEST_BODY_BYTES", 10485760)
 	v.SetDefault("CORS_ALLOWED_ORIGINS", "http://localhost:5173")
+	v.SetDefault("CSRF_SECRET", "")
 	v.SetDefault("DISABLE_PROMETHEUS", false)
 
 	v.SetDefault("FEATURE_EXPORT", true)
