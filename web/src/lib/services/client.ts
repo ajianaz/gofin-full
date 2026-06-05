@@ -58,11 +58,62 @@ async function getRefreshedToken(): Promise<TokenResponse | null> {
 	return refreshPromise;
 }
 
+// ---------------------------------------------------------------------------
+// CSRF — Double-Submit Cookie Pattern
+// ---------------------------------------------------------------------------
+
 /**
- * Build request headers with auth token from authStore (single source of truth).
- * authStore is updated synchronously by refreshAccessToken before this is called for retries.
+ * Read the CSRF token from the `gofin_csrf` cookie set by the backend.
+ * Returns an empty string if the cookie is not present.
  */
-function buildHeaders(options: RequestInit): Record<string, string> {
+function getCSRFTokenFromCookie(): string {
+	if (typeof document === 'undefined') return '';
+	const match = document.cookie
+		.split('; ')
+		.find((row) => row.startsWith('gofin_csrf='));
+	return match ? decodeURIComponent(match.split('=')[1]) : '';
+}
+
+/**
+ * Ensure a CSRF cookie exists by fetching the /csrf endpoint.
+ * This is a no-op if the cookie is already present.
+ */
+let csrfFetchPromise: Promise<void> | null = null;
+
+async function ensureCSRFToken(): Promise<void> {
+	if (typeof document === 'undefined') return;
+	if (getCSRFTokenFromCookie()) return;
+
+	// Deduplicate concurrent fetches
+	if (csrfFetchPromise) {
+		await csrfFetchPromise;
+		return;
+	}
+
+	csrfFetchPromise = (async () => {
+		try {
+			await fetch(`${API_BASE}/csrf`, {
+				method: 'GET',
+				credentials: 'same-origin'
+			});
+		} finally {
+			csrfFetchPromise = null;
+		}
+	})();
+
+	await csrfFetchPromise;
+}
+
+/**
+ * Build request headers with auth token and CSRF token.
+ *
+ * For state-changing methods (POST, PUT, PATCH, DELETE), the X-CSRF-Token
+ * header is attached using the double-submit cookie pattern:
+ *   - The backend sets `gofin_csrf` as a non-httpOnly cookie.
+ *   - JS reads the cookie and sends its value back via X-CSRF-Token.
+ *   - The backend compares the header value against the cookie value.
+ */
+async function buildHeaders(options: RequestInit): Promise<Record<string, string>> {
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json',
 		...((options.headers as Record<string, string>) || {})
@@ -71,6 +122,18 @@ function buildHeaders(options: RequestInit): Record<string, string> {
 	if (token) {
 		headers['Authorization'] = `Bearer ${token}`;
 	}
+
+	// Attach CSRF token for state-changing requests
+	const method = (options.method || 'GET').toUpperCase();
+	if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+		// Ensure we have a CSRF cookie before reading it
+		await ensureCSRFToken();
+		const csrfToken = getCSRFTokenFromCookie();
+		if (csrfToken) {
+			headers['X-CSRF-Token'] = csrfToken;
+		}
+	}
+
 	return headers;
 }
 
@@ -89,7 +152,7 @@ async function request<T>(
 	options: RequestInit = {}
 ): Promise<T> {
 	const url = `${API_BASE}${path}`;
-	const headers = buildHeaders(options);
+	const headers = await buildHeaders(options);
 
 	const response = await fetch(url, {
 		...options,
@@ -101,7 +164,7 @@ async function request<T>(
 		const newTokens = await getRefreshedToken();
 
 		if (newTokens) {
-			const retryHeaders = buildHeaders(options);
+			const retryHeaders = await buildHeaders(options);
 			const retryResponse = await fetch(url, {
 				...options,
 				credentials: 'same-origin',
@@ -163,7 +226,7 @@ async function requestBlob(
 	options: RequestInit = {}
 ): Promise<Response> {
 	const url = `${API_BASE}${path}`;
-	const headers = buildHeaders(options);
+	const headers = await buildHeaders(options);
 
 	const response = await fetch(url, {
 		...options,
@@ -175,7 +238,7 @@ async function requestBlob(
 		const newTokens = await getRefreshedToken();
 
 		if (newTokens) {
-			const retryHeaders = buildHeaders(options);
+			const retryHeaders = await buildHeaders(options);
 			const retryResponse = await fetch(url, {
 				...options,
 				credentials: 'same-origin',

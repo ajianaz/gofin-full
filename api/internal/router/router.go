@@ -65,6 +65,7 @@ type RouterConfig struct {
 	DisableMetrics       bool
 	RedisClient          redis.Cmdable
 	MaxRequestBodyBytes  int64
+	CSRFSecret           string
 }
 
 // registerRateLimit applies a stricter rate limit (5 req/min/IP) to the registration endpoint.
@@ -110,6 +111,17 @@ func New(cfg RouterConfig) *fiber.App {
 
 	// API v1 routes
 	v1 := app.Group("/api/v1")
+
+	// CSRF protection (double-submit cookie pattern).
+	// Applied to the v1 group so the CSRF middleware runs before any v1 handler.
+	// Safe methods (GET, HEAD, OPTIONS) and API-key requests are exempted.
+	v1.Use(middleware.CSRF(middleware.CSRFConfig{
+		Secret: cfg.CSRFSecret,
+		IsProd: cfg.AppEnv == "production",
+	}))
+
+	// CSRF token endpoint — frontend calls this to obtain an initial CSRF cookie.
+	v1.Get("/csrf", middleware.CSRFTokenHandler())
 
 	// Auth routes (public)
 	authGroup := v1.Group("/auth")
