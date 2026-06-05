@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	apperrors "github.com/ajianaz/gofin-full/api/pkg/errors"
@@ -46,8 +45,9 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 	}
 
 	// Shape 5: Internal error fallback
+	// Do not expose internal error types to clients — only return generic message.
+	// The specific error type is logged server-side by the request logger middleware.
 	return c.Status(500).JSON(fiber.Map{
-		"message":   "Internal Server Error",
-		"exception": reflect.TypeOf(err).String(),
+		"message": "Internal Server Error",
 	})
 }

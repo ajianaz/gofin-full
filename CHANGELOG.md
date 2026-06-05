@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Security
+- **Error response hardening** — removed `reflect.TypeOf(err)` from 500 fallback responses; internal error types no longer leaked to clients (#248)
+- **Docker Compose secrets** — `DB_PASSWORD` is now required (no weak default); both selfhost and traefik compose files enforce explicit password (#244)
+- **Rate limiting enabled by default** — `RATE_LIMIT_ENABLED` and `LOGIN_RATE_LIMIT_ENABLED` now default to `true` in both compose files (was `false`) (#252)
+- **Prometheus metrics enabled by default** — `DISABLE_PROMETHEUS` now defaults to `false` so production deployments get observability out of the box (#252)
+- **Production CSP hardened** — API CSP now uses specific directives (`script-src`, `style-src`, `img-src`, `font-src`, `connect-src`, `frame-ancestors`, `base-uri`, `form-action`) instead of bare `default-src 'self'`, allowing Tailwind/Svelte resources while blocking inline scripts (#253)
+- **Security docs corrected** — JWT signing method documented as HS256 (was incorrectly stated as RS256); token storage docs updated to reflect httpOnly cookie migration (#243)
+
+### Frontend
+- **Custom error boundary** — added branded `+error.svelte` with status code, contextual title, and navigation buttons (replaces default SvelteKit error page) (#247)
+- **SSR auth state** — added `+layout.server.ts` to detect httpOnly session cookies server-side, preventing flash-of-login-page on authenticated routes (#246)
+
 ### Backend
 - **Input validation** — added comprehensive validation across 6 handlers:
   - Tag: duplicate name → 409, max length 100 chars (#230 #232)
