@@ -113,15 +113,16 @@ func New(cfg RouterConfig) *fiber.App {
 	v1 := app.Group("/api/v1")
 
 	// CSRF protection (double-submit cookie pattern).
-	// Applied to the v1 group so the CSRF middleware runs before any v1 handler.
-	// Safe methods (GET, HEAD, OPTIONS) and API-key requests are exempted.
-	v1.Use(middleware.CSRF(middleware.CSRFConfig{
-		Secret: cfg.CSRFSecret,
-		IsProd: cfg.AppEnv == "production",
-	}))
-
-	// CSRF token endpoint — frontend calls this to obtain an initial CSRF cookie.
-	v1.Get("/csrf", middleware.CSRFTokenHandler())
+	// Only enabled when CSRFSecret is configured. Integration tests and local
+	// development without CSRF_SECRET set will skip CSRF entirely.
+	if cfg.CSRFSecret != "" {
+		v1.Use(middleware.CSRF(middleware.CSRFConfig{
+			Secret: cfg.CSRFSecret,
+			IsProd: cfg.AppEnv == "production",
+		}))
+		// CSRF token endpoint — frontend calls this to obtain an initial CSRF cookie.
+		v1.Get("/csrf", middleware.CSRFTokenHandler())
+	}
 
 	// Auth routes (public)
 	authGroup := v1.Group("/auth")
