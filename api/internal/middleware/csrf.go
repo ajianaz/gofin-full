@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -34,12 +36,14 @@ func CSRF(cfg CSRFConfig) fiber.Handler {
 		ContextKey:     "csrf_token",
 		// Use the configured secret for deterministic key generation.
 		// This ensures CSRF cookies survive server restarts.
-		KeyGenerator: func() []byte {
+		KeyGenerator: func() string {
 			if cfg.Secret != "" {
-				return []byte(cfg.Secret)
+				return cfg.Secret
 			}
-			// Fallback: random key (cookies invalidate on restart)
-			return csrf.GenerateKey(32)
+			// Fallback: random 32-byte hex key (cookies invalidate on restart)
+			b := make([]byte, 32)
+			_, _ = rand.Read(b)
+			return hex.EncodeToString(b)
 		},
 		// Skip CSRF for API-key requests — detect via Authorization header
 		// pattern BEFORE auth middleware runs. API keys use "gofin_" prefix
